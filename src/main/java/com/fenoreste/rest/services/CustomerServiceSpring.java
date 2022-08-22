@@ -37,6 +37,7 @@ import com.fenoreste.rest.entity.Negociopropio;
 import com.fenoreste.rest.entity.Origenes;
 import com.fenoreste.rest.entity.Persona;
 import com.fenoreste.rest.entity.Referencias;
+import com.fenoreste.rest.entity.Referenciasp;
 import com.fenoreste.rest.entity.RegistraMovimiento;
 import com.fenoreste.rest.entity.Socioeconomicos;
 import com.fenoreste.rest.entity.Tablas;
@@ -144,6 +145,9 @@ public class CustomerServiceSpring {
 	@Autowired
 	private SMS_Csn smsCsn;
 	
+	@Autowired
+	IReferenciaspService referenciaspService;
+	
 	
 	public dataDTO informacionPersona(String tipoDocumento,String numeroDocumento) {
 		dataDTO response = new dataDTO();
@@ -227,12 +231,14 @@ public class CustomerServiceSpring {
                     }
                     response.setIngresos_mensuales(trabajo.getIng_mensual_neto().toString());//atributo ingresos mensuales
                     Colonias colonia = coloniaService.findById(persona.getIdcolonia());
-           			Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
-           			Estados estado = estadoService.findById(municipio.getIdestado());
-           			response.setEstado(estado.getNombre());//atributo estado
-                    response.setCiudad(municipio.getNombre());//atributo ciudad
-                    response.setDireccion(persona.getCalle() + " " + persona.getNumeroext());//atributo direccion
-                    response.setCodigo_postal(colonia.getCodigopostal());//atributo codigo postal
+                    if(colonia != null) {
+                    	Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
+               			Estados estado = estadoService.findById(municipio.getIdestado());
+               			response.setEstado(estado.getNombre());//atributo estado
+                        response.setCiudad(municipio.getNombre());//atributo ciudad
+                        response.setDireccion(persona.getCalle() + " " + persona.getNumeroext());//atributo direccion
+                        response.setCodigo_postal(colonia.getCodigopostal());//atributo codigo postal
+                    }           			
                     if (sc.getPropietariovivienda() != null){
                         response.setPropiedad_vivienda(sc.getPropietariovivienda());//atributo propiedad vivienda
                     } else {
@@ -662,7 +668,9 @@ public class CustomerServiceSpring {
  			    String[]cadena = rangos.get(9).toString().split("\\-");
 		        opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
 		        if(rangos.get(7).equals(".00")) {
-	 		    	bandera = true;
+		        	if(monto > tmp_validacion.getMontorenovar()) {
+		        		bandera = true;	
+		        	}	 		    	
 	 		    }
 			  }else {
 				bandera = true;
@@ -674,6 +682,7 @@ public class CustomerServiceSpring {
 				//Configuracion de apertura para obtener el origen
 				if(monto <= tmp_validacion.getMontoalcanzado()) {
 					String aperturar_opa = funcionesService.aperturar_opa(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(), monto, plazos,tmp_validacion.getIdproducto(),tmp_validacion.getOpaactivo(),tmp_validacion.getIdorigenp());								
+					System.out.println("Este es el idorigenp que esta buscando:"+tmp_validacion.getIdorigenp()+", el idproductoi:"+tmp_validacion.getIdproducto()+" , idauxiliar:"+Integer.parseInt(aperturar_opa.replace("|","").toString()));
 					Auxiliar creado_aux = auxiliaresService.AuxiliarByOpa(tmp_validacion.getIdorigenp(),tmp_validacion.getIdproducto(),Integer.parseInt(aperturar_opa.replace("|","").toString()));
 					prestamo.setOpa(String.format("%06d",creado_aux.getIdorigenp())+String.format("%05d",creado_aux.getIdproducto())+String.format("%08d",creado_aux.getIdauxiliar()));  
 				    prestamo.setIdorigenp(String.valueOf(creado_aux.getIdorigenp()));
@@ -714,7 +723,12 @@ public class CustomerServiceSpring {
 				  if(tmp_validacion == null) {
 					  prestamo.setNota("No se ha realizado una validacion para el socio:"+num_socio);  
 				  }else {
-					  prestamo.setNota("Asegurese de haber cubierto:"+montoCubrir+", al folio:"+opaAnterior);
+					  if(tmp_validacion.getAtrasado() > 0.00) {
+						  prestamo.setNota("Asegurese de haber cubierto:"+montoCubrir+", al folio:"+opaAnterior);  
+					  }else if(tmp_validacion.getMontorenovar() >= monto){
+						  prestamo.setNota("No es posible renovar prestamo porque monto solicitado:"+monto+" es menor a:"+tmp_validacion.getMontorenovar());
+					  }
+					  
 				  }
 				  
 			  }
@@ -770,7 +784,9 @@ public class CustomerServiceSpring {
 			Tablas tb_texto_sms_dispersion = tablasService.findIdtablaAndIdelemento("prezzta","texto_sms_dispersion");
 			Tablas tb_texto_sms_declinacion = tablasService.findIdtablaAndIdelemento("prezzta", "texto_sms_declinacion");
 			Persona persona = personaService.findByOgs(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio());
-			
+			//Tabla para obtener el monto de comision
+			Tablas tb_monto_comision = tablasService.findIdtablaAndIdelemento("prezzta","comision");	
+			Tablas tb_usuario = tablasService.findIdtablaAndIdelemento("prezzta","usuario");
 			
 			//Si se confirma entregamos el prestamo
 			if(confirmar.equalsIgnoreCase("si")) {	
@@ -778,11 +794,12 @@ public class CustomerServiceSpring {
 			   Tablas tb_config_dispersion  = tablasService.findIdtablaAndIdelemento("prezzta","producto_para_dispersion");			 
     	 	   Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),Integer.parseInt(tb_config_dispersion.getDato1()));
 		      if(auxiliar_tdd != null) {
+		    	  //Cargo al producto que va a ser la renovacion(Nuevo)
 		    	  registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
 				  registrar_movimiento.setIdproducto(auxiliar.getIdproducto());
 				  registrar_movimiento.setIdauxiliar(auxiliar.getIdauxiliar());
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(999);
+				  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 				  registrar_movimiento.setSesion(sesion);
 				  registrar_movimiento.setReferencia(referencia);
 				  registrar_movimiento.setIdorigen(auxiliar.getIdorigen());
@@ -796,37 +813,79 @@ public class CustomerServiceSpring {
 				  
 				  boolean procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
 				  
-				  //Tabla para obtener el monto de comision
-				  Tablas tb_monto_comision = tablasService.findIdtablaAndIdelemento("prezzta","comision");
-				  registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
-				  registrar_movimiento.setIdproducto(auxiliar_tdd.getIdproducto());
-				  registrar_movimiento.setIdauxiliar(auxiliar_tdd.getIdauxiliar());
-				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(999);
-				  registrar_movimiento.setSesion(sesion);
-				  registrar_movimiento.setReferencia(referencia);
-				  registrar_movimiento.setIdorigen(auxiliar_tdd.getIdorigen());
-				  registrar_movimiento.setIdgrupo(auxiliar_tdd.getIdgrupo());
-				  registrar_movimiento.setIdsocio(auxiliar_tdd.getIdsocio());
-				  registrar_movimiento.setCargoabono(1);
-				  registrar_movimiento.setMonto(auxiliar.getMontoautorizado().doubleValue()-Double.parseDouble(tb_monto_comision.getDato1()) - (Double.parseDouble(tb_monto_comision.getDato1())* 0.16));
-				  registrar_movimiento.setIva(Double.parseDouble(auxiliar_tdd.getIva().toString()));
-				  registrar_movimiento.setTipo_amort(auxiliar_tdd.getTipoamortizacion().intValue());
-				  registrar_movimiento.setSai_aux("");
+				  			  
+				  //Buscamos si lo que se va a aplicar es renovacion
+				  Referenciasp referenciasp =  referenciaspService.referenciaspByOPA(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
+				  if(referenciasp != null) {
+					  //Aplicamos movimiento para realizar pago del prestamo a renovar(Viejito)
+					  registrar_movimiento.setIdorigenp(referenciasp.getIdorigenpr());
+					  registrar_movimiento.setIdproducto(referenciasp.getIdproductor());
+					  registrar_movimiento.setIdauxiliar(referenciasp.getIdauxiliarr());
+					  registrar_movimiento.setFecha(fecha_transferencia);
+					  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
+					  registrar_movimiento.setSesion(sesion);
+					  registrar_movimiento.setReferencia(referencia);
+					  registrar_movimiento.setIdorigen(auxiliar.getIdorigen());
+					  registrar_movimiento.setIdgrupo(auxiliar.getIdgrupo());
+					  registrar_movimiento.setIdsocio(auxiliar.getIdsocio());
+					  registrar_movimiento.setCargoabono(1);
+					  //Si se debia capital y ya se hizo el pago corremos nuevamente la funcion para ver con cuanto se liquida el prestamo
+					  
+					  String monto_maximo_prestar = funcionesService.validacion_monto_prestar(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio());
+					  String[] montos_array = monto_maximo_prestar.split("\\|");                    
+					  List rangos = new ArrayList<>();
+					  rangos = Arrays.asList(montos_array);	 			   
+			 			     
+			 		  String totalRenovar = rangos.get(5).toString();			 		  	   
+			 		  registrar_movimiento.setMonto(Double.parseDouble(totalRenovar));
+					  registrar_movimiento.setIva(0.0);
+					  //Busco el auxiliar Solo para obtener el tipo de amorizacion
+					  Auxiliar auxiliar_Activo_original = auxiliaresService.AuxiliarByOpa(referenciasp.getIdorigenpr(),referenciasp.getIdproductor(),referenciasp.getIdauxiliarr());
+					  Auxiliar nuevo = auxiliaresService.AuxiliarByOpa(referenciasp.getIdorigenp(),referenciasp.getIdproducto(),referenciasp.getIdauxiliar());
+					  registrar_movimiento.setTipo_amort(nuevo.getTipoamortizacion().intValue());
+					  registrar_movimiento.setSai_aux("");					 
+					  total_depositar = auxiliar.getMontoautorizado().doubleValue()-Double.parseDouble(tb_monto_comision.getDato1()) - (Double.parseDouble(tb_monto_comision.getDato1())* 0.16) - Double.parseDouble(totalRenovar);
+					  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);					  					 
+					  					  
+				  }
+				      
+					  //Registrando movimiento abono a dispersion
+					  registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
+					  registrar_movimiento.setIdproducto(auxiliar_tdd.getIdproducto());
+					  registrar_movimiento.setIdauxiliar(auxiliar_tdd.getIdauxiliar());
+					  registrar_movimiento.setFecha(fecha_transferencia);
+					  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
+					  registrar_movimiento.setSesion(sesion);
+					  registrar_movimiento.setReferencia(referencia);
+					  registrar_movimiento.setIdorigen(auxiliar_tdd.getIdorigen());
+					  registrar_movimiento.setIdgrupo(auxiliar_tdd.getIdgrupo());
+					  registrar_movimiento.setIdsocio(auxiliar_tdd.getIdsocio());
+					  registrar_movimiento.setCargoabono(1);
+					  if(total_depositar>0) {
+						  registrar_movimiento.setMonto(total_depositar);  
+					  }else {
+						  registrar_movimiento.setMonto(auxiliar.getMontoautorizado().doubleValue()-Double.parseDouble(tb_monto_comision.getDato1()) - (Double.parseDouble(tb_monto_comision.getDato1())* 0.16));
+						  total_depositar = registrar_movimiento.getMonto();
+					  }
+					  registrar_movimiento.setIva(Double.parseDouble(auxiliar_tdd.getIva().toString()));
+					  registrar_movimiento.setTipo_amort(auxiliar_tdd.getTipoamortizacion().intValue());
+					  registrar_movimiento.setSai_aux("");	
+					  					 
+					  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);	 
 				  
-				  total_depositar = registrar_movimiento.getMonto();
-				 
-				  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
+				  
+				  
 				  
 				  //Preparamos el movimiento a donde mandaremos la comision 			 
 				  //Tabla para obtener el idproducto a donde se enviara la comision
+				 
 				  Tablas tb_producto_comision = tablasService.findIdtablaAndIdelemento("prezzta","producto_comision");
 				  System.out.println("El producto para ocmision es:"+tb_producto_comision.getDato1());	  
 				  registrar_movimiento.setIdorigenp(0);
 				  registrar_movimiento.setIdproducto(Integer.parseInt(tb_producto_comision.getDato1()));
 				  registrar_movimiento.setIdauxiliar(0);
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(999);
+				  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 				  registrar_movimiento.setSesion(sesion);
 				  registrar_movimiento.setReferencia(referencia);
 				  registrar_movimiento.setIdorigen(auxiliar_tdd.getIdorigen());
@@ -838,10 +897,13 @@ public class CustomerServiceSpring {
 				  registrar_movimiento.setTipo_amort(0);
 				 
 				  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
+				  
+				  
+				  
 				  //Guardamos el movimiento
 				  System.out.println("Producto comision registrado con exito"); 
 				  
-				  String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
+				  String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
 					         registrar_movimiento.getIdusuario(),
 					         registrar_movimiento.getSesion(),
 					         registrar_movimiento.getReferencia());
@@ -858,7 +920,7 @@ public class CustomerServiceSpring {
 			      
 				  entregado.setOpa(opaReq);
 				  entregado.setEstatus(estado_aux);
-				  entregado.setMonto_entregado(String.valueOf(auxiliar.getMontoprestado()));
+				  entregado.setMonto_entregado(String.valueOf(total_depositar));
 				  //Buscamos la poliza
 				  String poliza = funcionesService.obtenerPoliza(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());  
 				  entregado.setNumero_folio_poliza(poliza);
@@ -904,9 +966,17 @@ public class CustomerServiceSpring {
 						         registrar_movimiento.getSesion(),
 						         registrar_movimiento.getReferencia());
 				    System.out.println("Mensaje termina transaccion:"+termina_transaccion);
-				  } 
-		      }else {
-		    	
+				  } else {					
+						entregado.setNota("No se completo la activacion del producto...");
+						entregado.setNumero_pagare("");
+						entregado.setProteccion_ahorro_prestamo("");
+						entregado.setGarantia_liquida("");
+						entregado.setTipo_garantia("");
+						entregado.setDeposito_garantia_letras("");
+						
+				  }
+				  
+		      }else {		    	
 		    	  entregado.setNota("Producto para dispersion no configurado");
 		      }
 			  
@@ -917,12 +987,12 @@ public class CustomerServiceSpring {
 				  Auxiliar ahorro = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),110);
 
 				  //Tabla para obtener el monto de comision
-				  Tablas tb_monto_comision = tablasService.findIdtablaAndIdelemento("prezzta","comision");
+				  tb_monto_comision = tablasService.findIdtablaAndIdelemento("prezzta","comision");
 				  registrar_movimiento.setIdorigenp(ahorro.getIdorigenp());
 				  registrar_movimiento.setIdproducto(ahorro.getIdproducto());
 				  registrar_movimiento.setIdauxiliar(ahorro.getIdauxiliar());
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(999);
+				  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 				  registrar_movimiento.setSesion(sesion);
 				  registrar_movimiento.setReferencia(referencia);
 				  registrar_movimiento.setIdorigen(ahorro.getIdorigen());
@@ -944,7 +1014,7 @@ public class CustomerServiceSpring {
 				  registrar_movimiento.setIdproducto(Integer.parseInt(tb_producto_comision.getDato1()));
 				  registrar_movimiento.setIdauxiliar(0);
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(999);
+				  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 				  registrar_movimiento.setSesion(sesion);
 				  registrar_movimiento.setReferencia(referencia);
 				  registrar_movimiento.setIdorigen(ahorro.getIdorigen());
@@ -982,12 +1052,13 @@ public class CustomerServiceSpring {
 		     		if(Double.parseDouble(entregado.getMonto_entregado()) >= Double.parseDouble(tb_minimo_sms.getDato1())) {
 		     			//llamamos el servicio para enviar sms
 		     			String sms_enviar = smsCsn.enviarSMS(tb_url_sms.getDato2(),persona.getTelefono(),
-		     					tb_texto_sms_declinacion.getDato2().replace("@monto@", String.valueOf(registrar_movimiento.getMonto()+registrar_movimiento.getIva())));
-		     			
+		     					tb_texto_sms_declinacion.getDato2().replace("@monto@", String.valueOf(registrar_movimiento.getMonto()+registrar_movimiento.getIva())));		     			
 		     		}
 		     	}
 		        System.out.println("Mensaje termina transaccion:"+termina_transaccion);
 		        
+				}else {					
+					entregado.setNota("No se completo la activacion del producto...");
 				}
 			}
 		} catch (Exception e) {
@@ -1004,7 +1075,7 @@ public class CustomerServiceSpring {
 		List<PuntosScore> Listapuntos = new ArrayList<PuntosScore>();
 		PuntosScore puntos = new PuntosScore();		
 		//String siscore = siscoreCsn.requisitionImport(idorigenp+"-"+idproducto+"-"+idauxiliar);
-		String siscore = siscoreCsn.requisitionImport(idorigenp+"-"+idproducto+"-"+idauxiliar);
+		String siscore = siscoreCsn.requisitionImportTest(idorigenp+"-"+idproducto+"-"+idauxiliar);
 			
 		JSONObject responseSiscore = new JSONObject(siscore);	
 		if(responseSiscore.getInt("responseCode") == 0 || responseSiscore.getString("responseMessage").toUpperCase().contains("SUCCES")){
@@ -1123,10 +1194,10 @@ public class CustomerServiceSpring {
 		      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
 		      
 		      
-		      procesaMovimientoService.eliminaMovimiento(matriz.getFechatrabajo(),
+		      /*procesaMovimientoService.eliminaMovimiento(matriz.getFechatrabajo(),
 				         registrar_movimiento.getIdusuario(),
 				         registrar_movimiento.getSesion(),
-				         registrar_movimiento.getReferencia());
+				         registrar_movimiento.getReferencia());*/
 		     
 		      if(total_procesados > 0) {
 		    	  mensaje = "Se realizo el pago correctamente";
