@@ -29,6 +29,7 @@ public class tmp_aperturas implements Serializable{
 	private Integer idproducto;
 	private String opaactivo;
 	private Integer idorigenp;
+	private Double  gastos_pagar; 
 	
 	private static final long serialVersionUID = 1L;
 

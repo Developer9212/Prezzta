@@ -1,6 +1,7 @@
 package com.fenoreste.rest.dao;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.transaction.Transactional;
 
@@ -38,7 +39,12 @@ public interface ProcesaMovimientoRepository extends JpaRepository<RegistraMovim
 			  String sai);
 	
 	@Query(value ="DELETE FROM bankingly_movimientos_ca WHERE date(fecha)=?1 AND idusuario=?2 AND sesion=?3 AND referencia=?4",nativeQuery = true)
-	void eliminarRegistros(Date fecha,int idusuario,String sesion,String referencia); 
+	void eliminarRegistros(Date fecha,int idusuario,String sesion,String referencia);
 	
+	@Query(value ="DELETE FROM bankingly_movimientos_ca WHERE idorigen=?1 AND idgrupo=?2 AND idsocio=?3 AND idusuario=(SELECT dato1 FROM tablas WHERE idtabla='prezzta' AND idelemento='usuario')::::INTEGER",nativeQuery = true)
+	void eliminarRegistrosTodos(Integer idorigen,Integer idgrupo,Integer idsocio); 
+	
+	@Query(value = "SELECT * FROM bankingly_movimientos_ca WHERE idorigen=?1 AND idgrupo=?2 AND idsocio=?3",nativeQuery = true)
+	List<RegistraMovimiento>movimientosAll(Integer idorigen,Integer idgrupo,Integer idsocio);
 	
 }
