@@ -148,12 +148,14 @@ public class CustomerServiceSpring {
 	@Autowired
 	private SMS_Csn smsCsn;
 	
+	
 	@Autowired
 	IReferenciaspService referenciaspService;
 	
 	
 	public dataDTO informacionPersona(String tipoDocumento,String numeroDocumento) {
 		dataDTO response = new dataDTO();
+		Origenes origen = origenesService.findMatrizOrigen();
 		try {
 			List rangos = new ArrayList<>();
 		//Buscamos a la persona con los datos que llegaron en el metodo
@@ -281,12 +283,13 @@ public class CustomerServiceSpring {
 		 			String plazoMin = "0",plazoMax="0",montoMin="0",montoMax="0";
 		 			if(!monto_maximo_prestar.toUpperCase().contains("ERROR")) {
 		 			   //Buscamos las tablas de mensajes 
-		 			   Tablas tb_comision_servicio = tablasService.findIdtablaAndIdelemento("prezzta","comision");	
-		 			   Tablas tb_nota_comision = tablasService.findIdtablaAndIdelemento("prezzta","nota_comision");
+		 			   Tablas tb_comision_servicio = null;		 			    	
+		 			   Tablas tb_nota_comision = null; 
 		 			   Tablas tb_nota_dispersion = tablasService.findIdtablaAndIdelemento("prezzta","nota_dispersion");
 		 			   Tablas tb_nota_renovacion = tablasService.findIdtablaAndIdelemento("prezzta","nota_renovacion");
 		 			   Tablas tb_nota_monto_atraso = tablasService.findIdtablaAndIdelemento("prezzta","nota_montos_atrasado");
-		 			     
+		 			   
+		 			   String mensajeApertura = "";		 			   	 			 
 		 			   plazoMin = rangos.get(0).toString();
 		 			   plazoMax = rangos.get(1).toString();
 		 			   montoMin = rangos.get(2).toString();
@@ -296,6 +299,15 @@ public class CustomerServiceSpring {
 		 			   String totalAtraso = rangos.get(7).toString();
 		 			   String idorigenp = rangos.get(10).toString();
 		 			   
+		 			  if(origen.getMatriz() == 30200) {
+		 				  tb_comision_servicio = tablasService.findIdtablaAndIdelemento("prezzta","comision");
+		 				  tb_nota_comision = tablasService.findIdtablaAndIdelemento("prezzta","nota_comision");
+		 				 if(tipoApertura.toUpperCase().contains("R")) {
+		 					mensajeApertura= tb_nota_comision.getDato2().replace("@comision@",String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+","; 
+		 				   }else {
+		 					   mensajeApertura = tb_nota_comision.getDato2().replace("@comision@", tb_comision_servicio.getDato1())+",";
+		 				   }			 			  
+			 			}	
 		 			   
 		 			  validacion.setRangoMontos(montoMin+"-"+montoMax);
 			          validacion.setRangoPlazos(plazoMin+"-"+plazoMax);
@@ -316,7 +328,7 @@ public class CustomerServiceSpring {
 			        		  mmensajeAtraseo = tb_nota_monto_atraso.getDato2().replace("@atraso@",totalAtraso)+" al folio:"+opaAnterior+",";
 			        		  imprt =", IMPORTANTE(Primero debe liquidar monto atrasado para poder continuar con su renovacion)";
 			        	  }
-			        	  validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+","+
+			        	  validacion.setNota(mensajeApertura +
 			        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
 			        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar+" - "+String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+imprt);
 	        			   
@@ -333,7 +345,7 @@ public class CustomerServiceSpring {
 			        	  tmp_saver.setIdproducto(Integer.parseInt(rangos.get(8).toString()));
 			        	  tmp_saver.setOpaactivo("0-0-0");		
 			        	  validacion.setTipo_apertura("Activacion");
-			        	  validacion.setNota(tb_nota_comision.getDato2().replace("@comision@", tb_comision_servicio.getDato1())+","+
+			        	  validacion.setNota(mensajeApertura+
 	        	                            tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+tb_comision_servicio.getDato1()));
 			        	  validacion.setMonto_renovar(0.0);
 			        	  double totallibre = Double.parseDouble(tb_comision_servicio.getDato1())+(Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16);
@@ -717,10 +729,15 @@ public class CustomerServiceSpring {
 						prestamo.setTarjetaDebito(String.format("%06d",aux_tdd.getIdorigenp().intValue())+String.format("%05d",aux_tdd.getIdproducto().intValue())+String.format("%08d",aux_tdd.getIdauxiliar().intValue()));
 					}
 					Amortizacion amortizacion_final = amortizacionesService.findUltimaAmortizacion(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar());
-					prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));	
-					DetallesSiscore detallesSiscore = ResumenSiscoreCSN(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar());
-					prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
-					prestamo.setResumen_calificacion_siscore(detallesSiscore);
+					prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));
+					Origenes origen = origenesService.findMatrizOrigen();
+					DetallesSiscore detallesSiscore = null;
+					if(origen.getMatriz() == 30200) {
+						detallesSiscore = ResumenSiscoreCSN(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar()); 
+						prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
+						prestamo.setResumen_calificacion_siscore(detallesSiscore);
+					}					
+					
 					List<Amortizacion>cuotas = amortizacionesService.findAll(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar());
 					prestamo.setCuotas(cuotas);	
 					tmpService.eliminar(tmp_validacion);

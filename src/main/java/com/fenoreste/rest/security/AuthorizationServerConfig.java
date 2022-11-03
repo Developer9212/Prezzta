@@ -14,14 +14,6 @@ import com.fenoreste.rest.entity.Tablas;
 import com.fenoreste.rest.services.ITablasService;
 import com.fenoreste.rest.services.IUserService;
 
-/*
- * El servidor de Autorización es el reponsable de verificar las credenciales.
- * Si las credenciales son correctas proporciona tanto el Token de Acceso como el Token de Refresco. 
- * Tambien tiene información sobre los clientes registrados y posibles ambitos de accso y tipos de concesión. Es decir si un cliente puede
- * leer y escribir o solo escribir, etc.
- * @EnableAuthorizationServer habilita un Servidor de Autorización y AuthorizationServerConfigurerAdapter implementa todos los métodosnecesarios para configurar un servidor de autorización.
- */
-
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter{
@@ -47,8 +39,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		.secret(bCryptPasswordEncoder.encode(tbSecurity.getDato2()))
 		.authorizedGrantTypes("password", "refresh_token")
 		.scopes("read", "write")
-		.accessTokenValiditySeconds(180)
-		.refreshTokenValiditySeconds(180);
+		.accessTokenValiditySeconds(3600)
+		.refreshTokenValiditySeconds(3600);
 	}
 	
 	@Override
