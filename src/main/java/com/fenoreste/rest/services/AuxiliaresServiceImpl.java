@@ -20,7 +20,7 @@ public class AuxiliaresServiceImpl implements IAuxiliaresService {
 	@Override
 	public Auxiliar AuxiliarByOgsIdproducto(Integer idorigen,Integer idgrupo, Integer idsocio,Integer idproducto) {
 		String consulta = "SELECT * FROM auxiliares a WHERE idorigen="+idorigen+" AND idgrupo="+idgrupo+" AND idsocio="+idsocio+" AND idproducto = "+idproducto;
-		System.out.println("Procesando consulta auxiliar :"+consulta);
+		//System.out.println("Procesando consulta auxiliar :"+consulta);
 		int size=  jdbc.query(consulta,new BeanPropertyRowMapper<>(Auxiliar.class)).size();
 		Auxiliar a=null;		
 		if(size > 0) {

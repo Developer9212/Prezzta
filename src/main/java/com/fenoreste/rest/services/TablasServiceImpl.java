@@ -15,9 +15,9 @@ public class TablasServiceImpl implements ITablasService {
 	
 	@Override
 	public Tablas findIdtablaAndIdelemento(String idtabla, String idelemento) {
-		System.out.println("IdTabla:"+idtabla+",Idelemento:"+idelemento);
+		//System.out.println("IdTabla:"+idtabla+",Idelemento:"+idelemento);
 		String consulta="SELECT * FROM tablas WHERE idtabla='"+idtabla+"' and idelemento='"+idelemento+"'";
-		System.out.println(consulta);
+		//System.out.println(consulta);
 		int size=  jdbc.query(consulta,new BeanPropertyRowMapper<>(Tablas.class)).size();
 		Tablas tb=null;
 		if(size > 0) {

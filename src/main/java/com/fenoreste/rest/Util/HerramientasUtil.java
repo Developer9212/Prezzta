@@ -24,17 +24,15 @@ public class HerramientasUtil {
 			count=count+1;
 		}
 		if(count == 18) {
-			System.out.println("18");
 			opa.setIdorigenp(Integer.parseInt(productBankIdentifier.substring(0, 5)));
 			opa.setIdproducto(Integer.parseInt(productBankIdentifier.substring(5, 10)));
 			opa.setIdauxiliar(Integer.parseInt(productBankIdentifier.substring(10, 18)));
 		}else {
-			System.out.println("19");
 			opa.setIdorigenp(Integer.parseInt(productBankIdentifier.substring(0, 6)));
 			opa.setIdproducto(Integer.parseInt(productBankIdentifier.substring(6, 11)));
 			opa.setIdauxiliar(Integer.parseInt(productBankIdentifier.substring(11, 19)));
 		}
-		System.out.println("Formateado con exito");
+		
 		
 		return opa;
 	}

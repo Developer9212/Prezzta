@@ -1,12 +1,12 @@
 package com.fenoreste.rest.services;
 
-import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fenoreste.rest.dao.ProcesaMovimientoRepository;
 import com.fenoreste.rest.entity.RegistraMovimiento;
@@ -22,19 +22,16 @@ public class ProcesaMovimientoImpl implements IProcesaMovimientoService{
 	ProcesaMovimientoRepository procesarMovDao;
 	
 	@Override
+	@Transactional
 	public boolean insertarMovimiento(RegistraMovimiento mov) {
 	  procesarMovDao.saveAndFlush(mov);
-	 
 	  return true;
 	}
 
 	@Override
-	public void eliminaMovimiento(Date fecha,int idusuario,String sesion,String referencia) {
-		try {
-			procesarMovDao.eliminarRegistros(fecha, idusuario, sesion, referencia);
-		} catch (Exception e) {
-			
-		}
+	@Transactional
+	public void eliminaMovimiento(Date fecha,int idusuario,String sesion,String referencia) {		
+			procesarMovDao.eliminarRegistros(fecha, idusuario, sesion, referencia);		
 	     		
 	}
 
@@ -52,13 +49,9 @@ public class ProcesaMovimientoImpl implements IProcesaMovimientoService{
 	}
 
 	@Override
-	public void eliminaMovimientoTodos(Integer idorigen, Integer idgrupo, Integer idsocio) {
-		try {
-			procesarMovDao.eliminarRegistrosTodos(idorigen, idgrupo, idsocio);
-		} catch (Exception e) {
-			System.out.println("Error al eliminar todos los movimientos:"+e.getMessage());
-		}
-		
+	@Transactional
+	public void eliminaMovimientoTodos(Integer idorigen, Integer idgrupo, Integer idsocio) {		
+			procesarMovDao.eliminarRegistrosTodos(idorigen, idgrupo, idsocio);		
 	}
 
 	

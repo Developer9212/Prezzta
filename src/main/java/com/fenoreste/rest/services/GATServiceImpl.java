@@ -1,7 +1,9 @@
 package com.fenoreste.rest.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fenoreste.rest.dao.GATRepository;
 
@@ -12,13 +14,10 @@ public class GATServiceImpl implements IGatService{
 	GATRepository gatDao;
 	
 	@Override
-	public void insertRegistros(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
-        try {
-        	gatDao.insertarRegistros(idorigenp, idproducto, idauxiliar);	
-		} catch (Exception e) {
-			System.out.println("Error al insertar registros CAT:"+e.getMessage());
-		}
-		
+	@Transactional
+	@Modifying
+	public void insertRegistros(Integer idorigenp, Integer idproducto, Integer idauxiliar) { 
+		gatDao.insertarRegistros(idorigenp, idproducto, idauxiliar);
 	}
 
 	@Override
@@ -27,13 +26,10 @@ public class GATServiceImpl implements IGatService{
 	}
 
 	@Override
-	public void removeRegistros(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
-		try {
-			gatDao.eliminarRegistros(idorigenp, idproducto, idauxiliar);	
-		} catch (Exception e) {
-			System.out.println("Error al eliminar registros CAT:"+e.getMessage());
-		}
-		
+	@Transactional
+	@Modifying
+	public void removeRegistros(Integer idorigenp, Integer idproducto, Integer idauxiliar) {		
+			gatDao.eliminarRegistros(idorigenp, idproducto, idauxiliar);			
 	}
 
 	

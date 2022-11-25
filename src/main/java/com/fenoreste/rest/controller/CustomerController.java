@@ -45,7 +45,8 @@ public class CustomerController {
 	private CustomerServiceSpring serviceCustomerSpring;	
 	
     @PostMapping(value = "/buscar", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    	
+    public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
+    	System.out.println("Iniciando ws 1....");
         InfoClienteDTO info= null;
         //leemos el request
         try {        	
@@ -55,27 +56,31 @@ public class CustomerController {
         	   info.setCode(200);
         	   info.setData(dto);
         	   info.setMessage("Datos verificados con exito");
-        		return new ResponseEntity<>(info, HttpStatus.OK);
+        	   System.out.println("Terminando ws 1....");
+        	   return new ResponseEntity<>(info, HttpStatus.OK);
            }else {
         	   info = new InfoClienteDTO();
         	   info.setCode(400);
         	   info.setData(null);
         	   info.setMessage("No se encontraron registros para: "+request.getNumero_documento());
+        	   System.out.println("Error en ws 1 No se encontraron registros....");
         		return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
            }
+        
         }catch (Exception e) {
-			System.out.println("Error al formar data response:"+e.getMessage());
+			System.out.println("Error en Ws 1:"+e.getMessage());
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}        
+		} 
+        
     }  
 
     
     @PostMapping(value = "/solicitud/registra", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> solicitud(@RequestBody requestRegistraPrestamo request) {
     	InfoPrestamoCreadoDTO info = new InfoPrestamoCreadoDTO();
-    	System.out.println("Request:"+request);
+    	
     	try {
-    		PrestamoCreadoDTO prestamo= serviceCustomerSpring.apeturaFolio(request.getNum_socio(),request.getMonto().doubleValue(),request.getPlazos());
+    		PrestamoCreadoDTO prestamo= serviceCustomerSpring.aperturaFolio(request.getNum_socio(),request.getMonto().doubleValue(),request.getPlazos());
     		if(prestamo.getOpa() != null) {
     			info.setCode(200);
     			info.setMessage("El prestamo se ha aperturado con exito");
@@ -130,19 +135,24 @@ public class CustomerController {
           try {
         	  if(opcion.equalsIgnoreCase("si") || opcion.equalsIgnoreCase("no")) {
         		  PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion);
-            	 response.put("code", 200);
-            	 if(Double.parseDouble(entregado.getMonto_entregado())>0) {
-            		 response.put("mensaje", "Solicitud terminada exitosamente.");	 
+            	 
+            	 if(entregado.getMonto_entregado() != null && Double.parseDouble(entregado.getMonto_entregado())>0) {
+            		 response.put("code", 200);
+            		 response.put("mensaje", "Solicitud terminada exitosamente.");
+            		 response.put("detallesDispersion", entregado);
+            		 return new ResponseEntity<>(response,HttpStatus.OK);
             	 }else {
-            		 response.put("mensaje", "La solicitud se ha declinado."); 
+            		 response.put("code", 400);
+            		 response.put("mensaje", "La solicitud se ha declinado.");
+            		 response.put("detallesDispersion", entregado);
+            		 return new ResponseEntity<>(response,HttpStatus.CONFLICT);
             	 }            	 
-            	 response.put("detallesDispersion", entregado);
-            	 return new ResponseEntity<>(response,HttpStatus.OK);
+            	 
               }else {
             	  response.put("code", 400);
             	  response.put("menaje","opcion no valida,para confirmar=SI para declinar=NO");
             	  response.put("detalleDispersion", null);
-            	  return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+            	  return new ResponseEntity<>(response,HttpStatus.CONFLICT);
               }
           } catch (Exception e) {
         	  return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);

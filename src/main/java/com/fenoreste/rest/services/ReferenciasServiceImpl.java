@@ -17,7 +17,7 @@ public class ReferenciasServiceImpl implements IReferenciaService {
 	@Override
 	public Referencias finByOgsAndTipoReferencia(Integer idorigen, Integer idgrupo, Integer idsocio,Integer tiporeferencia) {
 		String consulta = "SELECT * FROM referencias WHERE idorigen = " + idorigen + " AND idgrupo = " + idgrupo + " AND idsocio = " + idsocio + " AND tiporeferencia = " + tiporeferencia;
-		System.out.println("Buscando referencia:"+consulta);
+		//System.out.println("Buscando referencia:"+consulta);
 		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Referencias.class)).size();
 		Referencias referencia = null;
 		if(size > 0) {
