@@ -45,13 +45,14 @@ public class Siscore_Calificacion_Score {
 	}
 
 	public String requisitionImport(String opa) {
+		System.out.println("Servicios Score");
 		JSONObject json = null;
 		ResponseEntity<String> requisition = null;
 		try {
 			Tablas tb_base_url_siscore  = tablasService.findIdtablaAndIdelemento("prezzta","url_servicios_score");
 			domain = tb_base_url_siscore.getDato1()+":"+tb_base_url_siscore.getDato2();
 			System.out.println("Intentando obtener calificacion para el opa :" + opa);
-			
+			System.out.println("Endpoint :" +domain+basePath+importRequisition);
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<String> entity = new HttpEntity<String>("", headers);

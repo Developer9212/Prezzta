@@ -99,35 +99,7 @@ public class CustomerController {
     	
     }
     
-    @GetMapping(value="/solicitud/backend/calificacion/opa={opa}&bandera={confirmacion}",produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<?>calificacionBackendPrezzta(@PathVariable String opa,@PathVariable String confirmacion){
-    	JsonObject mensaje = new JsonObject();
-    	try {
-    		 
-    		   if(confirmacion.equalsIgnoreCase("si") || confirmacion.equalsIgnoreCase("no")){
-    			   String mensaje1 = serviceCustomerSpring.calificacionPrezztaBackend(opa, confirmacion);
-    			   if(mensaje1.equalsIgnoreCase("recibido")) {
-    				   mensaje.put("code",200);
-    				   mensaje.put("mensaje",mensaje1);
-    				   return new ResponseEntity<>(mensaje,HttpStatus.OK);
-    			   }else {
-    				   mensaje.put("code",500);
-    				   mensaje.put("mensaje","Error en el servidor");
-    				   return new ResponseEntity<>(mensaje,HttpStatus.INTERNAL_SERVER_ERROR);
-    			   }
-    			   
-    		   }else {
-    			   mensaje.put("code",400);
-        		   mensaje.put("mensaje","opcion no valida,para confirmar=SI para declinar=NO");
-        		  return new ResponseEntity<>(mensaje,HttpStatus.BAD_REQUEST);
-        	  }
-         
-		} catch (Exception e) {
-		   return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-    	
-    }
-    
+   
     //En este paso verificamos si el usuario prosigue o se queda hasta ahi entonces aplicamos un descuento al ahorro(parametrizada)
     @GetMapping(value = "/solicitud/finalizar/opa={opa}&confirmar={opcion}",produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> terminaSolicitud(@PathVariable String opa , @PathVariable String opcion) {   
@@ -136,12 +108,13 @@ public class CustomerController {
         	  if(opcion.equalsIgnoreCase("si") || opcion.equalsIgnoreCase("no")) {
         		  PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion);
             	 
-            	 if(entregado.getMonto_entregado() != null && Double.parseDouble(entregado.getMonto_entregado())>0) {
+            	 if(entregado.getEstatus().contains("activo")) {
             		 response.put("code", 200);
             		 response.put("mensaje", "Solicitud terminada exitosamente.");
             		 response.put("detallesDispersion", entregado);
             		 return new ResponseEntity<>(response,HttpStatus.OK);
-            	 }else {
+            	 }else {    
+            		 entregado.setEstatus("0.0");
             		 response.put("code", 400);
             		 response.put("mensaje", "La solicitud se ha declinado.");
             		 response.put("detallesDispersion", entregado);

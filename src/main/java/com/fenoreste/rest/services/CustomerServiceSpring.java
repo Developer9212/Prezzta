@@ -153,6 +153,7 @@ public class CustomerServiceSpring {
 	IReferenciaspService referenciaspService;
 	
 	
+
 	public dataDTO informacionPersona(String tipoDocumento,String numeroDocumento) {
 		dataDTO response = new dataDTO();
 		Origenes origen = origenesService.findMatrizOrigen();
@@ -695,7 +696,8 @@ public class CustomerServiceSpring {
 					codeudorDTO codeudor = new codeudorDTO();
 					prestamo.setCodeudor(codeudor);
 					//Buscamos el producto para tarjeta de debito
-					Auxiliar aux_tdd = auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(),110);					
+					Tablas tb_config_dispersion  = tablasService.findIdtablaAndIdelemento("prezzta","producto_para_dispersion");
+					Auxiliar aux_tdd = auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(),new Integer(tb_config_dispersion.getDato1()));					
 					if(aux_tdd.getEstatus() == 2) {
 						prestamo.setTarjetaDebito(String.format("%06d",aux_tdd.getIdorigenp().intValue())+String.format("%05d",aux_tdd.getIdproducto().intValue())+String.format("%08d",aux_tdd.getIdauxiliar().intValue()));
 					}
@@ -703,7 +705,10 @@ public class CustomerServiceSpring {
 					prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));
 					Origenes origen = origenesService.findMatrizOrigen();
 					DetallesSiscore detallesSiscore = null;
-					if(origen.getMatriz() == 30200) {
+					System.out.println("Vamos abuscar idorigen con matriz 0");
+					System.out.println("Idorigen:"+origen.getIdorigen());
+					if(origen.getIdorigen() == 30200) {
+				
 						detallesSiscore = ResumenSiscoreCSN(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar()); 
 						prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
 						prestamo.setResumen_calificacion_siscore(detallesSiscore);
@@ -739,28 +744,7 @@ public class CustomerServiceSpring {
 	}
 	 
 	
-	public String calificacionPrezztaBackend(String opaReq,String confirmacion) {
-		String mensaje = "";
-		try {
-			opaDTO opa = new HerramientasUtil().opa(opaReq);
-			Auxiliar auxiliar = auxiliaresService.AuxiliarByOpa(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
-			CalificacionBackendPrezzta calificacion_buscar = calificacionBackendService.findCalificacionByOpa(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
-			if(calificacion_buscar != null) {
-				 calificacionBackendService.updateCalificacion(auxiliar.getIdorigenp(),auxiliar.getIdproducto(),auxiliar.getIdauxiliar(),confirmacion);
-			}else {
-				calificacionBackendService.insertarRegistrosCalificacion(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar(),auxiliar.getMontoautorizado().doubleValue(),confirmacion);	
-			}
-			
-			CalificacionBackendPrezzta calificacion = calificacionBackendService.findCalificacionByOpa(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
-			if(calificacion != null) {
-				mensaje = "recibido";
-			}
-		} catch (Exception e) {
-		   System.out.println("Error al registrar calificacion para el folio:"+opaReq); 
-		}
-		return mensaje;
-	}
-	
+		
 	
 	public PrestamoEntregado entregarPrestamo(String opaReq,String confirmar) {
 		PrestamoEntregado entregado = new PrestamoEntregado();
@@ -776,9 +760,9 @@ public class CustomerServiceSpring {
 			Timestamp fecha_transferencia = Timestamp.valueOf(localDate);	
 			String sesion = otrosService.sesion();
 			int rn = (int) (Math.random() * 999999 + 1);
-			String referencia = String.valueOf(rn) + "" + String.valueOf(opaReq);
+			String referencia = String.valueOf(rn) + "" + String.valueOf(opaReq);			
 			// if(auxiliar.getMontosolicitado().doubleValue() <=60000) {
-			RegistraMovimiento registrar_movimiento = new RegistraMovimiento();	
+			RegistraMovimiento registrar_movimiento = new RegistraMovimiento();
 			double total_depositar = 0.0;
 			Tablas tb_url_sms = tablasService.findIdtablaAndIdelemento("bankingly_banca_movil", "liga_envio_mensajes");
 	        Tablas tb_sms_activo = tablasService.findIdtablaAndIdelemento("bankingly_banca_movil", "smsactivo");
@@ -797,9 +781,12 @@ public class CustomerServiceSpring {
 	            if(movimientos.size() > 0) {
 	            	procesaMovimientoService.eliminaMovimientoTodos(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio());
 	            }
+	         System.out.println("Vamos a buscar configuracion dispersion");
 	          //Busco el producto para dispersion
 			  Tablas tb_config_dispersion  = tablasService.findIdtablaAndIdelemento("prezzta","producto_para_dispersion");
+			  System.out.println("Dispersion config encontrada");
 			  Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),Integer.parseInt(tb_config_dispersion.getDato1()));
+			  System.out.println("Aux tdd:"+auxiliar_tdd.getIdproducto());
     	 	 if(auxiliar_tdd != null) {
 		    	  //Cargo al producto que va a ser la renovacion(Nuevo)
 		    	  registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
@@ -847,9 +834,9 @@ public class CustomerServiceSpring {
 			 		  registrar_movimiento.setMonto(Double.parseDouble(totalRenovar));
 					  registrar_movimiento.setIva(0.0);
 					  //Busco el auxiliar Solo para obtener el tipo de amorizacion
-					  Auxiliar auxiliar_Activo_original = auxiliaresService.AuxiliarByOpa(referenciasp.getIdorigenpr(),referenciasp.getIdproductor(),referenciasp.getIdauxiliarr());
+					  Auxiliar auxiliar_activo_original = auxiliaresService.AuxiliarByOpa(referenciasp.getIdorigenpr(),referenciasp.getIdproductor(),referenciasp.getIdauxiliarr());
 					  Auxiliar nuevo = auxiliaresService.AuxiliarByOpa(referenciasp.getIdorigenp(),referenciasp.getIdproducto(),referenciasp.getIdauxiliar());
-					  registrar_movimiento.setTipo_amort(auxiliar_Activo_original.getTipoamortizacion().intValue());
+					  registrar_movimiento.setTipo_amort(auxiliar_activo_original.getTipoamortizacion().intValue());
 					  registrar_movimiento.setSai_aux("");					 
 					  total_depositar = (auxiliar.getMontoautorizado().doubleValue()-Double.parseDouble(tb_monto_comision.getDato1()) - (Double.parseDouble(tb_monto_comision.getDato1())* 0.16)) - Double.parseDouble(totalRenovar);
 					  System.out.println("Total a depositar en tdd es:"+total_depositar);
@@ -902,18 +889,77 @@ public class CustomerServiceSpring {
 				  registrar_movimiento.setTipo_amort(0);
 				 
 				  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
+				  boolean deposito_csn = false;
+				  int total_procesados = 0;
+				  //Si el origen es CSN
+				  System.out.println(matriz.getIdorigen());
+				  if(matriz.getIdorigen() == 30200) {
+					  System.out.println("Origen encontrado:"+matriz.getNombre());
+					  //Busco la validacion si se puede usar tdd en el proyecto prezzta
+					  System.out.println("Buscando configuracion activa uso tdd");
+					  Tablas tb_uso_tdd = tablasService.findIdtablaAndIdelemento("prezzta","activa_tdd");
+					  if(auxiliar_tdd.getIdproducto() == 133 && auxiliar_tdd.getEstatus()==2 && new Integer(tb_uso_tdd.getDato1())==1) {
+						  System.out.println("Se esta usando tdd,el estatus es 2 y esta permitido operar");
+						 //Buscamos la tarjeta de debito
+						 System.out.println("Vamos a buscar el folio correspondiente");
+						 FoliosTarjetas folioTdd = foliosTarjetasService.findByOpa(auxiliar_tdd.getIdorigenp(),auxiliar_tdd.getIdproducto(),auxiliar_tdd.getIdauxiliar());
+						 System.out.println("Folio auxiliar encontrado:"+String.format("%06d", folioTdd.getIdorigenp())+String.format("%05d",folioTdd.getIdproducto())+String.format("%08d",folioTdd.getIdauxiliar()));
+						 Tablas tb_url_tdd = tablasService.findIdtablaAndIdelemento("prezzta", "url_tdd");
+						 System.out.println("Url endpoint tdd:"+tb_url_tdd.getDato2());
+						 String respuestaDeposito = consumoTddService.depositarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
+						 System.out.println("Respuesta alestra:"+respuestaDeposito);
+						 JSONObject respuestaAlestra = new JSONObject(respuestaDeposito);
+					        if(!respuestaAlestra.getString("deposito").toUpperCase().equals("FALLIDO")) {
+						     entregado.setNota("La dispersion se realizo exitosamente,Total entregado:"+total_depositar);  
+						     deposito_csn = true;
+					        }else {
+						     entregado.setNota("Falla al dispersar credito,contacte proveedor...");
+					        }			     
+					     
+					     if(deposito_csn) {
+					    	 System.out.println("Vamos a generar poliza SAICoop");
+					    	 String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
+							         registrar_movimiento.getIdusuario(),
+							         registrar_movimiento.getSesion(),
+							         registrar_movimiento.getReferencia());
+					       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+					       //Si la poliza no se procesa de manera correcta
+					       if(total_procesados <= 0) {
+					    	   System.out.println("No se proceso correctamente vamos a regresar el saldo");
+					    	   String respuestaRetiro = consumoTddService.retirarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
+					    	   entregado.setNota("Error al dispersar credito");
+					    	   deposito_csn = false;
+					       }
+					     }
+					     //Verificamos si el envio de sms esta activo
+					     	if(Integer.parseInt(tb_sms_activo.getDato1()) == 1 && deposito_csn) {		
+					     		System.out.println("Enviando SMS");
+					     		//si el servicio de sms esta activo,validamos que el monto entregado sea mayor o igual para enviar sms
+					     		//if(Double.parseDouble(entregado.getMonto_entregado()) >= Double.parseDouble(tb_minimo_sms.getDato1())) {
+					     			System.out.println("Paso a envias sms");
+					     			//llamamos el servicio para enviar sms
+					     			String sms_enviar = smsCsn.enviarSMS(tb_url_sms.getDato2(),persona.getTelefono(),
+					     					tb_texto_sms_dispersion.getDato2().replace("@monto@",entregado.getMonto_entregado()));
+					     			System.out.println("Sms Enviado con Exito");
+					     		//}
+					     	}
+					   }else {	
+						   System.out.println("Es prueba ");
+						   String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
+							         registrar_movimiento.getIdusuario(),
+							         registrar_movimiento.getSesion(),
+							         registrar_movimiento.getReferencia());
+					       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+					   }//Termina CSn
+				  }else {
+					  String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
+						         registrar_movimiento.getIdusuario(),
+						         registrar_movimiento.getSesion(),
+						         registrar_movimiento.getReferencia());
+				       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+				  }
 				  
-				  
-				  
-				  //Guardamos el movimiento
-				  
-				  String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
-					         registrar_movimiento.getIdusuario(),
-					         registrar_movimiento.getSesion(),
-					         registrar_movimiento.getReferencia());
-			      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
-			                 
-			      //busco nuevamente el auxiliar
+				    //busco nuevamente el auxiliar
 			      auxiliar = auxiliaresService.AuxiliarByOpa(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
 			      String estado_aux = "";
 			      if(auxiliar.getEstatus() == 2) {
@@ -934,31 +980,7 @@ public class CustomerServiceSpring {
 				  entregado.setTipo_garantia("garantia_liquida");
 				  entregado.setDeposito_garantia_letras(new ConversionMonedaLetras().Convertir(String.valueOf(auxiliar.getGarantia()), true));	
 				  
-				  //Busco la validacion si se puede usar tdd en el proyecto prezzta
-				  Tablas tb_uso_tdd = tablasService.findIdtablaAndIdelemento("prezzta","activa_tdd");
-				  if(auxiliar_tdd.getIdproducto() == 133 && auxiliar.getEstatus()==2 && tb_uso_tdd.getDato1().equals("1")) {
-					 //Buscamos la tarjeta de debito
-					 FoliosTarjetas folioTdd = foliosTarjetasService.findByOpa(auxiliar_tdd.getIdorigenp(),auxiliar_tdd.getIdproducto(),auxiliar_tdd.getIdauxiliar());
-					 Tablas tb_url_tdd = tablasService.findIdtablaAndIdelemento("prezzta", "url_tdd");
-					 String respuestaDeposito = consumoTddService.depositarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
-					 System.out.println("Respuesta alestra:"+respuestaDeposito);
-					 JSONObject respuestaAlestra = new JSONObject(respuestaDeposito);
-				     if(!respuestaAlestra.getString("Deposito").toUpperCase().equals("FALLIDO")) {
-					     entregado.setNota("La dispersion se realizo exitosamente,Total entregado:"+total_depositar);  
-				        }else {
-					     entregado.setNota("Falla al dispersar credito,contacte proveedor...");
-				        }
-				     //Verificamos si el envio de sms esta activo
-				     	if(Integer.parseInt(tb_sms_activo.getDato1()) == 1) {
-				     		//si el servicio de sms esta activo,validamos que el monto entregado sea mayor o igual para enviar sms
-				     		if(Double.parseDouble(entregado.getMonto_entregado()) >= Double.parseDouble(tb_minimo_sms.getDato1())) {
-				     			//llamamos el servicio para enviar sms
-				     			String sms_enviar = smsCsn.enviarSMS(tb_url_sms.getDato2(),persona.getTelefono(),
-				     					tb_texto_sms_dispersion.getDato2().replace("@monto@",entregado.getMonto_entregado()));
-				     			
-				     		}
-				     	}
-				   }			  
+				 		  
 				   
 				  if(total_procesados > 0) {					
 				    entregado.setNota("La dispersion se realizo exitosamente,Total entregado:"+total_depositar);
@@ -969,6 +991,7 @@ public class CustomerServiceSpring {
 						entregado.setGarantia_liquida("");
 						entregado.setTipo_garantia("");
 						entregado.setDeposito_garantia_letras("");
+						
 				  }
 				  
 				  String termina_transaccion = funcionesService.terminar_transaccion(matriz.getFechatrabajo(),
@@ -1069,7 +1092,7 @@ public class CustomerServiceSpring {
 			entregado.setNota(e.getMessage());
 		}
 		System.out.println("Saliendo ws 3 dispersion...");
-		System.out.println("El prestamo dispersado es:"+entregado);
+		System.out.println("El prestamo dispersado es:"+entregado.getEstatus());
 		return entregado;
 	}
 	
@@ -1080,8 +1103,9 @@ public class CustomerServiceSpring {
 		List<PuntosScore> Listapuntos = new ArrayList<PuntosScore>();
 		PuntosScore puntos = new PuntosScore();		
 		//String siscore = siscoreCsn.requisitionImport(idorigenp+"-"+idproducto+"-"+idauxiliar);
+		System.out.println("Vamos a conectar a siscore");
 		String siscore = siscoreCsn.requisitionImport(idorigenp+"-"+idproducto+"-"+idauxiliar);
-			
+		System.out.println("Respuesta siscore:"+siscore);	
 		JSONObject responseSiscore = new JSONObject(siscore);	
 		if(responseSiscore.getInt("responseCode") == 0 || responseSiscore.getString("responseMessage").toUpperCase().contains("SUCCES")){
 			JSONObject obj = responseSiscore.getJSONObject("obj");
@@ -1143,6 +1167,7 @@ public class CustomerServiceSpring {
 			Origenes matriz=origenesService.findMatrizOrigen();
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			opaDTO opa = new HerramientasUtil().opa(opaReq);
+			System.out.println(opa.getIdorigenp()+"-"+opa.getIdproducto()+"-"+opa.getIdauxiliar());
 			Auxiliar auxiliar = auxiliaresService.AuxiliarByOpa(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
 			LocalDateTime localDate = LocalDateTime.parse(matriz.getFechatrabajo().toString().substring(0,19), dtf);
 			Timestamp fecha_transferencia = Timestamp.valueOf(localDate);	
