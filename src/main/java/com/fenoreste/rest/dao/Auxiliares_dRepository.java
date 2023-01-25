@@ -1,22 +1,21 @@
 package com.fenoreste.rest.dao;
 
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import com.fenoreste.rest.entity.Auxiliares_d;
+import com.fenoreste.rest.entity.AuxiliaresD;
 
 
-public interface Auxiliares_dRepository extends CrudRepository<Auxiliares_d, Integer> {
+public interface Auxiliares_dRepository extends CrudRepository<AuxiliaresD, Integer> {
 
 	@Query(value = "SELECT * FROM auxiliares_d WHERE idorigenp=?1  AND idproducto=?2 AND idauxiliar=?3", nativeQuery = true)
-	List<Auxiliares_d> findAuxiliares_dByOpa(Integer idorigenp, Integer idproducto, Integer idauxiliar);
+	List<AuxiliaresD> findAuxiliares_dByOpa(Integer idorigenp, Integer idproducto, Integer idauxiliar);
 
 	@Query(value = "SELECT * FROM auxiliares_d WHERE idorigenp=?1 AND idproducto=?2 AND idauxiliar=?3 AND date(fecha) between ?4 AND ?5", nativeQuery = true)
-	List<Auxiliares_d> findAuxiliares_dByOpaFecha(Integer idorigenp, Integer idproducto, Integer idauxiliar,Date fechaI, Date fechaF);
+	List<AuxiliaresD> findAuxiliares_dByOpaFecha(Integer idorigenp, Integer idproducto, Integer idauxiliar,Date fechaI, Date fechaF);
 
 	//Saldo para un opa ultimas 24 horass
 	@Query(value = "SELECT saldoec FROM auxiliares_d WHERE idorigenp=?1 AND idproducto=?2 AND idauxiliar=?3"
@@ -35,7 +34,7 @@ public interface Auxiliares_dRepository extends CrudRepository<Auxiliares_d, Int
 
 	// ultimo movimiento
 	@Query(value = "SELECT * FROM auxiliares_d WHERE idorigenp=?1 AND idproducto=?2 AND idauxiliar=?3 ORDER BY fecha DESC limit 1 ", nativeQuery = true)
-	Auxiliares_d findUltimoRegistro(Integer idorigenp, Integer idproducto, Integer idauxiliar);
+	AuxiliaresD findUltimoRegistro(Integer idorigenp, Integer idproducto, Integer idauxiliar);
 
 	//Ultimos 5 movimientos
 	@Query(value = "SELECT date(fecha),cargoabono,monto,montoio,montoiva,montoim,montoivaim,transaccion,saldoec FROM auxiliares_d WHERE idorigenp=?1 AND idproducto=?2 AND idauxiliar=?3 ORDER BY fecha DESC limit 5 ", nativeQuery = true)
@@ -50,10 +49,10 @@ public interface Auxiliares_dRepository extends CrudRepository<Auxiliares_d, Int
 	List<Object[]> findMovimientosFechasDesc(Integer idorigenp, Integer idproducto, Integer idauxiliar,Date FInicio,Date FFinal,Pageable pageable);
 		
 	@Query(value = "SELECT * FROM auxiliares_d WHERE idorigenp=?1  AND idproducto=?2 AND idauxiliar=?3 AND date(fecha) = ?4 AND replace(to_char(idorigenc,'099999')||to_char(idtipo,'09')||to_char(idpoliza,'09999'),' ','')= ?5", nativeQuery = true)
-	List<Auxiliares_d> findAuxiliares_dByOpaAndFechaAndPoliza(Integer idorigenp, Integer idproducto, Integer idauxiliar,Date fecha,String poliza);
+	List<AuxiliaresD> findAuxiliares_dByOpaAndFechaAndPoliza(Integer idorigenp, Integer idproducto, Integer idauxiliar,Date fecha,String poliza);
 	
 	@Query(value = "SELECT * FROM auxiliares_d WHERE transaccion=?1", nativeQuery = true)
-	Auxiliares_d findMovimientosByIdTransaccion(Integer transaccion);
+	AuxiliaresD findMovimientosByIdTransaccion(Integer transaccion);
 	
 	
 	

@@ -1,9 +1,11 @@
 package com.fenoreste.rest.services;
 
+import com.fenoreste.rest.entity.AuxiliarPK;
 import com.fenoreste.rest.entity.Referenciasp;
 
 public interface IReferenciaspService {
    
-	public Referenciasp referenciaspByOPA(Integer idorigenp,Integer idproducto,Integer idauxiliar);
+	public Referenciasp buscarPorIdTipoReferencia(AuxiliarPK auxPk);
+	
 	  
 }

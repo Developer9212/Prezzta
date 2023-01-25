@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 /**
  *
- * @author root
+ * @author wilmer
  */
 @Service
 public class FicheroConexion {
@@ -78,6 +78,7 @@ public class FicheroConexion {
                 while ((linea = br.readLine()) != null) {
                     t = t+linea;
                 }
+                br.close();
 
             } catch (Exception e) {
                 System.out.println("Excepcion leyendo txt" + fichero + ": " + e);

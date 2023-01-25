@@ -2,8 +2,8 @@ package com.fenoreste.rest.entity;
 
 import java.io.Serializable;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -13,10 +13,9 @@ import lombok.Data;
 @Data
 public class Referenciasp implements Serializable {
     
-	@Id	
-	private Integer idorigenp;
-	private Integer idproducto;
-	private Integer idauxiliar; 
+	@EmbeddedId
+	private AuxiliarPK pk; 
+	private Integer tiporeferencia;
 	private String referencia;
 	private Integer idorigenpr;
 	private Integer idproductor;

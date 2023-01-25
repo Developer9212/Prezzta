@@ -1,7 +1,6 @@
 package com.fenoreste.rest.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,7 @@ public class OtrosServiceImpl implements IOtrosService {
 	@Autowired
 	JdbcTemplate jdbc;
 	@Autowired
-	ITablasService tablasService;
+	ITablaService tablasService;
 
 	@Override
 	public String sesion() {

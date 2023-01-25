@@ -13,12 +13,19 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  *
  * @author wilmer
  */
 @Entity
 @Table(name = "tipos_cuenta_bankingly")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class CuentasBankingly implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,51 +37,7 @@ public class CuentasBankingly implements Serializable{
     private String descripcion;
     @Column(name="producttypeid")
     private Integer productTypeId;
-    public CuentasBankingly() {
-    }
-
-    public CuentasBankingly(Integer productTypeId, String productTypeName, String descripcion, Integer idproducto) {
-        this.productTypeId = productTypeId;
-        this.productTypeName = productTypeName;
-        this.descripcion = descripcion;
-        this.idproducto = idproducto;
-    }
-
-    public Integer getProductTypeId() {
-        return productTypeId;
-    }
-
-    public void setProductTypeId(Integer productTypeId) {
-        this.productTypeId = productTypeId;
-    }
-
-    public String getProductTypeName() {
-        return productTypeName;
-    }
-
-    public void setProductTypeName(String productTypeName) {
-        this.productTypeName = productTypeName;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public Integer getIdproducto() {
-        return idproducto;
-    }
-
-    public void setIdproducto(Integer idproducto) {
-        this.idproducto = idproducto;
-    }
-
-    @Override
-    public String toString() {
-        return "Catalogo_Cuenta_Bankingly{" + "productTypeId=" + productTypeId + ", productTypeName=" + productTypeName + ", descripcion=" + descripcion + ", idproducto=" + idproducto + '}';
-    }
+   
+    private static final long serialVersionUID = 1L;
     
 }

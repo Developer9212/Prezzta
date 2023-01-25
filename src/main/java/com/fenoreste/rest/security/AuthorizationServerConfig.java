@@ -10,8 +10,9 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 
-import com.fenoreste.rest.entity.Tablas;
-import com.fenoreste.rest.services.ITablasService;
+import com.fenoreste.rest.entity.Tabla;
+import com.fenoreste.rest.entity.TablaPK;
+import com.fenoreste.rest.services.ITablaService;
 import com.fenoreste.rest.services.IUserService;
 
 @Configuration
@@ -28,11 +29,12 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	private IUserService userService;
 	
 	@Autowired
-	private ITablasService tablasService;
+	private ITablaService tablasService;
 	
 	@Override
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception{
-		Tablas tbSecurity = tablasService.findIdtablaAndIdelemento("prezzta","user-ws");
+		TablaPK pk = new TablaPK("prezzta","user-ws");
+		Tabla tbSecurity = tablasService.buscarPorId(pk);
 		
 		clients.inMemory()
 		.withClient(tbSecurity.getDato1())

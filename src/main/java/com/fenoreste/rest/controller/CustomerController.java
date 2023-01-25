@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.fenoreste.rest.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,20 +10,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fenoreste.rest.modelos.DetallesSiscore;
 import com.fenoreste.rest.modelos.InfoClienteDTO;
-import com.fenoreste.rest.modelos.InfoDetallesSiscoreDTO;
 import com.fenoreste.rest.modelos.InfoPrestamoCreadoDTO;
-import com.fenoreste.rest.modelos.InfoSolicitudDTO;
 import com.fenoreste.rest.modelos.PrestamoCreadoDTO;
 import com.fenoreste.rest.modelos.PrestamoEntregado;
 import com.fenoreste.rest.modelos.clientRequestDTO;
 import com.fenoreste.rest.modelos.dataDTO;
 import com.fenoreste.rest.modelos.requestRegistraPrestamo;
-import com.fenoreste.rest.modelos.validacionDTO;
 import com.fenoreste.rest.services.CustomerServiceSpring;
 import com.github.cliftonlabs.json_simple.JsonObject;
 
@@ -62,7 +53,7 @@ public class CustomerController {
         	   info = new InfoClienteDTO();
         	   info.setCode(400);
         	   info.setData(null);
-        	   info.setMessage("No se encontraron registros para: "+request.getNumero_documento());
+        	   info.setMessage(dto.getNota());
         	   System.out.println("Error en ws 1 No se encontraron registros....");
         		return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
            }
@@ -108,13 +99,13 @@ public class CustomerController {
         	  if(opcion.equalsIgnoreCase("si") || opcion.equalsIgnoreCase("no")) {
         		  PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion);
             	 
-            	 if(entregado.getEstatus().contains("activo")) {
+            	 if(entregado.getEstatus().toUpperCase().contains("ACT")) {
             		 response.put("code", 200);
             		 response.put("mensaje", "Solicitud terminada exitosamente.");
             		 response.put("detallesDispersion", entregado);
             		 return new ResponseEntity<>(response,HttpStatus.OK);
             	 }else {    
-            		 entregado.setEstatus("0.0");
+            		 entregado.setEstatus("Autorizado");
             		 response.put("code", 400);
             		 response.put("mensaje", "La solicitud se ha declinado.");
             		 response.put("detallesDispersion", entregado);

@@ -7,9 +7,6 @@ package com.fenoreste.rest.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;

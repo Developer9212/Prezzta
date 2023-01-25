@@ -11,12 +11,19 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  *
  * @author wilmer
  */
 @Entity
 @Table(name="grupos")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Grupos implements Serializable{
      
     @Id
@@ -26,47 +33,8 @@ public class Grupos implements Serializable{
     private String nombre;
     @Column(name="tipogrupo")
     private String tipogrupo;
-
-    public Grupos() {
-    }
-
-    public Grupos(int idgrupo, String nombre, String tipogrupo) {
-        this.idgrupo = idgrupo;
-        this.nombre = nombre;
-        this.tipogrupo = tipogrupo;
-    }
-
-    public int getIdgrupo() {
-        return idgrupo;
-    }
-
-    public void setIdgrupo(int idgrupo) {
-        this.idgrupo = idgrupo;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getTipogrupo() {
-        return tipogrupo;
-    }
-
-    public void setTipogrupo(String tipogrupo) {
-        this.tipogrupo = tipogrupo;
-    }
-
-    @Override
-    public String toString() {
-        return "Grupos{" + "idgrupo=" + idgrupo + ", nombre=" + nombre + ", tipogrupo=" + tipogrupo + '}';
-    }
     
-    
-    
+    private static final long serialVersionUID = 1L;
     
     
 }

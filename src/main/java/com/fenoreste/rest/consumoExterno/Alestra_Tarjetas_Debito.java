@@ -11,13 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fenoreste.rest.services.ITablasService;
+import com.fenoreste.rest.services.ITablaService;
 
 @Service
 public class Alestra_Tarjetas_Debito {
 	
 	@Autowired
-	ITablasService tablasService;
+	ITablaService tablasService;
 	
 	private static RestTemplate restTemplate=new RestTemplate();
 	

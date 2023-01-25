@@ -1,25 +1,16 @@
 package com.fenoreste.rest.services;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.batch.BatchProperties.Jdbc;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import com.fenoreste.rest.dao.Auxiliares_dRepository;
-import com.fenoreste.rest.entity.Auxiliares_d;
+import com.fenoreste.rest.entity.AuxiliaresD;
 
 
 @Service
@@ -33,13 +24,13 @@ public class Auxiliares_dServiceImpl implements IAuxiliares_dService{
 	
 	
 	@Override
-	public List<Auxiliares_d> findAuxiliares_dByOpa(Integer idorigenp, Integer  idproducto, Integer  idauxiliar) {
+	public List<AuxiliaresD> findAuxiliares_dByOpa(Integer idorigenp, Integer  idproducto, Integer  idauxiliar) {
 		// TODO Auto-generated method stub
 		return auxiliares_dDao.findAuxiliares_dByOpa(idorigenp, idproducto, idauxiliar);
 	}
 
 	@Override
-	public List<Auxiliares_d> findAuxiliares_dByOpaFecha(Integer  idorigenp, Integer  idproducto, Integer  idauxiliar, Date fechaI,
+	public List<AuxiliaresD> findAuxiliares_dByOpaFecha(Integer  idorigenp, Integer  idproducto, Integer  idauxiliar, Date fechaI,
 			Date fechaF) {
 		return auxiliares_dDao.findAuxiliares_dByOpaFecha(idorigenp, idproducto, idauxiliar, fechaI, fechaF);
 	}
@@ -57,12 +48,12 @@ public class Auxiliares_dServiceImpl implements IAuxiliares_dService{
 	}
 
 	@Override
-	public Auxiliares_d findUltimoRegistro(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
+	public AuxiliaresD findUltimoRegistro(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
 		// TODO Auto-generated method stub
-		int size =jdbc.query("SELECT * FROM auxiliares_d WHERE idorigenp="+idorigenp+" AND idproducto="+idproducto+" AND idauxiliar="+idauxiliar+" ORDER BY fecha DESC limit 1",new BeanPropertyRowMapper<>(Auxiliares_d.class)).size();
-		Auxiliares_d ad=null;
+		int size =jdbc.query("SELECT * FROM auxiliares_d WHERE idorigenp="+idorigenp+" AND idproducto="+idproducto+" AND idauxiliar="+idauxiliar+" ORDER BY fecha DESC limit 1",new BeanPropertyRowMapper<>(AuxiliaresD.class)).size();
+		AuxiliaresD ad=null;
 		if(size>0) {
-			ad = jdbc.query("SELECT * FROM auxiliares_d WHERE idorigenp="+idorigenp+" AND idproducto="+idproducto+" AND idauxiliar="+idauxiliar+" ORDER BY fecha DESC limit 1",new BeanPropertyRowMapper<>(Auxiliares_d.class)).get(0);
+			ad = jdbc.query("SELECT * FROM auxiliares_d WHERE idorigenp="+idorigenp+" AND idproducto="+idproducto+" AND idauxiliar="+idauxiliar+" ORDER BY fecha DESC limit 1",new BeanPropertyRowMapper<>(AuxiliaresD.class)).get(0);
 		}
 		return ad;//auxiliares_dDao.findUltimoRegistro(idorigenp, idproducto, idauxiliar);
 	}
@@ -92,20 +83,20 @@ public class Auxiliares_dServiceImpl implements IAuxiliares_dService{
 	}
 
 	@Override
-	public Auxiliares_d findByTransaccion(Integer transaccion) {
+	public AuxiliaresD findByTransaccion(Integer transaccion) {
 		String consulta = "SELECT * FROM auxiliares_d WHERE transaccion="+transaccion;
-		int size = jdbc.query(consulta, new BeanPropertyRowMapper<>(Auxiliares_d.class)).size();
+		int size = jdbc.query(consulta, new BeanPropertyRowMapper<>(AuxiliaresD.class)).size();
 		
 		System.out.println("Consulta : "+ consulta);
-		Auxiliares_d ad = null;
+		AuxiliaresD ad = null;
 		if(size > 0) {
-			ad = jdbc.query("SELECT * FROM auxiliares_d WHERE transaccion="+transaccion, new BeanPropertyRowMapper<>(Auxiliares_d.class)).get(0);
+			ad = jdbc.query("SELECT * FROM auxiliares_d WHERE transaccion="+transaccion, new BeanPropertyRowMapper<>(AuxiliaresD.class)).get(0);
 		}
 	     return ad;//auxiliares_dDao.findMovimientosByIdTransaccion(transaccion);
 	}
 
 	@Override
-	public List<Auxiliares_d> findAuxiliares_dByOpaAndFechaAndPoliza(Integer idorigenp, Integer idproducto,
+	public List<AuxiliaresD> findAuxiliares_dByOpaAndFechaAndPoliza(Integer idorigenp, Integer idproducto,
 			Integer idauxiliar, Date fecha, String poliza) {
 		// TODO Auto-generated method stub
 		return auxiliares_dDao.findAuxiliares_dByOpaAndFechaAndPoliza(idorigenp, idproducto, idauxiliar, fecha, poliza);

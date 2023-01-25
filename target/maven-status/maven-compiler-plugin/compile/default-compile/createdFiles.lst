@@ -10,7 +10,6 @@ com/fenoreste/rest/services/IAuxiliaresService.class
 com/fenoreste/rest/modelos/dataDTO.class
 com/fenoreste/rest/services/CatalogoMenusServiceImpl.class
 com/fenoreste/rest/entity/Paises.class
-com/fenoreste/rest/entity/Tablas.class
 com/fenoreste/rest/entity/Socioeconomicos.class
 com/fenoreste/rest/Util/SpringConfiguration.class
 com/fenoreste/rest/modelos/propiedadesDTO.class
@@ -66,8 +65,6 @@ com/fenoreste/rest/entity/Colonias.class
 com/fenoreste/rest/modelos/ResumenGeneralSiscore.class
 com/fenoreste/rest/services/ICatalogoMenusService.class
 com/fenoreste/rest/entity/Persona.class
-com/fenoreste/rest/services/ITablasService.class
-com/fenoreste/rest/services/TablasServiceImpl.class
 com/fenoreste/rest/SpringPrezztaApplication.class
 com/fenoreste/rest/services/IEstadoService.class
 com/fenoreste/rest/modelos/BanderasObjeto.class

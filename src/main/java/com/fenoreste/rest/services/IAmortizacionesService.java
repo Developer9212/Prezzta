@@ -2,8 +2,6 @@ package com.fenoreste.rest.services;
 
 import java.util.List;
 
-import org.springframework.data.domain.Pageable;
-
 import com.fenoreste.rest.entity.Amortizacion;
 
 

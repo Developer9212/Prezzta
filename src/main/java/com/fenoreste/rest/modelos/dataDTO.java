@@ -7,6 +7,10 @@ package com.fenoreste.rest.modelos;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -87,6 +91,9 @@ public class dataDTO {
     private List<referenciasPersonalesDTO> referencias_personales;
     private referenciasLaboralesDTO referencias_laborales;
     private List<relacionesSociosDTO> relaciones_socios;
-
+    @JsonProperty("lista_control")
+    private Integer Lista_Control;
+    @JsonInclude(value = Include.NON_EMPTY)
+    private String nota;
 
 }
