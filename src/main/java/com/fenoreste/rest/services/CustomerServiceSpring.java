@@ -322,7 +322,7 @@ public class CustomerServiceSpring {
 		 			   Tabla tb_nota_comision  = tablasService.buscarPorId(tb_pk_tmp);
 		 			   tb_pk_tmp.setIdelemento("nota_dispersion");
 		 			   Tabla tb_nota_dispersion = tablasService.buscarPorId(tb_pk_tmp);
-		 			   tb_pk_tmp.setIdelemento("nota_dispersion");
+		 			   tb_pk_tmp.setIdelemento("nota_renovacion");
 		 			   Tabla tb_nota_renovacion = tablasService.buscarPorId(tb_pk_tmp);
 		 			   tb_pk_tmp.setIdelemento("nota_montos_atrasado");
 		 			   Tabla tb_nota_monto_atraso = tablasService.buscarPorId(tb_pk_tmp);
@@ -356,10 +356,13 @@ public class CustomerServiceSpring {
 			        	  /*validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+","+
 			        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
 			        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar+" - "+String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+imprt);*/
+			        	  System.out.println(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(0)));
+			        	  System.out.println(tb_nota_dispersion.getDato2());
+			        	  
 			        	  validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(0))+","+
 	        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
 	        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar) + imprt);
-	        			   
+	        			  
 	        			
 	        			  tmp_saver.setTipoapertura("Renovacion");
 	        			  tmp_saver.setMontorenovar(Double.parseDouble(rangos.get(5).toString()));
@@ -804,8 +807,7 @@ public class CustomerServiceSpring {
 			Timestamp fecha_transferencia = Timestamp.valueOf(localDate);	
 			String sesion = otrosService.sesion();
 			int rn = (int) (Math.random() * 999999 + 1);
-			String referencia = String.valueOf(rn) + "" + String.valueOf(opaReq);			
-			// if(auxiliar.getMontosolicitado().doubleValue() <=60000) {
+			String referencia = String.valueOf(rn) + "" + String.valueOf(opaReq);
 			RegistraMovimiento registrar_movimiento = new RegistraMovimiento();
 			double total_depositar = 0.0;
 			TablaPK tb_pk_all = new TablaPK("bankingly_banca_movil","liga_envio_mensajes");
@@ -825,18 +827,14 @@ public class CustomerServiceSpring {
 			Tabla tb_monto_comision = tablasService.buscarPorId(tb_pk_all);
 			tb_pk_all.setIdelemento("usuario");
 			Tabla tb_usuario = tablasService.buscarPorId(tb_pk_all);
-			
 			//Si se confirma entregamos el prestamo
 			if(confirmar.equalsIgnoreCase("si")) {	
-				//Busco si hay registros para el socio que esta intentando solicitar credito en linea				
-	         System.out.println("Vamos a buscar configuracion dispersion");
-	          //Busco el producto para dispersion
+			  //Busco el producto para dispersion
 	          tb_pk_all.setIdelemento("producto_para_dispersion");
 			  Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_all);
 			  System.out.println("Dispersion config encontrada");
 			  Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),Integer.parseInt(tb_config_dispersion.getDato1()));
-			  System.out.println("Aux tdd:"+auxiliar_tdd.getIdproducto());
-    	 	 if(auxiliar_tdd != null) {
+			  if(auxiliar_tdd != null) {
     	 		 System.out.println("Entro por auxiliar tdd");
     	 		 System.out.println("Vamos a limpiar basura");
     	 		 procesaMovimientoService.eliminaMovimientoTodos(auxiliar.getIdorigen(), auxiliar.getIdgrupo(),auxiliar.getIdsocio());
@@ -949,9 +947,8 @@ public class CustomerServiceSpring {
 				  int total_procesados = 0;
 				  //Si el origen es CSN
 				  
-				  System.out.println(matriz.getIdorigen());
-				  if(matriz.getIdorigen() == 30200) {
-					  System.out.println("Origen encontrado:"+matriz.getNombre());
+				  System.out.println("Origen encontrado:"+matriz.getNombre());
+				  if(matriz.getIdorigen() == 30200) {					  
 					  //Busco la validacion si se puede usar tdd en el proyecto prezzta
 					  System.out.println("Buscando configuracion activa uso tdd");
 					  TablaPK tb_pk_tdd = new TablaPK(idtabla,"activa_tdd");
@@ -1074,7 +1071,7 @@ public class CustomerServiceSpring {
 				  Auxiliar ahorro = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),110);
 
 				  //Tabla para obtener el monto de comision
-				  TablaPK tb_pk_c = new TablaPK(idtabla,"comsion");
+				  TablaPK tb_pk_c = new TablaPK(idtabla,"comision");
 				  tb_monto_comision = tablasService.buscarPorId(tb_pk_c);
 				  registrar_movimiento.setIdorigenp(ahorro.getIdorigenp());
 				  registrar_movimiento.setIdproducto(ahorro.getIdproducto());
@@ -1159,7 +1156,6 @@ public class CustomerServiceSpring {
 			return entregado;
 		}
 		System.out.println("Saliendo ws 3 dispersion...");
-		System.out.println("El prestamo dispersado es:"+entregado.getEstatus());
 		return entregado;
 	}
 	
@@ -1243,7 +1239,8 @@ public class CustomerServiceSpring {
 			int rn = (int) (Math.random() * 999999 + 1);
 			String referencia = String.valueOf(rn) + "" + String.valueOf(opaReq);
 			 // if(auxiliar.getMontosolicitado().doubleValue() <=60000) {
-			 RegistraMovimiento registrar_movimiento = new RegistraMovimiento();	
+			
+			RegistraMovimiento registrar_movimiento = new RegistraMovimiento();	
 			 
 			  // se cubre el adeudo del prestamo						  
 			  registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
