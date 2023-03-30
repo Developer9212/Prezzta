@@ -9,8 +9,8 @@ package com.fenoreste.rest.entity;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -27,21 +27,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegistraMovimiento implements Serializable {
-    @Id
-    @Column(name = "idauxiliar")
-    private Integer idauxiliar;
-    @Column(name="idproducto")
-    private Integer idproducto;
-    @Column(name="idorigenp")
-    private Integer idorigenp;        
+    @EmbeddedId
+    private MovimientosPK pk;
     @Column(name = "fecha")
     private Timestamp fecha;
-    @Column(name = "idusuario")
-    private Integer idusuario;
-    @Column(name = "sesion")
-    private String sesion;
-    @Column(name = "referencia")
-    private String referencia;
     @Column(name = "idorigen")
     private Integer idorigen;
     @Column(name = "idgrupo")

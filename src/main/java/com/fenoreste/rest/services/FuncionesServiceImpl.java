@@ -58,4 +58,9 @@ public class FuncionesServiceImpl implements IFuncionesService{
 	public String terminar_transaccion(Date fecha, Integer idusuario, String sesion, String referencia) {
 		return funcionesRepository.sai_bankingly_termina_transaccion(fecha, idusuario, sesion, referencia);
 	}
+
+	@Override
+	public String eliminarAutorizado(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
+		return funcionesRepository.eliminarAutorizado(idorigenp, idproducto, idauxiliar);
+	}
 }

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fenoreste.rest.Util.FicheroConexion;
 import com.fenoreste.rest.entity.Tabla;
 import com.fenoreste.rest.entity.TablaPK;
 import com.fenoreste.rest.services.ITablaService;
@@ -64,7 +65,7 @@ public class Siscore_Calificacion_Score {
 		return json.toString();// requisition.getBody();
 	}
 	
-	/*public String requisitionImportTest(String opa) {
+	public String requisitionImportTest(String opa) {
 		JSONObject json = null;
 		ResponseEntity<String> requisition = null;
 		try {
@@ -75,7 +76,7 @@ public class Siscore_Calificacion_Score {
 			System.out.println("Error al consumir siscore:" + e.getMessage());
 		}
 		return json.toString();
-	}*/
+	}
 	
 
 

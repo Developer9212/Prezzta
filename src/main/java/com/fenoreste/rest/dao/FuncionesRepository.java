@@ -25,5 +25,8 @@ public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	@Query(value="SELECT sai_bankingly_termina_transaccion(?1,?2,?3,?4)",nativeQuery = true)
 	String sai_bankingly_termina_transaccion(Date fecha,Integer idusuario,String sesion,String referencia);
 	
+	@Query(value = "SELECT sai_prezzta_cancela_prestamo_rechazado(?1,?2,?3)",nativeQuery = true)
+	String eliminarAutorizado(Integer idorigenp,Integer idproducto,Integer idauxiliar);
+	
 	
 }

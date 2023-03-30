@@ -29,6 +29,7 @@ import com.fenoreste.rest.entity.Colonias;
 import com.fenoreste.rest.entity.CsnVacIngreso;
 import com.fenoreste.rest.entity.Estados;
 import com.fenoreste.rest.entity.FolioTarjeta;
+import com.fenoreste.rest.entity.MovimientosPK;
 import com.fenoreste.rest.entity.Municipios;
 import com.fenoreste.rest.entity.Negociopropio;
 import com.fenoreste.rest.entity.Origenes;
@@ -69,7 +70,10 @@ import com.fenoreste.rest.modelos.relacionesSociosDTO;
 import com.fenoreste.rest.modelos.segundoEmpleoDTO;
 import com.fenoreste.rest.modelos.validacionDTO;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class CustomerServiceSpring {
 	
 	@Autowired
@@ -157,51 +161,65 @@ public class CustomerServiceSpring {
 		dataDTO response = new dataDTO();
 		Origenes origen = origenesService.findMatrizOrigen();
 		try {
+		TablaPK conf_minimo_solicitud_pk = new TablaPK(idtabla,"minimo_solicitud");
+		Tabla config_minimo_solicitud = tablasService.buscarPorId(conf_minimo_solicitud_pk);		
 		boolean bandera_so = false;
-		List rangos = new ArrayList<>();
+		List<String>rangos = new ArrayList<>();
 		//Buscamos a la persona con los datos que llegaron en el metodo
-		Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());
-		if(origen.getIdorigen() == 30200) {
-			//Vamos a validar estatus de la tdd
-			Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(), persona.getIdgrupo(),persona.getIdsocio(),133);
-			//Buscamos el folio de tarjeta
-			AuxiliarPK pk_tdd = new AuxiliarPK(auxiliar_tdd.getIdorigenp(),auxiliar_tdd.getIdproducto(),auxiliar_tdd.getIdauxiliar());
-			FolioTarjeta folio_tdd = foliosTarjetaService.buscarPorId(pk_tdd);
-			//Ahora buscamos registro para la tarjeta
-			System.out.println("IdTarjeta:"+folio_tdd.getIdtarjeta());
-			Tarjeta tarjeta = tarjetaService.buscarPorId(folio_tdd.getIdtarjeta());
-			if(tarjeta.getFecha_vencimiento().after(origen.getFechatrabajo())) {
-				TablaPK tb_pk_sopar = new TablaPK(idtabla,"prezzta_empleados");
-				Tabla tb_sopar = tablasService.buscarPorId(tb_pk_sopar);
-				PersonaPK pk_persona = new PersonaPK(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio());
-				System.out.println(pk_persona.getIdorigen()+","+pk_persona.getIdgrupo()+","+pk_persona.getIdsocio()+","+tb_sopar.getDato2());
-				Sopar sopar = soparService.buscarPorIdTipo(pk_persona, tb_sopar.getDato2());
-				if(sopar != null ) {
-					//Vamos a buscar si es persona relacionada
-					Sopar sopar_persona_relacionada = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas");
-					Sopar sopar_persona_relacionada2 = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas2");
-					//Buscamos realacionada en ingresos
-					CsnVacIngreso ingreso =  csnVacIngresoService.buscarPorIdActivo(pk_persona);
-					
-					if(sopar_persona_relacionada !=null || sopar_persona_relacionada2 != null || ingreso != null) {
-						response.setLista_Control(1);
+		Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());		
+		//Buscamos el producto ahorro para saber si tiene el minimo configurado
+		Auxiliar ahorro_disponible = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), 110);
+		conf_minimo_solicitud_pk = new TablaPK(idtabla,"minimo_solicitud");
+		config_minimo_solicitud = tablasService.buscarPorId(conf_minimo_solicitud_pk);
+		if(ahorro_disponible.getSaldo().doubleValue() >= Double.parseDouble(config_minimo_solicitud.getDato1())) {
+			if(origen.getIdorigen() == 30200) {
+				//Vamos a validar estatus de la tdd
+				Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(), persona.getIdgrupo(),persona.getIdsocio(),133);
+				//Buscamos el folio de tarjeta
+				AuxiliarPK pk_tdd = new AuxiliarPK(auxiliar_tdd.getIdorigenp(),auxiliar_tdd.getIdproducto(),auxiliar_tdd.getIdauxiliar());
+				FolioTarjeta folio_tdd = foliosTarjetaService.buscarPorId(pk_tdd);
+				//Ahora buscamos registro para la tarjeta
+				Tarjeta tarjeta = tarjetaService.buscarPorId(folio_tdd.getIdtarjeta());
+				if(tarjeta.getFecha_vencimiento().after(origen.getFechatrabajo())) {
+					TablaPK tb_pk_sopar = new TablaPK(idtabla,"prezzta_empleados");
+					Tabla tb_sopar = tablasService.buscarPorId(tb_pk_sopar);
+					PersonaPK pk_persona = new PersonaPK(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio());
+					System.out.println(pk_persona.getIdorigen()+","+pk_persona.getIdgrupo()+","+pk_persona.getIdsocio()+","+tb_sopar.getDato2());
+					Sopar sopar = soparService.buscarPorIdTipo(pk_persona, tb_sopar.getDato2());
+					if(sopar != null ) {
+						//Vamos a buscar si es persona relacionada
+						Sopar sopar_persona_relacionada = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas");
+						Sopar sopar_persona_relacionada2 = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas2");
+						//Buscamos realacionada en ingresos
+						CsnVacIngreso ingreso =  csnVacIngresoService.buscarPorIdActivo(pk_persona);						
+						if(sopar_persona_relacionada !=null || sopar_persona_relacionada2 != null || ingreso != null) {
+							response.setLista_Control(1);
+						}else {
+							response.setLista_Control(0);
+						}
+						bandera_so = true;
 					}else {
-						response.setLista_Control(0);
+						log.info("Esta es una prueba controlada");
+						response.setNota("Esta es una prueba controlada...");
 					}
-					bandera_so = true;
+				}else {
+					log.info("Tarjeta esta vencida");
+					response.setNota("Tarjeta esta vencida");
 				}
 			}else {
-				System.out.println("Si entro aqui");
-				response.setNota("Tarjeta esta vencida");
+				bandera_so = true;
 			}
 		}else {
-			bandera_so = true;
+			log.info("Socio no alcanza el minimo para procesar su solicitud....");
+			response.setNota("Socio no alcanza el minimo para procesar solicitud....");
 		}
+		
 		
 		if(persona != null && bandera_so == true) {
 			//Para saber si es socio
 			TablaPK tb_pk_parte_social = new TablaPK(idtabla,"parte_social");
 			Tabla tb_producto_parte_social = tablasService.buscarPorId(tb_pk_parte_social);
+			
 			if(tb_producto_parte_social != null) {
 				Auxiliar folio_parte_social = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(), persona.getIdgrupo(),persona.getIdsocio(),Integer.parseInt(tb_producto_parte_social.getDato1()));
 				if(folio_parte_social.getSaldo().doubleValue() >= Double.parseDouble(tb_producto_parte_social.getDato2())) {
@@ -219,7 +237,7 @@ public class CustomerServiceSpring {
                     primerEmpleoDTO primerempleo = new primerEmpleoDTO();
                     segundoEmpleoDTO segundoempleo = new segundoEmpleoDTO();
                     List<Trabajo>listaTrabajos = trabajosService.findTrabajosActivosByOgs(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(),2);
-                    int cons_tr_ac = 0; //consecutivo trabajo actual
+                    int cons_tr_ac = 0; //consecutivo trabajo actual                    
                     for(int i = 0;i<listaTrabajos.size();i++) {
                     	Trabajo trabajo = listaTrabajos.get(i); 
                 		CatalogoMenus menu = catalogoMenuService.findByMenuOpcion("giro_empresa", trabajo.getGiro_empresa());
@@ -327,10 +345,18 @@ public class CustomerServiceSpring {
 		 			   tb_pk_tmp.setIdelemento("nota_montos_atrasado");
 		 			   Tabla tb_nota_monto_atraso = tablasService.buscarPorId(tb_pk_tmp);
 		 			   	 			   	 			 
-		 			  plazoMin = rangos.get(0).toString();
+		 			  plazoMin = config_minimo_solicitud.getDato2();
 		 			  plazoMax = rangos.get(1).toString();
-		 			  montoMin = rangos.get(2).toString();
+		 			  montoMin = config_minimo_solicitud.getDato1();
 		 			  montoMax = rangos.get(3).toString();
+		 			  
+		 			  TablaPK tb_pk = new TablaPK(idtabla,"monto_maximo_solicitud");
+		 			  Tabla tb_monto_maximo = tablasService.buscarPorId(tb_pk);
+                      if(Double.parseDouble(montoMax)> Double.parseDouble(tb_monto_maximo.getDato1())) {
+                    	  montoMax = tb_monto_maximo.getDato1();
+                      }
+		 			  
+		 			  
 		 			  String tipoApertura = rangos.get(4).toString();
 		 			  String totalRenovar = rangos.get(5).toString();
 		 			  String totalAtraso = rangos.get(7).toString();
@@ -356,9 +382,7 @@ public class CustomerServiceSpring {
 			        	  /*validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+","+
 			        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
 			        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar+" - "+String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+imprt);*/
-			        	  System.out.println(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(0)));
-			        	  System.out.println(tb_nota_dispersion.getDato2());
-			        	  
+			        	 			        	  
 			        	  validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(0))+","+
 	        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
 	        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar) + imprt);
@@ -386,8 +410,6 @@ public class CustomerServiceSpring {
 			        	  double totallibre = 0.0;
 	        			  tmp_saver.setGastos_pagar(totallibre);			        	  
 			          }		
-       			   	  System.out.println("Insertando registros temporales...");
-       			   	  System.out.println(tmp_saver);
 			          tmp_saver = tmpService.guardar(tmp_saver);
 			          
 			         }else {
@@ -682,7 +704,9 @@ public class CustomerServiceSpring {
                    response.setSexo(cmsex.getDescripcion());       
                    System.out.println("Exitoso");
 				   }                    
-			    }			      
+			    }else {
+			    	response.setNota("Parte social incompleta...");
+			    }
 		     }			
 		  }
 	   }catch(Exception e) {
@@ -697,18 +721,16 @@ public class CustomerServiceSpring {
 		boolean bandera = false;
 		PrestamoCreadoDTO prestamo = null;		
 		String montoCubrir = "",opaAnterior ="";
-		System.out.println("Accediendo al ws 2....");
+		log.info("Accediendo al ws 2....");
 		try {			 		    
 			prestamo = new PrestamoCreadoDTO();
 			ogsDTO ogs = new HerramientasUtil().ogs(num_socio);
 			//Obtenemos informacion que ya se valido
 			tmp_aperturas tmp_validacion = tmpService.buscar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());
-			System.out.println("Vamos a buscar validaciones de ws 1...");
+			log.info("Vamos a buscar validaciones de ws 1...");
 		    if(tmp_validacion != null) {
-		    System.out.println("Existe una validacion para el socio:"+num_socio);		    
 		    if(tmp_validacion.getTipoapertura().toUpperCase().contains("R")) {
-		   		System.out.println("El tipo de solicitud es una renovacion");
-				//Validacion que no halla monto atrasado				 
+		   		//Validacion que no halla monto atrasado				 
 				String monto_maximo_prestar = funcionesService.validacion_monto_prestar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());					
 				String[] montos_array = monto_maximo_prestar.split("\\|");                    
 	 		    List<String>rangos = Arrays.asList(montos_array);	
@@ -719,9 +741,11 @@ public class CustomerServiceSpring {
 		        	if((monto > tmp_validacion.getGastos_pagar())) {
 			    		bandera = true;	
 					 }else{
+						 log.info("No es posible renovar prestamo porque monto solicitado:"+monto+" es menor o igual a monto a renovar:"+tmp_validacion.getMontorenovar());
 						 prestamo.setNota("No es posible renovar prestamo porque monto solicitado:"+monto+" es menor o igual a monto a renovar:"+tmp_validacion.getMontorenovar());
 					 }
 			      }else {
+			    	  log.info("Asegurese de haber cubierto:"+montoCubrir+", al folio:"+opaAnterior);
 			    	  prestamo.setNota("Asegurese de haber cubierto:"+montoCubrir+", al folio:"+opaAnterior);  
 			      }
 		      }else {
@@ -763,8 +787,6 @@ public class CustomerServiceSpring {
 						prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));
 						Origenes origen = origenesService.findMatrizOrigen();
 						DetallesSiscore detallesSiscore = null;
-						System.out.println("Vamos abuscar idorigen con matriz 0");
-						System.out.println("Idorigen:"+origen.getIdorigen());
 						if(origen.getIdorigen() == 30200) {				
 							detallesSiscore = ResumenSiscoreCSN(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar()); 
 							prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
@@ -775,17 +797,19 @@ public class CustomerServiceSpring {
 						prestamo.setCuotas(cuotas);	
 						tmpService.eliminar(tmp_validacion);
 					   }else {
+						   log.info("Monto solicitado excede el permitido en el core");
 						   prestamo.setNota("Monto solicitado excede el permitido en el core");
 					   }
 			        }
 			    }else {
+			    	log.info("No se ha realizado una validacion para el socio:"+num_socio);
 			    	 prestamo.setNota("No se ha realizado una validacion para el socio:"+num_socio); 
 			    }
 			 }catch (Exception e) {
-		         	System.out.println("Error al procesar el registro:"+e.getMessage());
+		         	log.info("Error al procesar el registro:"+e.getMessage());
 		     }		
-		System.out.println("Saliendo ws 2...");
-		System.out.println("El prestamo aperturado es:"+prestamo);
+		 log.info("Saliendo ws 2...");
+		 log.info("El prestamo aperturado es:"+prestamo);
 		return prestamo;		
 	}
 	
@@ -795,14 +819,17 @@ public class CustomerServiceSpring {
 	
 	public PrestamoEntregado entregarPrestamo(String opaReq,String confirmar) {
 		PrestamoEntregado entregado = new PrestamoEntregado();
-		System.out.println("Accediendo al ws 3 dispersion...");
+		log.info("Accediendo al ws 3 dispersion...");
+		MovimientosPK mov_pk = null;
 		try {
 			Origenes matriz=origenesService.findMatrizOrigen();
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			opaDTO opa = new HerramientasUtil().opa(opaReq);
+			log.info("Pasando de leer origen matriz");
 			Auxiliar auxiliar = auxiliaresService.AuxiliarByOpa(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
 			//Verifico que el opa no se halla activado antes para evitar activar 2 veces
 			if(auxiliar.getEstatus() == 1) {
+			log.info("El estatus es autorizado");
 			LocalDateTime localDate = LocalDateTime.parse(matriz.getFechatrabajo().toString().substring(0,19), dtf);
 			Timestamp fecha_transferencia = Timestamp.valueOf(localDate);	
 			String sesion = otrosService.sesion();
@@ -811,41 +838,50 @@ public class CustomerServiceSpring {
 			RegistraMovimiento registrar_movimiento = new RegistraMovimiento();
 			double total_depositar = 0.0;
 			TablaPK tb_pk_all = new TablaPK("bankingly_banca_movil","liga_envio_mensajes");
+			log.info("Vamos a buscar configuraciones para envio sms");
 			Tabla tb_url_sms = tablasService.buscarPorId(tb_pk_all);
+			log.info("Configuracion sms encontrada");
 			tb_pk_all.setIdelemento("smsactivo");
+			log.info("Buscando servicio sms activo");
 	        Tabla tb_sms_activo = tablasService.buscarPorId(tb_pk_all);
 	        tb_pk_all.setIdelemento("monto_minimo_sms");
+	        log.info("Buscando servicio sms minimo");
 	        Tabla tb_minimo_sms = tablasService.buscarPorId(tb_pk_all);
 	        tb_pk_all.setIdtabla(idtabla);
 	        tb_pk_all.setIdelemento("texto_sms_dispersion");
+	        log.info("Buscando servicio dispersion");
 			Tabla tb_texto_sms_dispersion = tablasService.buscarPorId(tb_pk_all);
 			tb_pk_all.setIdelemento("txto_sms_declinacion");
+			log.info("Buscando msj sms declinacion");
 			Tabla tb_texto_sms_declinacion = tablasService.buscarPorId(tb_pk_all);
 			Persona persona = personaService.findByOgs(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio());
 			//Tabla para obtener el monto de comision
 			tb_pk_all.setIdelemento("comision");
+			log.info("Buscando config. comision");
 			Tabla tb_monto_comision = tablasService.buscarPorId(tb_pk_all);
 			tb_pk_all.setIdelemento("usuario");
+			log.info("Buscando usuario");
 			Tabla tb_usuario = tablasService.buscarPorId(tb_pk_all);
 			//Si se confirma entregamos el prestamo
 			if(confirmar.equalsIgnoreCase("si")) {	
 			  //Busco el producto para dispersion
 	          tb_pk_all.setIdelemento("producto_para_dispersion");
-			  Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_all);
-			  System.out.println("Dispersion config encontrada");
+	          log.info("Buscando servicio para dispersion");
+	          Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_all);
+	          log.info("Dispersion config a:"+tb_config_dispersion);
 			  Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),Integer.parseInt(tb_config_dispersion.getDato1()));
 			  if(auxiliar_tdd != null) {
-    	 		 System.out.println("Entro por auxiliar tdd");
-    	 		 System.out.println("Vamos a limpiar basura");
-    	 		 procesaMovimientoService.eliminaMovimientoTodos(auxiliar.getIdorigen(), auxiliar.getIdgrupo(),auxiliar.getIdsocio());
-		    	  //Cargo al producto que va a ser la renovacion(Nuevo)
-		    	  registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
+				  log.info("Se encontraron registros para la tdd");
+    	 		  procesaMovimientoService.eliminaMovimientoTodos(auxiliar.getIdorigen(), auxiliar.getIdgrupo(),auxiliar.getIdsocio());
+		    	  mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,auxiliar.getIdorigenp(),auxiliar.getIdproducto(),auxiliar.getIdauxiliar());
+    	 		  /*registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
 				  registrar_movimiento.setIdproducto(auxiliar.getIdproducto());
-				  registrar_movimiento.setIdauxiliar(auxiliar.getIdauxiliar());
+				  registrar_movimiento.setIdauxiliar(auxiliar.getIdauxiliar());*/
+		    	  registrar_movimiento.setPk(mov_pk);
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
+				  /*registrar_movimiento.setIdusuario();
 				  registrar_movimiento.setSesion(sesion);
-				  registrar_movimiento.setReferencia(referencia);
+				  registrar_movimiento.setReferencia(referencia);*/
 				  registrar_movimiento.setIdorigen(auxiliar.getIdorigen());
 				  registrar_movimiento.setIdgrupo(auxiliar.getIdgrupo());
 				  registrar_movimiento.setIdsocio(auxiliar.getIdsocio());
@@ -855,24 +891,24 @@ public class CustomerServiceSpring {
 				  registrar_movimiento.setTipo_amort(Integer.parseInt(String.valueOf(auxiliar.getTipoamortizacion())));
 				  registrar_movimiento.setSai_aux("");
 				  
+				  log.info("");
 				  boolean bandera_renovacion = false;
 				  boolean procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
 				  		  
 				  //Buscamos si lo que se va a aplicar es renovacion
-				  System.out.println("Vamos a buscar referencias");
 				  AuxiliarPK pk_referenciap = new AuxiliarPK(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
 				  Referenciasp referenciasp =  referenciaspService.buscarPorIdTipoReferencia(pk_referenciap);
-				  System.out.println("Referencia encontrada");
 				  if(referenciasp != null) {
-					   System.out.println("Entro con la referencia");
 					  //Aplicamos movimiento para realizar pago del prestamo a renovar(Viejito)
-					  registrar_movimiento.setIdorigenp(referenciasp.getIdorigenpr());
+					  mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,referenciasp.getIdorigenpr(),referenciasp.getIdproductor(),referenciasp.getIdauxiliarr());
+					  /*registrar_movimiento.setIdorigenp(referenciasp.getIdorigenpr());
 					  registrar_movimiento.setIdproducto(referenciasp.getIdproductor());
-					  registrar_movimiento.setIdauxiliar(referenciasp.getIdauxiliarr());
+					  registrar_movimiento.setIdauxiliar(referenciasp.getIdauxiliarr());*/
+					  registrar_movimiento.setPk(mov_pk);
 					  registrar_movimiento.setFecha(fecha_transferencia);
-					  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
+					  /*registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 					  registrar_movimiento.setSesion(sesion);
-					  registrar_movimiento.setReferencia(referencia);
+					  registrar_movimiento.setReferencia(referencia);*/
 					  registrar_movimiento.setIdorigen(auxiliar.getIdorigen());
 					  registrar_movimiento.setIdgrupo(auxiliar.getIdgrupo());
 					  registrar_movimiento.setIdsocio(auxiliar.getIdsocio());
@@ -894,19 +930,20 @@ public class CustomerServiceSpring {
 					  registrar_movimiento.setSai_aux("");
 					  //total_depositar = (auxiliar.getMontoautorizado().doubleValue()-Double.parseDouble(tb_monto_comision.getDato1()) - (Double.parseDouble(tb_monto_comision.getDato1())* 0.16)) - Double.parseDouble(totalRenovar);
 					  total_depositar = (auxiliar.getMontoautorizado().doubleValue() - Double.parseDouble(totalRenovar));
-					  System.out.println("Total a depositar en tdd es: " + total_depositar);
 					  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
 					  bandera_renovacion = true;
 					  
 				  }
 				  	  //Registrando movimiento abono a dispersion
-					  registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
+				      mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,auxiliar_tdd.getIdorigenp(),auxiliar_tdd.getIdproducto(),auxiliar_tdd.getIdauxiliar()); 
+				      /*registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
 					  registrar_movimiento.setIdproducto(auxiliar_tdd.getIdproducto());
-					  registrar_movimiento.setIdauxiliar(auxiliar_tdd.getIdauxiliar());
-					  registrar_movimiento.setFecha(fecha_transferencia);
-					  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
+					  registrar_movimiento.setIdauxiliar(auxiliar_tdd.getIdauxiliar());*/
+					  registrar_movimiento.setPk(mov_pk);
+				      registrar_movimiento.setFecha(fecha_transferencia);
+					  /*registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 					  registrar_movimiento.setSesion(sesion);
-					  registrar_movimiento.setReferencia(referencia);
+					  registrar_movimiento.setReferencia(referencia);*/
 					  registrar_movimiento.setIdorigen(auxiliar_tdd.getIdorigen());
 					  registrar_movimiento.setIdgrupo(auxiliar_tdd.getIdgrupo());
 					  registrar_movimiento.setIdsocio(auxiliar_tdd.getIdsocio());
@@ -942,81 +979,72 @@ public class CustomerServiceSpring {
 				  registrar_movimiento.setIva(Double.parseDouble(tb_monto_comision.getDato1())*0.16);
 				  registrar_movimiento.setTipo_amort(0);
 				  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);*/
-				  
+				  log.info("Registros procesados con exito");
 				  boolean deposito_csn = false;
 				  int total_procesados = 0;
 				  //Si el origen es CSN
-				  
-				  System.out.println("Origen encontrado:"+matriz.getNombre());
 				  if(matriz.getIdorigen() == 30200) {					  
 					  //Busco la validacion si se puede usar tdd en el proyecto prezzta
-					  System.out.println("Buscando configuracion activa uso tdd");
 					  TablaPK tb_pk_tdd = new TablaPK(idtabla,"activa_tdd");
 					  Tabla tb_uso_tdd = tablasService.buscarPorId(tb_pk_tdd);
 					  if(auxiliar_tdd.getIdproducto() == 133 && auxiliar_tdd.getEstatus()==2 && new Integer(tb_uso_tdd.getDato1())==1) {
-						  System.out.println("Se esta usando tdd,el estatus es 2 y esta permitido operar");
 						 //Buscamos la tarjeta de debito
-						 System.out.println("Vamos a buscar el folio correspondiente");
 						 AuxiliarPK pk_tdd = new AuxiliarPK(auxiliar_tdd.getIdorigenp(),auxiliar_tdd.getIdproducto(),auxiliar_tdd.getIdauxiliar());
 						 FolioTarjeta folioTdd = foliosTarjetaService.buscarPorId(pk_tdd);
 						 TablaPK tb_pk_url_tdd = new TablaPK(idtabla,"url_tdd");
+						 log.info("Buscando registros para conexion alestra");
 						 Tabla tb_url_tdd = tablasService.buscarPorId(tb_pk_url_tdd);
 						 System.out.println("Url endpoint tdd:"+tb_url_tdd.getDato2());
 						 String respuestaDeposito = consumoTddService.depositarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
-						 System.out.println("Respuesta alestra:"+respuestaDeposito);
+						 log.info("Respuesta alestra:"+respuestaDeposito);
 						 JSONObject respuestaAlestra = new JSONObject(respuestaDeposito);
 					        if(!respuestaAlestra.getString("deposito").toUpperCase().equals("FALLIDO")) {
+					         log.info("La dispersion se realizo exitosamente,Total entregado:"+total_depositar);
 						     entregado.setNota("La dispersion se realizo exitosamente,Total entregado:"+total_depositar);  
 						     deposito_csn = true;
 					        }else {
+					        	log.info("Falla al dispersar credito,contacte proveedor...");
 						     entregado.setNota("Falla al dispersar credito,contacte proveedor...");
 					        }			     
 					     
 					     if(deposito_csn) {
-					    	 System.out.println("Vamos a generar poliza SAICoop");
+					    	 log.info("Vamos a procesar registros csn");
 					    	 String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
-							         registrar_movimiento.getIdusuario(),
-							         registrar_movimiento.getSesion(),
-							         registrar_movimiento.getReferencia());
+							         registrar_movimiento.getPk().getIdusuario(),
+							         registrar_movimiento.getPk().getSesion(),
+							         registrar_movimiento.getPk().getReferencia());
 					       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
 					       //Si la poliza no se procesa de manera correcta
 					       if(total_procesados <= 0) {
-					    	   System.out.println("No se proceso correctamente vamos a regresar el saldo");
+					    	   log.info("No se proceso correctamente vamos a regresar el saldo");
 					    	   String respuestaRetiro = consumoTddService.retirarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
 					    	   entregado.setNota("Error al dispersar credito");
+					    	   log.info("Error al dispersar credito");
 					    	   deposito_csn = false;
 					       }
 					     }
 					     //Verificamos si el envio de sms esta activo
 					     	if(Integer.parseInt(tb_sms_activo.getDato1()) == 1 && deposito_csn) {		
-					     		System.out.println("Enviando SMS");
-					     		System.out.println("Datos:"+auxiliar.getMontoautorizado()+"\n"+tb_minimo_sms.getDato1());
 					     		//si el servicio de sms esta activo,validamos que el monto entregado sea mayor o igual para enviar sms
 					     		if(Double.parseDouble(auxiliar.getMontoautorizado().toString()) >= Double.parseDouble(tb_minimo_sms.getDato1())) {
-					     			System.out.println("Paso a envias sms");
 					     			//llamamos el servicio para enviar sms
-					     			System.out.println(tb_url_sms.getDato2());
-					     			System.out.println(persona.getTelefono());
-					     			System.out.println(tb_texto_sms_dispersion.getDato2());
-					     			
 					     			String sms_enviar = smsCsn.enviarSMS(tb_url_sms.getDato2(),persona.getTelefono(),
 					     					tb_texto_sms_dispersion.getDato2().replace("@monto@",auxiliar.getMontoautorizado().toString()));
-					     			System.out.println("Sms Enviado con Exito");
+					     			log.info("Sms Enviado con Exito");
 					     		}
 					     	}
 					   }else {	
-						   System.out.println("Es prueba ");
 						   String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
-							         registrar_movimiento.getIdusuario(),
-							         registrar_movimiento.getSesion(),
-							         registrar_movimiento.getReferencia());
+							         registrar_movimiento.getPk().getIdusuario(),
+							         registrar_movimiento.getPk().getSesion(),
+							         registrar_movimiento.getPk().getReferencia());
 					       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
 					   }//Termina CSn
 				  }else {
 					  String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
-						         registrar_movimiento.getIdusuario(),
-						         registrar_movimiento.getSesion(),
-						         registrar_movimiento.getReferencia());
+						         registrar_movimiento.getPk().getIdusuario(),
+						         registrar_movimiento.getPk().getSesion(),
+						         registrar_movimiento.getPk().getReferencia());
 				       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
 				  }
 				  
@@ -1056,9 +1084,9 @@ public class CustomerServiceSpring {
 				  }
 				  
 				  String termina_transaccion = funcionesService.terminar_transaccion(matriz.getFechatrabajo(),
-					         registrar_movimiento.getIdusuario(),
-					         registrar_movimiento.getSesion(),
-					         registrar_movimiento.getReferencia());
+					         registrar_movimiento.getPk().getIdusuario(),
+					         registrar_movimiento.getPk().getSesion(),
+					         registrar_movimiento.getPk().getReferencia());
 				  
 		      }else {		    	
 		    	  entregado.setNota("Producto para dispersion no configurado");
@@ -1073,13 +1101,15 @@ public class CustomerServiceSpring {
 				  //Tabla para obtener el monto de comision
 				  TablaPK tb_pk_c = new TablaPK(idtabla,"comision");
 				  tb_monto_comision = tablasService.buscarPorId(tb_pk_c);
-				  registrar_movimiento.setIdorigenp(ahorro.getIdorigenp());
+				  mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,ahorro.getIdorigenp(),ahorro.getIdproducto(),ahorro.getIdauxiliar());
+				  /*registrar_movimiento.setIdorigenp(ahorro.getIdorigenp());
 				  registrar_movimiento.setIdproducto(ahorro.getIdproducto());
-				  registrar_movimiento.setIdauxiliar(ahorro.getIdauxiliar());
+				  registrar_movimiento.setIdauxiliar(ahorro.getIdauxiliar());*/
+				  registrar_movimiento.setPk(mov_pk);
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
+				  /*registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 				  registrar_movimiento.setSesion(sesion);
-				  registrar_movimiento.setReferencia(referencia);
+				  registrar_movimiento.setReferencia(referencia);*/
 				  registrar_movimiento.setIdorigen(ahorro.getIdorigen());
 				  registrar_movimiento.setIdgrupo(ahorro.getIdgrupo());
 				  registrar_movimiento.setIdsocio(ahorro.getIdsocio());
@@ -1095,14 +1125,16 @@ public class CustomerServiceSpring {
 				  //Tabla para obtener el idproducto a donde se enviara la comision
 				  TablaPK tb_pk_cp = new TablaPK(idtabla,"producto_comision");
 				  Tabla tb_producto_comision = tablasService.buscarPorId(tb_pk_cp);
-				  		  
-				  registrar_movimiento.setIdorigenp(0);
+				  mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,0,Integer.parseInt(tb_producto_comision.getDato1()),0);
+				  
+				  /*registrar_movimiento.setIdorigenp(0);
 				  registrar_movimiento.setIdproducto(Integer.parseInt(tb_producto_comision.getDato1()));
-				  registrar_movimiento.setIdauxiliar(0);
+				  registrar_movimiento.setIdauxiliar(0);*/
+				  registrar_movimiento.setPk(mov_pk);
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
+				  /*registrar_movimiento.setIdusuario(Integer.parseInt(tb_usuario.getDato1()));
 				  registrar_movimiento.setSesion(sesion);
-				  registrar_movimiento.setReferencia(referencia);
+				  registrar_movimiento.setReferencia(referencia);*/
 				  registrar_movimiento.setIdorigen(ahorro.getIdorigen());
 				  registrar_movimiento.setIdgrupo(ahorro.getIdgrupo());
 				  registrar_movimiento.setIdsocio(ahorro.getIdsocio());
@@ -1116,9 +1148,9 @@ public class CustomerServiceSpring {
 				  
 				  
 				  String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
-					         registrar_movimiento.getIdusuario(),
-					         registrar_movimiento.getSesion(),
-					         registrar_movimiento.getReferencia());
+					         registrar_movimiento.getPk().getIdusuario(),
+					         registrar_movimiento.getPk().getSesion(),
+					         registrar_movimiento.getPk().getReferencia());
 			      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
 			       
 				  entregado.setOpa(opaReq);
@@ -1128,9 +1160,16 @@ public class CustomerServiceSpring {
 				
 				if(total_procesados > 0) {
 				String termina_transaccion = funcionesService.terminar_transaccion(matriz.getFechatrabajo(),
-				         registrar_movimiento.getIdusuario(),
-				         registrar_movimiento.getSesion(),
-				         registrar_movimiento.getReferencia());
+				         registrar_movimiento.getPk().getIdusuario(),
+				         registrar_movimiento.getPk().getSesion(),
+				         registrar_movimiento.getPk().getReferencia());
+				
+			
+				String eliminadoAutorizado = funcionesService.eliminarAutorizado(opa.getIdorigenp(),
+																				 opa.getIdproducto(),
+																				 opa.getIdauxiliar());
+				log.info("Respuesta eliminar autorizado:"+eliminadoAutorizado);
+				
 				
 				//Verificamos si el envio de sms esta activo
 		     	if(Integer.parseInt(tb_sms_activo.getDato1()) == 1) {
@@ -1142,20 +1181,22 @@ public class CustomerServiceSpring {
 		     	}
 		        System.out.println("Mensaje termina transaccion:"+termina_transaccion);
 		        
-				}else {					
+				}else {		
+					log.info("No se completo la activacion del producto...");
 					entregado.setNota("No se completo la activacion del producto...");
 				}
 			 }
 		  }else {
+			  log.info("Folio ya fue entregado con anterioridad");
 			  entregado.setNota("Folio ya fue entregado con anterioridad");
 		  }
 			
 		} catch (Exception e) {
-			System.out.println("Error al realizar la dispersion del prestamo:"+e.getMessage());
+			log.info("Error al realizar la dispersion del prestamo:"+e.getMessage());
 			entregado.setNota(e.getMessage());
 			return entregado;
 		}
-		System.out.println("Saliendo ws 3 dispersion...");
+		log.info("Saliendo ws 3 dispersion...");
 		return entregado;
 	}
 	
@@ -1243,13 +1284,13 @@ public class CustomerServiceSpring {
 			RegistraMovimiento registrar_movimiento = new RegistraMovimiento();	
 			 
 			  // se cubre el adeudo del prestamo						  
-			  registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
+			  /*registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
 			  registrar_movimiento.setIdproducto(auxiliar.getIdproducto());
-			  registrar_movimiento.setIdauxiliar(auxiliar.getIdauxiliar());
+			  registrar_movimiento.setIdauxiliar(auxiliar.getIdauxiliar());*/
 			  registrar_movimiento.setFecha(fecha_transferencia);
-			  registrar_movimiento.setIdusuario(999);
+			  /*registrar_movimiento.setIdusuario(999);
 			  registrar_movimiento.setSesion(sesion);
-			  registrar_movimiento.setReferencia(referencia);
+			  registrar_movimiento.setReferencia(referencia);*/
 			  registrar_movimiento.setIdorigen(auxiliar.getIdorigen());
 			  registrar_movimiento.setIdgrupo(auxiliar.getIdgrupo());
 			  registrar_movimiento.setIdsocio(auxiliar.getIdsocio());
@@ -1264,13 +1305,13 @@ public class CustomerServiceSpring {
 			  //Busco la tdd
 			  
 			  Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),110);
-			  registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
+			  /*registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
 			  registrar_movimiento.setIdproducto(auxiliar_tdd.getIdproducto());
-			  registrar_movimiento.setIdauxiliar(auxiliar_tdd.getIdauxiliar());
+			  registrar_movimiento.setIdauxiliar(auxiliar_tdd.getIdauxiliar());*/
 			  registrar_movimiento.setFecha(fecha_transferencia);
-			  registrar_movimiento.setIdusuario(999);
+			  /*registrar_movimiento.setIdusuario(999);
 			  registrar_movimiento.setSesion(sesion);
-			  registrar_movimiento.setReferencia(referencia);
+			  registrar_movimiento.setReferencia(referencia);*/
 			  registrar_movimiento.setIdorigen(auxiliar_tdd.getIdorigen());
 			  registrar_movimiento.setIdgrupo(auxiliar_tdd.getIdgrupo());
 			  registrar_movimiento.setIdsocio(auxiliar_tdd.getIdsocio());
@@ -1282,11 +1323,11 @@ public class CustomerServiceSpring {
 			 
 			  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);			 
 			  
-			  String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
+			  /*String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
 				         registrar_movimiento.getIdusuario(),
 				         registrar_movimiento.getSesion(),
 				         registrar_movimiento.getReferencia());
-		      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+		      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));*/
 		      
 		      
 		      /*procesaMovimientoService.eliminaMovimiento(matriz.getFechatrabajo(),
@@ -1294,10 +1335,10 @@ public class CustomerServiceSpring {
 				         registrar_movimiento.getSesion(),
 				         registrar_movimiento.getReferencia());*/
 		     
-		      if(total_procesados > 0) {
+		    /*  if(total_procesados > 0) {
 		    	  mensaje = "Se realizo el pago correctamente";
 		      }
-		      
+		      */
 		}catch(Exception e) {
 			 System.out.println("Error al realizar el pago:"+e.getMessage());
 		}
