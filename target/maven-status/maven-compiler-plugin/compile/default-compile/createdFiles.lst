@@ -75,7 +75,6 @@ com/fenoreste/rest/entity/Origenes.class
 com/fenoreste/rest/services/ISoparService.class
 com/fenoreste/rest/modelos/conyugueDTO.class
 com/fenoreste/rest/services/SoparServiceImpl.class
-com/fenoreste/rest/entity/Productos.class
 com/fenoreste/rest/entity/Negociopropio.class
 com/fenoreste/rest/entity/Municipios.class
 com/fenoreste/rest/dao/CsnVacIngresoRepository.class

@@ -168,8 +168,10 @@ public class CustomerServiceSpring {
 		List<String>rangos = new ArrayList<>();
 		//Buscamos a la persona con los datos que llegaron en el metodo
 		Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());		
+		log.info("La persona enconrada es:"+persona.getApmaterno());
 		//Validaciones solo para mitras
 		if(origen.getIdorigen().intValue() == 30300) {
+	    log.info("Accedio a validaciones mitras");
 		   //Buscamos producto para banca movil activo
 		   Auxiliar mitras_movil = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), 206);
               if(mitras_movil != null) {
@@ -178,10 +180,10 @@ public class CustomerServiceSpring {
 				 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
             	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), new Integer(tb_config_dispersion.getDato1()));
             	 if(cuenta_corriente == null) {
-            		 return null;
+            		 return response;
             	 }
               }else {
-            	  return null;
+            	  return response;
               }
             }
 		
