@@ -28,8 +28,5 @@ public class MovimientosPK implements Serializable{
 	 @Column(name = "idauxiliar")
 	 private Integer idauxiliar;
 	 
-	 
-	 
-	 
 	 private static final long serialVersionUID = 1L;
 }

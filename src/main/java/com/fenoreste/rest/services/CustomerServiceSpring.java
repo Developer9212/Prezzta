@@ -35,6 +35,7 @@ import com.fenoreste.rest.entity.Negociopropio;
 import com.fenoreste.rest.entity.Origenes;
 import com.fenoreste.rest.entity.Persona;
 import com.fenoreste.rest.entity.PersonaPK;
+import com.fenoreste.rest.entity.Producto;
 import com.fenoreste.rest.entity.Referencias;
 import com.fenoreste.rest.entity.Referenciasp;
 import com.fenoreste.rest.entity.RegistraMovimiento;
@@ -167,6 +168,23 @@ public class CustomerServiceSpring {
 		List<String>rangos = new ArrayList<>();
 		//Buscamos a la persona con los datos que llegaron en el metodo
 		Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());		
+		//Validaciones solo para mitras
+		if(origen.getIdorigen().intValue() == 30300) {
+		   //Buscamos producto para banca movil activo
+		   Auxiliar mitras_movil = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), 206);
+              if(mitras_movil != null) {
+            	 //Buscamos producto para dispersion
+            	 TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
+				 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
+            	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), new Integer(tb_config_dispersion.getDato1()));
+            	 if(cuenta_corriente == null) {
+            		 return null;
+            	 }
+              }else {
+            	  return null;
+              }
+            }
+		
 		//Buscamos el producto ahorro para saber si tiene el minimo configurado
 		Auxiliar ahorro_disponible = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), 110);
 		conf_minimo_solicitud_pk = new TablaPK(idtabla,"minimo_solicitud");

@@ -29,4 +29,5 @@ public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	String eliminarAutorizado(Integer idorigenp,Integer idproducto,Integer idauxiliar);
 	
 	
+	
 }
