@@ -221,6 +221,7 @@ public class CustomerServiceSpring {
 			Tabla tb_producto_parte_social = tablasService.buscarPorId(tb_pk_parte_social);
 			
 			if(tb_producto_parte_social != null) {
+				
 				Auxiliar folio_parte_social = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(), persona.getIdgrupo(),persona.getIdsocio(),Integer.parseInt(tb_producto_parte_social.getDato1()));
 				if(folio_parte_social.getSaldo().doubleValue() >= Double.parseDouble(tb_producto_parte_social.getDato2())) {
 					response.setEs_socio("1");//atributo es socio
@@ -277,7 +278,8 @@ public class CustomerServiceSpring {
                              	 segundoempleo.setMunicipio(municipio.getNombre());
                              	 segundoempleo.setEstado(estado.getNombre());
                     	}
-                    } 
+                    }
+
                     Trabajo trabajo = trabajosService.findTrabajoByOgsAndConsecutivo(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(),cons_tr_ac);
                     if(trabajo.getPuesto().toUpperCase().contains("JUBILADO")){
                         response.setJubilado("1");//atributo jubilado (obtenido de sus trabajos)
@@ -323,7 +325,6 @@ public class CustomerServiceSpring {
                     response.setRubro_laboral(catalogo_giro_empresa.getDescripcion());//atributo rubro laboral
                     response.setTelefono_trabajo(trabajo.getTelefono());//atributo telefono trabajo
                     
-                                       
                     //validamos cuanto alcanza en credito
 				    validacionDTO validacion = new validacionDTO();
 				    String monto_maximo_prestar = funcionesService.validacion_monto_prestar(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio());
@@ -355,7 +356,6 @@ public class CustomerServiceSpring {
                       if(Double.parseDouble(montoMax)> Double.parseDouble(tb_monto_maximo.getDato1())) {
                     	  montoMax = tb_monto_maximo.getDato1();
                       }
-		 			  
 		 			  
 		 			  String tipoApertura = rangos.get(4).toString();
 		 			  String totalRenovar = rangos.get(5).toString();
@@ -419,7 +419,6 @@ public class CustomerServiceSpring {
 			          validacion.setMonto_renovar(0);
 			          validacion.setNota("NO PUEDE CONTINUAR CON SU SOLICITUD");
 		 			}
-		 			
 		           
 		           response.setMonto_maximo_a_prestar(validacion);//objeto monto maximo a prestar		            
                     
@@ -510,7 +509,7 @@ public class CustomerServiceSpring {
                     }else{
                              response.setGastos_pagos_servicios("");
                     }
-                                        
+                    
                     referenciasDTO referencias = new referenciasDTO();
                     Referencias referencia_personal = referenciaService.finByOgsAndTipoReferencia(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(),3);//Se busca la referencia 3 porque es referencia persona se definio estatico
                     //Buscamos la persona referenciada referencia tipo 3 personal
@@ -558,7 +557,8 @@ public class CustomerServiceSpring {
                     TablaPK tb_pk_gatos = new TablaPK(idtabla,"gastos");
                     Tabla tb_gastos = tablasService.buscarPorId(tb_pk_gatos);
                     double total_gastos = 0.0;
-               
+
+                    
                     if(tb_gastos != null) {
                     String[] gastos_array = tb_gastos.getDato2().split("\\,");                    
         			List lista_gastos = Arrays.asList(gastos_array);
@@ -601,6 +601,7 @@ public class CustomerServiceSpring {
                         gastos.setDeudas(null);
                     }                   
                     response.setGastos(gastos);//Objeto gastos
+                    
                   
                     propiedadesDTO propiedades = new propiedadesDTO();
                     List<propiedadesDTO> lista_prop = new ArrayList<>();                    
@@ -615,7 +616,7 @@ public class CustomerServiceSpring {
                     
                     conyugueDTO conyugue = new conyugueDTO();
                     int cons_tr_con = 0;
-                    if(response.getNum_socio_conyugue() != ""){
+                    if(response.getNum_socio_conyugue() != "") {
                     	if(referencia != null) {
                         Persona persona_conyuge = personaService.findByOgs(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior());
                         List<Trabajo> lista_trabajo_conyuge = trabajosService.findTrabajosActivosByOgs(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),1);
@@ -628,7 +629,7 @@ public class CustomerServiceSpring {
                         Estados estado_conyuge = estadoService.findById(municipio_conyuge.getIdestado());
                         conyugue.setEdad(String.valueOf(cal_edad(persona_conyuge.getFechanacimiento())));
                         conyugue.setDireccion(persona_conyuge.getCalle() + " " + persona_conyuge.getNumeroext());
-                        if (trabajo_consecutivo_conyuge.getOcupacion() != null) { 
+                        if (trabajo_consecutivo_conyuge.getOcupacion() != null) {
                         conyugue.setOcupacion(trabajo_consecutivo_conyuge.getOcupacion()); 
                         } else {
                         conyugue.setOcupacion(null);
