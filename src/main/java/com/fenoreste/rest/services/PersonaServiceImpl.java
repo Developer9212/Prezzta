@@ -6,13 +6,18 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.fenoreste.rest.dao.PersonaRepository;
 import com.fenoreste.rest.entity.Persona;
+import com.fenoreste.rest.entity.PersonaPK;
 
 @Service
 public class PersonaServiceImpl implements IPersonaService{
 	
 	@Autowired
 	private JdbcTemplate jdbc;
+	
+	@Autowired
+	private PersonaRepository personaRepository;
 	
 	@Override
 	public Persona findPersonaByDocumento(String tipoDocumento,String documento) {	
@@ -26,14 +31,14 @@ public class PersonaServiceImpl implements IPersonaService{
 	}
 
 	@Override
-	public Persona findByOgs(Integer idorigen, Integer idgrupo, Integer idsocio) {
-		String consulta = "SELECT * FROM personas WHERE idorigen="+idorigen+" AND idgrupo="+idgrupo+" AND idsocio="+idsocio;
-		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Persona.class)).size();
-		Persona p = null;
-		if(size >0) {
-			p = jdbc.query(consulta, new BeanPropertyRowMapper <>(Persona.class)).get(0);
-		}
-		return p;
+	public Persona findByOgs(PersonaPK pk) {		
+		return personaRepository.findById(pk).orElse(null);
+	}
+
+	@Override
+	public Persona buscarPorOgsGrupo(PersonaPK pk, Integer idgrupo) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	

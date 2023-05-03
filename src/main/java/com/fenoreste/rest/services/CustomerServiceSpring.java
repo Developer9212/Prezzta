@@ -161,9 +161,7 @@ public class CustomerServiceSpring {
 	public dataDTO informacionPersona(String tipoDocumento,String numeroDocumento) {
 		dataDTO response = new dataDTO();
 		Origenes origen = origenesService.findMatrizOrigen();
-		try {
-		TablaPK conf_minimo_solicitud_pk = new TablaPK(idtabla,"minimo_solicitud");
-		Tabla config_minimo_solicitud = tablasService.buscarPorId(conf_minimo_solicitud_pk);		
+		try {		
 		boolean bandera_so = false;
 		List<String>rangos = new ArrayList<>();
 		//Buscamos a la persona con los datos que llegaron en el metodo
@@ -180,17 +178,19 @@ public class CustomerServiceSpring {
 				 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
             	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), new Integer(tb_config_dispersion.getDato1()));
             	 if(cuenta_corriente == null) {
+            		 log.info("....Socio no cuenta con producto para dispersion.....");
             		 return response;
             	 }
               }else {
+            	  log.info(".....Socio no tiene producto mitras movil.....");
             	  return response;
               }
             }
 		
 		//Buscamos el producto ahorro para saber si tiene el minimo configurado
 		Auxiliar ahorro_disponible = auxiliaresService.AuxiliarByOgsIdproducto(persona.getIdorigen(),persona.getIdgrupo(),persona.getIdsocio(), 110);
-		conf_minimo_solicitud_pk = new TablaPK(idtabla,"minimo_solicitud");
-		config_minimo_solicitud = tablasService.buscarPorId(conf_minimo_solicitud_pk);
+		TablaPK conf_minimo_solicitud_pk = new TablaPK(idtabla,"minimo_solicitud");
+		Tabla config_minimo_solicitud = tablasService.buscarPorId(conf_minimo_solicitud_pk);
 		if(ahorro_disponible.getSaldo().doubleValue() >= Double.parseDouble(config_minimo_solicitud.getDato1())) {
 			if(origen.getIdorigen() == 30200) {
 				//Vamos a validar estatus de la tdd
@@ -377,6 +377,12 @@ public class CustomerServiceSpring {
                     	  montoMax = tb_monto_maximo.getDato1();
                       }
 		 			  
+                      //Vamos a buscar plazo maximo ----> 03/05/2023 Wilmer
+                      if(!tb_monto_maximo.getDato2().equals("")) {
+                    	  plazoMax = tb_monto_maximo.getDato2();
+                      }
+                      
+                      
 		 			  String tipoApertura = rangos.get(4).toString();
 		 			  String totalRenovar = rangos.get(5).toString();
 		 			  String totalAtraso = rangos.get(7).toString();

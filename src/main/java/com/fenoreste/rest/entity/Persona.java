@@ -9,6 +9,7 @@ package com.fenoreste.rest.entity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -30,13 +31,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class Persona implements Serializable{
     
-    @Id
-    @Column(name="idorigen")
-    private Integer idorigen;
-    @Column(name="idgrupo")
-    private Integer idgrupo;
-    @Column(name="idsocio")
-    private Integer idsocio;
+    @EmbeddedId
+    private PersonaPK pk;
     @Column(name = "calle")
     private String calle;
     @Column(name = "numeroext")
