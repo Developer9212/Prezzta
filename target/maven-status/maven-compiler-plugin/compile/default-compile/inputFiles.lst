@@ -117,6 +117,7 @@
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/IOtrosService.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/consumoExterno/Alestra_Tarjetas_Debito.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/modelos/requestRegistraPrestamo.java
+/home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/dao/PersonaRepository.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/IProcesaMovimientoService.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/SpringPrezztaApplication.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/dao/UserRepository.java

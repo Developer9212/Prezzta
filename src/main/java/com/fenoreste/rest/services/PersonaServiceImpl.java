@@ -10,7 +10,11 @@ import com.fenoreste.rest.dao.PersonaRepository;
 import com.fenoreste.rest.entity.Persona;
 import com.fenoreste.rest.entity.PersonaPK;
 
+import jdk.internal.org.jline.utils.Log;
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class PersonaServiceImpl implements IPersonaService{
 	
 	@Autowired
@@ -27,7 +31,9 @@ public class PersonaServiceImpl implements IPersonaService{
 		if(size >0) {
 			p = jdbc.query(consulta, new BeanPropertyRowMapper <>(Persona.class)).get(0);
 		}
-		return p;
+		log.info(""+p);
+		//Ultima modificacion 03/05/2023 Wilmer se dejo de usar template porque no agarraba PK
+		return personaRepository.buscarPorCurp(documento);
 	}
 
 	@Override
@@ -35,11 +41,7 @@ public class PersonaServiceImpl implements IPersonaService{
 		return personaRepository.findById(pk).orElse(null);
 	}
 
-	@Override
-	public Persona buscarPorOgsGrupo(PersonaPK pk, Integer idgrupo) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 	
 	
 

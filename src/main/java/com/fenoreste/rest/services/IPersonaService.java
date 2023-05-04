@@ -10,6 +10,5 @@ public interface IPersonaService {
 	
 	public Persona findPersonaByDocumento(String tipoDocumento,String documento);
 	public Persona findByOgs(PersonaPK pk);
-	public Persona buscarPorOgsGrupo(PersonaPK pk,Integer idgrupo); 
 }
  
