@@ -169,33 +169,40 @@ public class CustomerServiceSpring {
 		log.info("La persona enconrada es:"+persona.getApmaterno()+","+persona.getPk().getIdgrupo());
 		//Validaciones solo para mitras
 		if(origen.getIdorigen().intValue() == 30300) {
-	    log.info("Accedio a validaciones mitras");
-	    //Buscamos la persona en el grupo 12
-	    PersonaPK persona_pk = new PersonaPK(persona.getPk().getIdorigen(),12,persona.getPk().getIdsocio());
-	    persona = personaService.findByOgs(persona_pk);
-	     if(persona != null) {
-	    	log.info(".......Persona pertenece al grupo 12......");
-	    	return response;
-	      }else {
-	    	 //Buscamos producto para banca movil activo
-			   Auxiliar mitras_movil = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), 206);
-	              if(mitras_movil != null) {
-	            	 //Buscamos producto para dispersion
-	            	 TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
-					 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
-	            	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), new Integer(tb_config_dispersion.getDato1()));
-	              if(cuenta_corriente == null) {
-	            		 log.info("....Socio no cuenta con producto para dispersion.....");
-	            		 return response;
-	               }
-	            }else {
-	            	  log.info(".....Socio no tiene producto mitras movil.....");
-	            	  return response;
-	           }
-	       }
-	    
-	   
-            }
+	        log.info("Accedio a validaciones mitras");
+	        //Buscamos la persona en el grupo 12
+	        PersonaPK persona_pk = new PersonaPK(persona.getPk().getIdorigen(),12,persona.getPk().getIdsocio());
+	        Persona persona_g12 = personaService.findByOgs(persona_pk);
+	        if(persona_g12 == null) {
+	    	   //Buscamos que la persona no este en la tabla sopar y con bloqueo de solicitud
+	    	   TablaPK tb_pk_bloqueo = new TablaPK(idtabla,"sopar");
+	    	   Tabla tb_sopar = tablasService.buscarPorId(tb_pk_bloqueo);
+	    	   Sopar sopar = soparService.buscarPorIdTipo(persona.getPk(),tb_sopar.getDato1());
+	    	   if(sopar != null) {
+	    		  log.info("...........Socio esta bloqueado..........");
+	    		  return response;
+	    	   }else {
+	    		 //Buscamos producto para banca movil activo
+				   Auxiliar mitras_movil = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), 206);
+		              if(mitras_movil != null) {
+		            	 //Buscamos producto para dispersion
+		            	 TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
+						 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
+		            	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), new Integer(tb_config_dispersion.getDato1()));
+		              if(cuenta_corriente == null) {
+		            		 log.info("....Socio no cuenta con producto para dispersion.....");
+		            		 return response;
+		               }
+		            }else {
+		              log.info(".....Socio no tiene producto mitras movil.....");
+		              return response;
+		           }
+	    	   }	    	   
+	        }else {
+	    	   log.info(".......Persona pertenece al grupo 12......");
+	    	   return response;
+	        }
+	     }
 		
 		//Buscamos el producto ahorro para saber si tiene el minimo configurado
 		Auxiliar ahorro_disponible = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), 110);
