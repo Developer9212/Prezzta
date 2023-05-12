@@ -365,7 +365,8 @@ public class CustomerServiceSpring {
                     //validamos cuanto alcanza en credito
 				    validacionDTO validacion = new validacionDTO();
 				    String monto_maximo_prestar = funcionesService.validacion_monto_prestar(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
-					String[] montos_array = monto_maximo_prestar.split("\\|");                    
+					log.info("monto maixmoa prrrestas:"+monto_maximo_prestar);
+				    String[] montos_array = monto_maximo_prestar.split("\\|");                    
 		 		    rangos = Arrays.asList(montos_array);
 		 			String plazoMin = "0",plazoMax="0",montoMin="0",montoMax="0";
 		 			if(!monto_maximo_prestar.toUpperCase().contains("ERROR")) {
@@ -382,7 +383,8 @@ public class CustomerServiceSpring {
 		 			   Tabla tb_nota_renovacion = tablasService.buscarPorId(tb_pk_tmp);
 		 			   tb_pk_tmp.setIdelemento("nota_montos_atrasado");
 		 			   Tabla tb_nota_monto_atraso = tablasService.buscarPorId(tb_pk_tmp);
-		 			   	 			   	 			 
+		 			   	 			 
+		 			  log.info("Rangossss:"+rangos);
 		 			  plazoMin = config_minimo_solicitud.getDato2();
 		 			  plazoMax = rangos.get(1).toString();
 		 			  montoMin = config_minimo_solicitud.getDato1();
@@ -404,7 +406,16 @@ public class CustomerServiceSpring {
 		 			  String totalRenovar = rangos.get(5).toString();
 		 			  String totalAtraso = rangos.get(7).toString();
 		 			  String idorigenp = rangos.get(10).toString();
-		 			  validacion.setRangoMontos(montoMin+"-"+montoMax);
+		 			  
+		 			  boolean bandera = false;
+		 			  log.info("montos:"+montoMax+","+montoMin);
+			          if(Double.parseDouble(montoMax) > Double.parseDouble(montoMin)) {
+			        	  validacion.setRangoMontos(montoMin+"-"+montoMax);
+			        	  bandera = true;
+			          }else {			        	  
+			        	  validacion.setRangoMontos("0-0");
+			          }
+		 			  //validacion.setRangoMontos(montoMin+"-"+montoMax);
 		 			  validacion.setRangoPlazos(plazoMin+"-"+plazoMax);
 			          tmp_aperturas tmp_saver = new tmp_aperturas();
 			          tmp_saver.setIdorigen(persona.getPk().getIdorigen());
@@ -415,8 +426,11 @@ public class CustomerServiceSpring {
        			   	  if(tipoApertura.toUpperCase().contains("R")) {
 			        	  String[]cadena = rangos.get(9).toString().split("\\-");
 			        	  String opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
-			        	  validacion.setTipo_apertura("Renovacion");
-			        	  validacion.setMonto_renovar(Double.parseDouble(totalRenovar));
+			        	  if(bandera) {
+			        		  validacion.setTipo_apertura("Renovacion");
+				        	  validacion.setMonto_renovar(Double.parseDouble(totalRenovar));
+			        	  }
+			        	  
 			        	  String mmensajeAtraseo = "",imprt = "";
 			        	  if(Double.parseDouble(totalAtraso)>0) {
 			        		  mmensajeAtraseo = tb_nota_monto_atraso.getDato2().replace("@atraso@",totalAtraso)+" al folio:"+opaAnterior+",";
@@ -451,12 +465,16 @@ public class CustomerServiceSpring {
 			        	  validacion.setMonto_renovar(0.0);
 			        	  //double totallibre = Double.parseDouble(tb_comision_servicio.getDato1())+(Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16);
 			        	  double totallibre = 0.0;
-	        			  tmp_saver.setGastos_pagar(totallibre);			        	  
-			          }		
-			          tmp_saver = tmpService.guardar(tmp_saver);
+	        			  tmp_saver.setGastos_pagar(totallibre);		        	  
+			          }
+       			   	  
+       			   	  if(bandera) {
+    			          tmp_saver = tmpService.guardar(tmp_saver);
+
+       			   	  }
 			          
-			         }else {
-		 			  validacion.setRangoMontos(montoMin+"-"+montoMax);
+			         }else {			        
+		 			  
 			          validacion.setRangoPlazos(plazoMin+"-"+plazoMax);
 			          validacion.setTipo_apertura("");
 			          validacion.setMonto_renovar(0);
