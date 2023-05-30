@@ -25,10 +25,11 @@ public class PersonaServiceImpl implements IPersonaService{
 	
 	@Override
 	public Persona findPersonaByDocumento(String tipoDocumento,String documento) {	
-		String consulta = "SELECT * FROM personas WHERE "+tipoDocumento+"='"+documento+"' AND idgrupo=10";
+		String consulta = "SELECT * FROM personas WHERE "+tipoDocumento+"='"+documento+"' AND idgrupo=10 AND estatus=true";
 		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Persona.class)).size();
 		Persona p = null;
 		if(size >0) {
+			log.info("Size:::::::::::::"+size);
 			p = jdbc.query(consulta, new BeanPropertyRowMapper <>(Persona.class)).get(0);
 		}
 		log.info(""+p);

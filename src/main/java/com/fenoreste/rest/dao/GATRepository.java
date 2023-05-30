@@ -18,10 +18,7 @@ public interface GATRepository extends JpaRepository<Persona,Long> {
 			+ "  WHERE idorigenp = ?1 AND idproducto = ?2 AND idauxiliar = ?3 ORDER BY idamortizacion",nativeQuery=true)
 	void insertarRegistros(Integer idorigenp,Integer idproducto,Integer idauxiliar);
 	
-	@Query(value="SELECT calculo_cat2(idorigenp, idproducto, idauxiliar, montosolicitado,0,tasaio,tasaiod,"
-			+ " periodoabonos::::integer,fecha_solicitud,pagodiafijo,0.0,TRUE,0,0,0,0.0,0.0)"
-			+ " FROM auxiliares"
-			+ " WHERE idorigenp = ?1 AND idproducto = ?2 AND idauxiliar = ?3",nativeQuery = true)
+	@Query(value="select calculo_cat_contratotxt(?1, ?2, ?3, FALSE)",nativeQuery = true)
 	Double cat(Integer idorigenp,Integer idproducto,Integer idauxiliar);
 	
 	@Modifying

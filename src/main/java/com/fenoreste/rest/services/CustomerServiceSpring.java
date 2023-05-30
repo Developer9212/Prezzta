@@ -275,60 +275,66 @@ public class CustomerServiceSpring {
                     primerEmpleoDTO primerempleo = new primerEmpleoDTO();
                     segundoEmpleoDTO segundoempleo = new segundoEmpleoDTO();
                     List<Trabajo>listaTrabajos = trabajosService.findTrabajosActivosByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),2);
-                    int cons_tr_ac = 0; //consecutivo trabajo actual                    
-                    for(int i = 0;i<listaTrabajos.size();i++) {
-                    	Trabajo trabajo = listaTrabajos.get(i); 
-                		CatalogoMenus menu = catalogoMenuService.findByMenuOpcion("giro_empresa", trabajo.getGiro_empresa());
-                		Colonias colonia = coloniaService.findById(trabajo.getIdcolonia());
-                		Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
-                		Estados estado = estadoService.findById(municipio.getIdestado());
-                    	if(i == 0) {    
-                    		cons_tr_ac = trabajo.getConsecutivo();
-                    		 if (trabajo.getOcupacion_numero() != null) {
-                                 	 primerempleo.setOcupacion(trabajo.getOcupacion()); 
-                                 }
-                    		     else {
-                    		    	 primerempleo.setOcupacion(null); 
-                    		     }
-                                 primerempleo.setPuesto(trabajo.getPuesto());
-                                 primerempleo.setTelefono(trabajo.getTelefono());
-                                 primerempleo.setGiro(menu.getDescripcion());
-                                 primerempleo.setCodigo_postal(colonia.getCodigopostal());
-                                 primerempleo.setCalle(trabajo.getCalle());
-                                 primerempleo.setNumero_exterior(trabajo.getNumero());
-                                 primerempleo.setNumero_interior(null);
-                                 primerempleo.setColonia(colonia.getNombre());
-                                 primerempleo.setMunicipio(municipio.getNombre());
-                                 primerempleo.setEstado(estado.getNombre());                             
-                    	}else if(i == 1) {
-                    		 	 segundoempleo.setOcupacion(trabajo.getOcupacion());
-                    		 	 segundoempleo.setPuesto(trabajo.getPuesto());
-                    		 	 segundoempleo.setTelefono(trabajo.getTelefono());
-                             	 segundoempleo.setNombre_empresa(trabajo.getNombre());
-                             	 segundoempleo.setAntiguedad(String.valueOf(cal_edad((Date) trabajo.getFechaingreso())));
-                             	 segundoempleo.setGiro(menu.getDescripcion());
-                             	 segundoempleo.setCodigo_postal(colonia.getCodigopostal());
-                             	 segundoempleo.setCalle(trabajo.getCalle());
-                             	 segundoempleo.setNumero_exterior(trabajo.getNumero());
-                             	 segundoempleo.setNumero_interior(null);
-                             	 segundoempleo.setColonia(colonia.getNombre());
-                             	 segundoempleo.setMunicipio(municipio.getNombre());
-                             	 segundoempleo.setEstado(estado.getNombre());
-                    	}
-                    }
+                    int cons_tr_ac = 0; //consecutivo trabajo actual    
+                    if(listaTrabajos != null) {
+                    	for(int i = 0;i<listaTrabajos.size();i++) {
+                        	Trabajo trabajo = listaTrabajos.get(i); 
+                    		CatalogoMenus menu = catalogoMenuService.findByMenuOpcion("giro_empresa", trabajo.getGiro_empresa());
+                    		Colonias colonia = coloniaService.findById(trabajo.getIdcolonia());
+                    		Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
+                    		Estados estado = estadoService.findById(municipio.getIdestado());
+                        	if(i == 0) {    
+                        		cons_tr_ac = trabajo.getConsecutivo();
+                        		 if (trabajo.getOcupacion_numero() != null) {
+                                     	 primerempleo.setOcupacion(trabajo.getOcupacion()); 
+                                     }
+                        		     else {
+                        		    	 primerempleo.setOcupacion(null); 
+                        		     }
+                                     primerempleo.setPuesto(trabajo.getPuesto());
+                                     primerempleo.setTelefono(trabajo.getTelefono());
+                                     primerempleo.setGiro(menu.getDescripcion());
+                                     primerempleo.setCodigo_postal(colonia.getCodigopostal());
+                                     primerempleo.setCalle(trabajo.getCalle());
+                                     primerempleo.setNumero_exterior(trabajo.getNumero());
+                                     primerempleo.setNumero_interior(null);
+                                     primerempleo.setColonia(colonia.getNombre());
+                                     primerempleo.setMunicipio(municipio.getNombre());
+                                     primerempleo.setEstado(estado.getNombre());                             
+                        	}else if(i == 1) {
+                        		 	 segundoempleo.setOcupacion(trabajo.getOcupacion());
+                        		 	 segundoempleo.setPuesto(trabajo.getPuesto());
+                        		 	 segundoempleo.setTelefono(trabajo.getTelefono());
+                                 	 segundoempleo.setNombre_empresa(trabajo.getNombre());
+                                 	 segundoempleo.setAntiguedad(String.valueOf(cal_edad((Date) trabajo.getFechaingreso())));
+                                 	 segundoempleo.setGiro(menu.getDescripcion());
+                                 	 segundoempleo.setCodigo_postal(colonia.getCodigopostal());
+                                 	 segundoempleo.setCalle(trabajo.getCalle());
+                                 	 segundoempleo.setNumero_exterior(trabajo.getNumero());
+                                 	 segundoempleo.setNumero_interior(null);
+                                 	 segundoempleo.setColonia(colonia.getNombre());
+                                 	 segundoempleo.setMunicipio(municipio.getNombre());
+                                 	 segundoempleo.setEstado(estado.getNombre());
+                        	}
+                        }
 
+                    }
+                    
                     Trabajo trabajo = trabajosService.findTrabajoByOgsAndConsecutivo(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),cons_tr_ac);
-                    if(trabajo.getPuesto().toUpperCase().contains("JUBILADO")){
-                        response.setJubilado("1");//atributo jubilado (obtenido de sus trabajos)
-                    }else{
-                        response.setJubilado("0");
+                    if(trabajo != null) {
+                    	  if(trabajo.getPuesto().toUpperCase().contains("JUBILADO")){
+                              response.setJubilado("1");//atributo jubilado (obtenido de sus trabajos)
+                          }else{
+                              response.setJubilado("0");
+                          }
+                          if(trabajo.getFechaingreso() == null) {
+                              response.setFecha_ingreso_laboral("");
+                          } else {
+                              response.setFecha_ingreso_laboral(dateToString(trabajo.getFechaingreso()));//atributo fecha ingreso laboral 
+                          }
+                          response.setIngresos_mensuales(trabajo.getIng_mensual_neto().toString());//atributo ingresos mensuales
                     }
-                    if(trabajo.getFechaingreso() == null) {
-                        response.setFecha_ingreso_laboral("");
-                    } else {
-                        response.setFecha_ingreso_laboral(dateToString(trabajo.getFechaingreso()));//atributo fecha ingreso laboral 
-                    }
-                    response.setIngresos_mensuales(trabajo.getIng_mensual_neto().toString());//atributo ingresos mensuales
+                  
                     Colonias colonia = coloniaService.findById(persona.getIdcolonia());
                     if(colonia != null) {
                     	Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
@@ -358,10 +364,13 @@ public class CustomerServiceSpring {
                     response.setNum_socio_conyugue(null);
                     }
                     response.setCant_hijos(String.valueOf(sc.getDependientes_menores()));//atributo cantidad hijos
-                    CatalogoMenus catalogo_giro_empresa = catalogoMenuService.findByMenuOpcion("giro_empresa",trabajo.getGiro_empresa());
-                    response.setRubro_laboral(catalogo_giro_empresa.getDescripcion());//atributo rubro laboral
-                    response.setTelefono_trabajo(trabajo.getTelefono());//atributo telefono trabajo
-                    
+                    if(trabajo != null) {
+                    	   CatalogoMenus catalogo_giro_empresa = catalogoMenuService.findByMenuOpcion("giro_empresa",trabajo.getGiro_empresa());
+                           response.setRubro_laboral(catalogo_giro_empresa.getDescripcion());//atributo rubro laboral
+                           response.setTelefono_trabajo(trabajo.getTelefono());//atributo telefono trabajo
+                         
+                    }
+                   
                     //validamos cuanto alcanza en credito
 				    validacionDTO validacion = new validacionDTO();
 				    String monto_maximo_prestar = funcionesService.validacion_monto_prestar(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
@@ -385,6 +394,7 @@ public class CustomerServiceSpring {
 		 			   Tabla tb_nota_monto_atraso = tablasService.buscarPorId(tb_pk_tmp);
 		 			   	 			 
 		 			  log.info("Rangossss:"+rangos);
+		 			  
 		 			  plazoMin = config_minimo_solicitud.getDato2();
 		 			  plazoMax = rangos.get(1).toString();
 		 			  montoMin = config_minimo_solicitud.getDato1();
@@ -395,7 +405,6 @@ public class CustomerServiceSpring {
                       if(Double.parseDouble(montoMax)> Double.parseDouble(tb_monto_maximo.getDato1())) {
                     	  montoMax = tb_monto_maximo.getDato1();
                       }
-		 			  
                       //Vamos a buscar plazo maximo ----> 03/05/2023 Wilmer
                       if(!tb_monto_maximo.getDato2().equals("")) {
                     	  plazoMax = tb_monto_maximo.getDato2();
@@ -408,9 +417,9 @@ public class CustomerServiceSpring {
 		 			  String idorigenp = rangos.get(10).toString();
 		 			  
 		 			  boolean bandera = false;
-		 			  log.info("montos:"+montoMax+","+montoMin);
-			          if(Double.parseDouble(montoMax) > Double.parseDouble(montoMin)) {
-			        	  validacion.setRangoMontos(montoMin+"-"+montoMax);
+		 			  log.info("montos, max:"+Double.parseDouble(montoMax) +",min:"+ Double.parseDouble(montoMin));
+			          if(Double.parseDouble(montoMax) >= Double.parseDouble(montoMin)) {
+			        	 validacion.setRangoMontos(montoMin+"-"+montoMax);
 			        	  bandera = true;
 			          }else {			        	  
 			        	  validacion.setRangoMontos("0-0");
@@ -593,7 +602,6 @@ public class CustomerServiceSpring {
                     response.setPrimer_empleo(primerempleo);//objeto primer empleo se busco arriba
                     response.setSegundo_empleo(segundoempleo);//objeto segundo empleo se busco arriba                    
                     response.setFecha_ingreso_caja(String.valueOf(persona.getFechaingreso()));//atributo fecha ingreso a la caja
-                    
                     negocioDTO negocio = new negocioDTO();
                     if(negocio_prop != null){
                     	           negocio.setIngresos(String.valueOf(negocio_prop.getUtilidad_mens()));
@@ -679,7 +687,7 @@ public class CustomerServiceSpring {
                     conyugueDTO conyugue = new conyugueDTO();
                     int cons_tr_con = 0;
                     if(response.getNum_socio_conyugue() != "") {
-                    	if(referencia != null) {
+                    	if(referencia_personal != null) {
                         PersonaPK referencia_pk = new PersonaPK(referencia_personal.getIdorigenr(),referencia_personal.getIdgrupor(),referencia_personal.getIdsocior());
                         Persona persona_conyuge = personaService.findByOgs(referencia_pk);
                         List<Trabajo> lista_trabajo_conyuge = trabajosService.findTrabajosActivosByOgs(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),1);
@@ -749,6 +757,7 @@ public class CustomerServiceSpring {
                    response.setNumero_dependientes(String.valueOf(sc.getDependientes() + sc.getDependientes_menores()));//Atributo numero dependientes
                    response.setTelefono_recados(persona.getTelefonorecados());//telefono recados
                    Auxiliar folio_ahorro = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(), persona.getPk().getIdsocio(),110);
+                   System.out.println("Folio ahorro:"+folio_ahorro.getSaldo());
                    response.setMonto_ahorro(String.valueOf(folio_ahorro.getSaldo()));//atributo monto ahorro
                    
                    response.setAntiguedad_socio(String.valueOf(cal_edad(persona.getFechaingreso())));//atributo antiguedad socio
@@ -834,6 +843,7 @@ public class CustomerServiceSpring {
 						String[]tb_reca_array_recortado = tb_reca_por_producto.getDato1().split("\\/");
 						prestamo.setReca_recortado(tb_reca_array_recortado[0]);
 						gatService.insertRegistros(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar());
+						
 						double cat = gatService.calculoGAT(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar());
 						gatService.removeRegistros(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar());
 						prestamo.setCat(String.valueOf(cat));			
