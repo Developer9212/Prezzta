@@ -185,14 +185,19 @@ public class CustomerServiceSpring {
 	    		 //Buscamos producto para banca movil activo
 				   Auxiliar mitras_movil = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), 206);
 		              if(mitras_movil != null) {
-		            	 //Buscamos producto para dispersion
-		            	 TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
-						 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
-		            	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), new Integer(tb_config_dispersion.getDato1()));
-		              if(cuenta_corriente == null) {
-		            		 log.info("....Socio no cuenta con producto para dispersion.....");
-		            		 return response;
-		               }
+		            	 if(mitras_movil.getEstatus() == 0) {
+		            		 //Buscamos producto para dispersion
+			            	 TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
+							 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
+			            	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), new Integer(tb_config_dispersion.getDato1()));
+			                 if(cuenta_corriente == null) {
+			            		 log.info("....Socio no cuenta con producto para dispersion.....");
+			            	 return response;
+			                }
+		            	 }else {
+		            		 log.info("................Asegurese tener acstivo producto banca movil.........");
+		            	 }
+		            	
 		            }else {
 		              log.info(".....Socio no tiene producto mitras movil.....");
 		              return response;
