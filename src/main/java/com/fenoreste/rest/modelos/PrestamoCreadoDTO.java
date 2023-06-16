@@ -4,6 +4,8 @@ package com.fenoreste.rest.modelos;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fenoreste.rest.entity.Amortizacion;
 
@@ -27,6 +29,8 @@ public class PrestamoCreadoDTO {
 	private String tarjetaDebito;
 	private String id_solicitud_siscore;
 	private DetallesSiscore resumen_calificacion_siscore;
+	@JsonInclude(value = Include.NON_NULL)
+	private String tasa_anual;
 	private List<Amortizacion>cuotas;	
 	private String nota;
 	

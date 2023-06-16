@@ -30,6 +30,7 @@ public class Producto implements Serializable{
 	private Integer tipoproducto;
 	private Integer tipofinalidad;
 	private String activo;
+	private Double tasaio;
 	
 	private static final long serialVersionUID = 1L;
 		

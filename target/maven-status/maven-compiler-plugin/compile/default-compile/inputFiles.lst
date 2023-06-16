@@ -33,6 +33,7 @@
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/ReferenciaspServiceImpl.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/ServletInitializer.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/Colonias.java
+/home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/modelos/DatoRenovacionVO.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/IFuncionesService.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/modelos/InfoDetallesSiscoreDTO.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/ITablaService.java
@@ -95,6 +96,7 @@
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/dao/CsnVacIngresoRepository.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/Socioeconomicos.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/AmortizacionesServiceImpl.java
+/home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/ProductoServiceImpl.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/IAmortizacionesService.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/dao/OtrosRepository.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/Origenes.java
@@ -104,7 +106,9 @@
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/CuentasBankingly.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/modelos/PuntosScore.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/Auxiliares_dServiceImpl.java
+/home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/dao/ProductoRepository.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/modelos/dataDTO.java
+/home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/IProductoService.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/Util/SSLConfiguration.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/IColoniaService.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/FolioTarjeta.java
