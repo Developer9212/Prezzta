@@ -114,7 +114,7 @@ public class CustomerController {
             	 
               }else {
             	  response.put("code", 400);
-            	  response.put("menaje","opcion no valida,para confirmar=SI para declinar=NO");
+            	  response.put("mensaje","opcion no valida,para confirmar=SI para declinar=NO");
             	  response.put("detalleDispersion", null);
             	  return new ResponseEntity<>(response,HttpStatus.CONFLICT);
               }

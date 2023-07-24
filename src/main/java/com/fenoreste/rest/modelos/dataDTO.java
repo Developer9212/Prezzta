@@ -38,6 +38,7 @@ public class dataDTO {
     private String ciudad;
     private String direccion;
     private String codigo_postal;
+    private String colonia;
     private String propiedad_vivienda;
     private String email;
     private String ultimo_estudio_cursado;

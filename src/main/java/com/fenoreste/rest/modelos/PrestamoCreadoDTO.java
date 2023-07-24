@@ -31,7 +31,7 @@ public class PrestamoCreadoDTO {
 	private DetallesSiscore resumen_calificacion_siscore;
 	@JsonInclude(value = Include.NON_NULL)
 	private String tasa_anual;
-	private List<Amortizacion>cuotas;	
+	private List<CuotaVO>cuotas;	
 	private String nota;
 	
 }

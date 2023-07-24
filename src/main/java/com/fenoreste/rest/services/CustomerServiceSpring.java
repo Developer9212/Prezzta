@@ -1,6 +1,9 @@
 package com.fenoreste.rest.services;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,6 +51,7 @@ import com.fenoreste.rest.entity.Trabajo;
 import com.fenoreste.rest.entity.tmp_aperturas;
 import com.fenoreste.rest.modelos.BanderasObjeto;
 import com.fenoreste.rest.modelos.BanderasSiscore;
+import com.fenoreste.rest.modelos.CuotaVO;
 import com.fenoreste.rest.modelos.DatoRenovacionVO;
 import com.fenoreste.rest.modelos.DetallesScore;
 import com.fenoreste.rest.modelos.DetallesSiscore;
@@ -354,6 +358,7 @@ public class CustomerServiceSpring {
                         response.setCiudad(municipio.getNombre());//atributo ciudad
                         response.setDireccion(persona.getCalle() + " " + persona.getNumeroext());//atributo direccion
                         response.setCodigo_postal(colonia.getCodigopostal());//atributo codigo postal
+                        response.setColonia(colonia.getNombre());
                     }           			
                     if (sc.getPropietariovivienda() != null){
                         response.setPropiedad_vivienda(sc.getPropietariovivienda());//atributo propiedad vivienda
@@ -887,7 +892,53 @@ public class CustomerServiceSpring {
 						}					
 						
 						List<Amortizacion>cuotas = amortizacionesService.findAll(creado_aux.getIdorigenp(),creado_aux.getIdproducto(),creado_aux.getIdauxiliar());
-						prestamo.setCuotas(cuotas);	
+						List<CuotaVO> cuotasVo = new ArrayList<CuotaVO>();
+						
+						Double insoluto = 0.0;
+						Double saldoTotal = 0.0;
+					    for(int i = 0;i<cuotas.size();i++) {
+					    	CuotaVO cuotaVo = new CuotaVO();
+					    	Amortizacion amortizacion = cuotas.get(i);
+					    	cuotaVo.setIdorigenp(amortizacion.getIdorigenp());
+					    	cuotaVo.setIdproducto(amortizacion.getIdproducto());
+					    	cuotaVo.setIdauxiliar(amortizacion.getIdauxiliar());
+					    	cuotaVo.setIdamortizacion(amortizacion.getIdamortizacion());
+					    	cuotaVo.setVence(amortizacion.getVence());
+					    	cuotaVo.setAbono(amortizacion.getAbono());
+					    	cuotaVo.setIo(amortizacion.getIo());
+					    	cuotaVo.setAbonopag(amortizacion.getAbonopag());
+					    	cuotaVo.setIopag(amortizacion.getIopag());
+					    	cuotaVo.setBonificado(amortizacion.getBonificado());
+					    	cuotaVo.setPagovariable(amortizacion.getPagovariable());
+					    	cuotaVo.setTodopag(amortizacion.getTodopag());
+					    	cuotaVo.setAtiempo(amortizacion.getAtiempo());
+					    	cuotaVo.setBonificacion(amortizacion.getBonificacion());
+					    	cuotaVo.setAnualidad(amortizacion.getAnualidad());
+					    	cuotaVo.setDiasvencidos(amortizacion.getDiasvencidos());
+					    	
+					    	//ultimo añadido 19/06/2023
+					    	DecimalFormat formatoDecimal = new DecimalFormat("#000000000000.00");
+					    	if(i == 0) {
+					    		saldoTotal = creado_aux.getMontoautorizado().doubleValue();
+					    	}				    	
+					    	 
+					    	insoluto = Double.parseDouble(formatoDecimal.format(saldoTotal.doubleValue() - amortizacion.getAbono().doubleValue()));
+					    	saldoTotal = insoluto;
+					    	cuotaVo.setSaldoInsoluto(saldoTotal);
+					    	
+					    	
+					    	BigDecimal numero = amortizacion.getIo().multiply(new BigDecimal(0.16));
+					         
+					        // Redondeo a 2 decimales con RoundingMode.HALF_UP
+					        BigDecimal redondeado = numero.setScale(2, RoundingMode.HALF_UP);
+					        
+					    	cuotaVo.setIvaIntereses(redondeado);
+					    	String resultado = formatoDecimal.format(amortizacion.getAbono().doubleValue() + amortizacion.getIo().doubleValue() + (amortizacion.getIo().doubleValue() * 0.16));
+					    	cuotaVo.setMontoTotal(Double.parseDouble(resultado));					    	
+					    	cuotasVo.add(cuotaVo);
+					    	
+					    }
+						prestamo.setCuotas(cuotasVo);	
 						Producto producto = productoService.buscarPorId(creado_aux.getIdproducto());
 						prestamo.setTasa_anual(String.valueOf(producto.getTasaio() * 12));
 						tmpService.eliminar(tmp_validacion);

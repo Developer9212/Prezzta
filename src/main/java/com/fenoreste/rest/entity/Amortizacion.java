@@ -31,7 +31,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class Amortizacion implements Serializable {   
-
     
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
