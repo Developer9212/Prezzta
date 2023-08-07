@@ -28,6 +28,12 @@ public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	@Query(value = "SELECT sai_prezzta_cancela_prestamo_rechazado(?1,?2,?3)",nativeQuery = true)
 	String eliminarAutorizado(Integer idorigenp,Integer idproducto,Integer idauxiliar);
 	
+	@Query(value = "select prezzta_servicio_activo_inactivo()",nativeQuery = true)
+	public boolean horaActividad();
+	
+	@Query(value = "select prezzta_servicio_activo_inactivo_backend()",nativeQuery = true)
+	public boolean horaActividadBackend();
+	
 	
 	
 }

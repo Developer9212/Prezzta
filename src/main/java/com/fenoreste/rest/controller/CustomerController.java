@@ -20,7 +20,11 @@ import com.fenoreste.rest.modelos.clientRequestDTO;
 import com.fenoreste.rest.modelos.dataDTO;
 import com.fenoreste.rest.modelos.requestRegistraPrestamo;
 import com.fenoreste.rest.services.CustomerServiceSpring;
+import com.fenoreste.rest.services.IFuncionesService;
 import com.github.cliftonlabs.json_simple.JsonObject;
+
+import jdk.internal.org.jline.utils.Log;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -30,10 +34,14 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 
 @RestController
 @RequestMapping({"/Clients" })
+@Slf4j
 public class CustomerController {
 
 	@Autowired
-	private CustomerServiceSpring serviceCustomerSpring;	
+	private CustomerServiceSpring serviceCustomerSpring;
+	
+	@Autowired
+	private IFuncionesService funcionesService;
 	
     @PostMapping(value = "/buscar", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
@@ -71,6 +79,22 @@ public class CustomerController {
     	InfoPrestamoCreadoDTO info = new InfoPrestamoCreadoDTO();
     	
     	try {
+    		if(request.getMonto().doubleValue() >= 60000.00) {
+    			if(!funcionesService.servicioActivoInactivoBackend()) {
+        			info.setMessage("HORARIO DE OPERACION");
+        			info.setCode(409);
+        			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA,HORA O CONTACTE A SU PROVEEEDOR 1");
+        			return new ResponseEntity<>(info,HttpStatus.CONFLICT);
+        		}
+    		}else {
+    			if(!funcionesService.servicioActivoInactivo()) {
+        			info.setMessage("HORARIO DE OPERACION");
+        			info.setCode(409);
+        			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA,HORA O CONTACTE A SU PROVEEEDOR");
+        			return new ResponseEntity<>(info,HttpStatus.CONFLICT);
+        		}
+    		}
+    		
     		PrestamoCreadoDTO prestamo= serviceCustomerSpring.aperturaFolio(request.getNum_socio(),request.getMonto().doubleValue(),request.getPlazos());
     		if(prestamo.getOpa() != null) {
     			info.setCode(200);
@@ -106,14 +130,14 @@ public class CustomerController {
             		 return new ResponseEntity<>(response,HttpStatus.OK);
             	 }else {    
             		 entregado.setEstatus("Autorizado");
-            		 response.put("code", 400);
+            		 response.put("code", 200);
             		 response.put("mensaje", "La solicitud se ha declinado.");
             		 response.put("detallesDispersion", entregado);
-            		 return new ResponseEntity<>(response,HttpStatus.CONFLICT);
+            		 return new ResponseEntity<>(response,HttpStatus.OK);
             	 }            	 
             	 
               }else {
-            	  response.put("code", 400);
+            	  response.put("code", 409);
             	  response.put("mensaje","opcion no valida,para confirmar=SI para declinar=NO");
             	  response.put("detalleDispersion", null);
             	  return new ResponseEntity<>(response,HttpStatus.CONFLICT);

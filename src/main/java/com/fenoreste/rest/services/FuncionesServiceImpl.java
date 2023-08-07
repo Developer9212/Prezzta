@@ -63,4 +63,14 @@ public class FuncionesServiceImpl implements IFuncionesService{
 	public String eliminarAutorizado(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
 		return funcionesRepository.eliminarAutorizado(idorigenp, idproducto, idauxiliar);
 	}
+
+	@Override
+	public boolean servicioActivoInactivo() {
+		return funcionesRepository.horaActividad();
+	}
+
+	@Override
+	public boolean servicioActivoInactivoBackend() {
+		return funcionesRepository.horaActividadBackend();
+	}
 }

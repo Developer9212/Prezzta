@@ -10,6 +10,8 @@ public interface IFuncionesService {
 	public String obtenerPoliza(Integer idorigenp,Integer idproducto,Integer idauxiliar);
 	public String terminar_transaccion(Date fecha,Integer idusuario,String sesion,String referencia);
 	public String eliminarAutorizado(Integer idorigenp,Integer idproducto,Integer idauxiliar);
+	public boolean servicioActivoInactivo();
+	public boolean servicioActivoInactivoBackend();
 	
 	
 }
