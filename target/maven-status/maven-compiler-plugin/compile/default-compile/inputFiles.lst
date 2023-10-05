@@ -96,6 +96,7 @@
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/CsnVacIngreso.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/Amortizacion.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/services/ITrabajoService.java
+/home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/modelos/PagoMitrasDTO.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/entity/Plazo.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/modelos/comercioDTO.java
 /home/wilmer/respaldo/ProyectosSpring/Proyecto_Prezzta/WS(Csn.Mitras,Buenos Aires,Sagrada)/SpringPrezzta/src/main/java/com/fenoreste/rest/dao/CsnVacIngresoRepository.java

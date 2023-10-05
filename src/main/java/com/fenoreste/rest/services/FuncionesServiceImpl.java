@@ -4,19 +4,25 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fenoreste.rest.dao.FuncionesRepository;
+import com.fenoreste.rest.entity.AuxiliarPK;
+import com.fenoreste.rest.modelos.PagoMitrasDTO;
+
+import jdk.internal.org.jline.utils.Log;
 
 @Service
 public class FuncionesServiceImpl implements IFuncionesService{
 	
 	@Autowired
-	FuncionesRepository funcionesRepository;
+	private FuncionesRepository funcionesRepository;
 	
 	@Autowired
 	private JdbcTemplate jdbc;
@@ -29,6 +35,7 @@ public class FuncionesServiceImpl implements IFuncionesService{
 	@Override
 	public String aperturar_opa(Integer idorigen, Integer idgrupo, Integer idsocio, Double monto, Integer plazos,Integer idproducto,String opa,Integer idorigenp) {
 	  String query = "SELECT sai_prezzta_crea_apertura('{"+idorigen+","+idgrupo+","+idsocio+","+monto+","+plazos+","+idproducto+","+opa+","+idorigenp+"}')";
+	  System.out.println("Query:"+query);
 	  String resultado = "";
 	  try {
 		 Connection con = jdbc.getDataSource().getConnection();
@@ -73,4 +80,35 @@ public class FuncionesServiceImpl implements IFuncionesService{
 	public boolean servicioActivoInactivoBackend() {
 		return funcionesRepository.horaActividadBackend();
 	}
+
+	@Override
+	public PagoMitrasDTO pagoMitras(AuxiliarPK pk,int idamortizacion) {
+		Object objeto = funcionesRepository.listaPagos(pk.getIdorigenp(),pk.getIdproducto(),pk.getIdauxiliar(),idamortizacion);
+		
+		PagoMitrasDTO pago = null;
+		if(objeto !=null) {
+			Object[] arrayObjetos = (Object[]) objeto;
+			
+			for(int x = 0;x<arrayObjetos.length;x++) {
+				pago = new PagoMitrasDTO();
+				pago.setIdorigenp(Integer.parseInt(arrayObjetos[0].toString()));
+				pago.setIdproducto(Integer.parseInt(arrayObjetos[1].toString()));
+				pago.setIdauxiliar(Integer.parseInt(arrayObjetos[2].toString()));
+				pago.setIdamortizacion(Integer.parseInt(arrayObjetos[3].toString()));
+				pago.setVence(arrayObjetos[4].toString());
+				pago.setSaldo(Double.parseDouble(arrayObjetos[5].toString()));
+				pago.setAbono(Double.parseDouble(arrayObjetos[6].toString()));
+				pago.setIod(Double.parseDouble(arrayObjetos[7].toString()));
+				pago.setIva_iod(Double.parseDouble(arrayObjetos[8].toString()));
+				pago.setTotal_iod(Double.parseDouble(arrayObjetos[9].toString()));
+				pago.setIo(Double.parseDouble(arrayObjetos[10].toString()));
+				pago.setIva_io(Double.parseDouble(arrayObjetos[11].toString()));
+				pago.setTotal_io(Double.parseDouble(arrayObjetos[12].toString()));
+				pago.setDescuento(Double.parseDouble(arrayObjetos[13].toString()));
+				
+			}
+		}
+		return pago;
+	}
+	
 }

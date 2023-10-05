@@ -23,7 +23,6 @@ import lombok.NoArgsConstructor;
 public class User implements Serializable{
   
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Integer id;	
 	private String username;
 	private String password;
@@ -32,8 +31,7 @@ public class User implements Serializable{
 	
 	@PrePersist 
 	public void prePersist() {
-		create_at = new Date();
-		
+		create_at = new Date();		
 		Random random = new Random();
 		int value = random.nextInt(50 + 1) +1;
 		id = value;

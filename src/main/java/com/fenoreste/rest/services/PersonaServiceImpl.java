@@ -1,6 +1,5 @@
 package com.fenoreste.rest.services;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,35 +14,65 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class PersonaServiceImpl implements IPersonaService{
-	
+public class PersonaServiceImpl implements IPersonaService {
+
 	@Autowired
 	private JdbcTemplate jdbc;
-	
+
 	@Autowired
 	private PersonaRepository personaRepository;
-	
+
 	@Override
-	public Persona findPersonaByDocumento(String tipoDocumento,String documento) {	
-		String consulta = "SELECT * FROM personas WHERE "+tipoDocumento+"='"+documento+"' AND idgrupo=10 AND estatus=true";
-		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Persona.class)).size();
-		Persona p = null;
-		if(size >0) {
-			log.info("Size:::::::::::::"+size);
-			p = jdbc.query(consulta, new BeanPropertyRowMapper <>(Persona.class)).get(0);
+	public Persona findPersonaByDocumento(String tipoDocumento, String documento) {
+		Persona p = personaRepository.buscarPorCurp(documento);
+		if (p != null) {
+			if (caracteres_especiales(p.getCalle())) {
+				p.setCalle(nuevaCadena(p.getCalle()));
+			}
+			if (caracteres_especiales(p.getEntrecalles())) {
+				p.setEntrecalles(nuevaCadena(p.getEntrecalles()));
+			}
+			if (caracteres_especiales(p.getNombre())) {
+				p.setNombre(nuevaCadena(p.getNombre()));
+			}
+			if (caracteres_especiales(p.getAppaterno())) {
+				p.setAppaterno(nuevaCadena(p.getAppaterno()));
+			}
+			if (caracteres_especiales(p.getApmaterno())) {
+				p.setApmaterno(nuevaCadena(p.getApmaterno()));
+			}			
+			if (caracteres_especiales(p.getEmail())) {
+				p.setEmail(nuevaCadena(p.getEmail()));
+			}
 		}
-		log.info(""+p);
-		//Ultima modificacion 03/05/2023 Wilmer se dejo de usar template porque no agarraba PK
-		return personaRepository.buscarPorCurp(documento);
+		return p;// personaRepository.buscarPorCurp(documento);
 	}
 
 	@Override
-	public Persona findByOgs(PersonaPK pk) {		
+	public Persona findByOgs(PersonaPK pk) {
 		return personaRepository.findById(pk).orElse(null);
 	}
 
-	
-	
-	
+	private boolean caracteres_especiales(String nombre) {
+		boolean bandera = false;
+		if (!nombre.matches("^[a-zA-Z0-9\\s]*$")) {
+			bandera = true;
+		}
+		return bandera;
+	}
+
+	private String nuevaCadena(String nombre) {
+		return nombre.replace(obtenerCaracteresEspeciales(nombre), "Ñ").replace("Ã", "");
+	}
+
+	private String obtenerCaracteresEspeciales(String input) {
+		StringBuilder caracteresEspeciales = new StringBuilder();
+		for (char c : input.toCharArray()) {
+			if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c)) {
+				caracteresEspeciales.append(c);
+			}
+		}
+		return caracteresEspeciales.toString();
+	}
 
 }

@@ -34,11 +34,21 @@ public class CuotaVO implements Serializable{
 	    private BigDecimal anualidad;   
 	    private Integer diasvencidos;
 	    @JsonInclude(value = Include.NON_EMPTY)
+	    private Double interesConDescuento;
+	    @JsonInclude(value = Include.NON_EMPTY)
+	    private Double ivaInteresConDescuento;
+	    @JsonInclude(value = Include.NON_EMPTY)
 	    private Double saldoInsoluto;
 	    @JsonInclude(value = Include.NON_EMPTY)
 	    private BigDecimal ivaIntereses;
 	    @JsonInclude(value = Include.NON_EMPTY)
 	    private Double montoTotal;
+	    @JsonInclude(value = Include.NON_EMPTY)
+	    private Double descuentoObtenido;
+	    @JsonInclude(value = Include.NON_EMPTY)
+	    private Double montoTotalConDescuento;
+	    @JsonInclude(value = Include.NON_EMPTY)
+	    private Double montoTotalSinDescuento;
 	    
 	    private static final long serialVersionUID = 1L;
 }

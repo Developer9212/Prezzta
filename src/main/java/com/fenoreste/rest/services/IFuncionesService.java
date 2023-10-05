@@ -1,6 +1,10 @@
 package com.fenoreste.rest.services;
 
 import java.util.Date;
+import java.util.List;
+
+import com.fenoreste.rest.entity.AuxiliarPK;
+import com.fenoreste.rest.modelos.PagoMitrasDTO;
 
 public interface IFuncionesService {
    
@@ -10,6 +14,7 @@ public interface IFuncionesService {
 	public String obtenerPoliza(Integer idorigenp,Integer idproducto,Integer idauxiliar);
 	public String terminar_transaccion(Date fecha,Integer idusuario,String sesion,String referencia);
 	public String eliminarAutorizado(Integer idorigenp,Integer idproducto,Integer idauxiliar);
+	public PagoMitrasDTO pagoMitras(AuxiliarPK pk,int idamortizacion);
 	public boolean servicioActivoInactivo();
 	public boolean servicioActivoInactivoBackend();
 	

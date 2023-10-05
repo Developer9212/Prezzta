@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fenoreste.rest.entity.AuxiliarPK;
 import com.fenoreste.rest.modelos.InfoClienteDTO;
 import com.fenoreste.rest.modelos.InfoPrestamoCreadoDTO;
 import com.fenoreste.rest.modelos.PrestamoCreadoDTO;
@@ -122,8 +123,8 @@ public class CustomerController {
           try {
         	  if(opcion.equalsIgnoreCase("si") || opcion.equalsIgnoreCase("no")) {
         		  PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion);
-            	 
-            	 if(entregado.getEstatus().toUpperCase().contains("ACT")) {
+            	  log.info("EStatus entregado:"+entregado.getEstatus());
+            	 if(entregado.getEstatus().toUpperCase().contains("ACTIV")) {
             		 response.put("code", 200);
             		 response.put("mensaje", "Solicitud terminada exitosamente.");
             		 response.put("detallesDispersion", entregado);
@@ -154,6 +155,13 @@ public class CustomerController {
           String mensaje_pago = serviceCustomerSpring.pruebaPagoIntereses(opa, total);
      	  response.put("mensaje", mensaje_pago);
           return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+    
+    @GetMapping
+    public ResponseEntity<?> lista() {   
+          AuxiliarPK pk = new AuxiliarPK(30302, 30302, 31259);
+          
+          return new ResponseEntity<>(funcionesService.pagoMitras(pk,1),HttpStatus.OK);
     }
     
     

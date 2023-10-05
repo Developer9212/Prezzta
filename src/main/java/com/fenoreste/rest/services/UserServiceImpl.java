@@ -2,7 +2,7 @@ package com.fenoreste.rest.services;
 
 import java.util.Arrays;
 import java.util.List;
-
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,7 +37,6 @@ public class UserServiceImpl implements IUserService,UserDetailsService{
 	}
 
 	@Override
-	@javax.transaction.Transactional
 	public void save(User user) {
 		userRepository.save(user);
 	}
