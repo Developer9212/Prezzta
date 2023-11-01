@@ -15,4 +15,8 @@ public interface AuxiliarRepository extends JpaRepository<Auxiliar, AuxiliarPK> 
 	@Query(value = "SELECT count(*) FROM auxiliares WHERE idorigen = ?1 AND idgrupo = ?2 AND idsocio = ?3 AND estatus=1",nativeQuery = true)
 	public Integer totalAutorizados(Integer idorigen,Integer idgrupo,Integer idsocio);
 	
+	@Query(value = "SELECT * FROM auxiliares WHERE idorigen = ?1 AND idgrupo = ?2 AND idsocio = ?3 AND"
+			+ " idproducto = (SELECT dato1 FROM tablas WHERE idtabla='prezzta' AND idelemento='producto_para_dispersion')::::numeric AND estatus IN (0,2)",nativeQuery = true)
+	public Auxiliar buscarCuentaCorrienteMitras(Integer idorigen,Integer idgrupo,Integer idsocio);
+	
 }

@@ -49,6 +49,7 @@ import com.fenoreste.rest.entity.Tabla;
 import com.fenoreste.rest.entity.TablaPK;
 import com.fenoreste.rest.entity.Tarjeta;
 import com.fenoreste.rest.entity.Trabajo;
+import com.fenoreste.rest.entity.V_Auxiliares;
 import com.fenoreste.rest.entity.tmp_aperturas;
 import com.fenoreste.rest.modelos.BanderasObjeto;
 import com.fenoreste.rest.modelos.BanderasSiscore;
@@ -78,6 +79,7 @@ import com.fenoreste.rest.modelos.relacionesSociosDTO;
 import com.fenoreste.rest.modelos.segundoEmpleoDTO;
 import com.fenoreste.rest.modelos.validacionDTO;
 
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -168,6 +170,9 @@ public class CustomerServiceSpring {
 	@Autowired
 	private IPlazoService plazoService;
 	
+	@Autowired
+	private IVAuxiliaresService vaAuxiliaresService;
+	
 	
 	
 	String idtabla="prezzta";
@@ -205,7 +210,7 @@ public class CustomerServiceSpring {
 		            		 //Buscamos producto para dispersion
 			            	 TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
 							 Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
-			            	 Auxiliar cuenta_corriente = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), new Integer(tb_config_dispersion.getDato1()),2);
+			            	 Auxiliar cuenta_corriente = auxiliaresService.buscarCuentaCorrienteMitras(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
 			                 if(cuenta_corriente == null) {
 			            		 log.info("....Socio no cuenta con producto para dispersion.....");
 			            	 return response;
@@ -837,7 +842,8 @@ public class CustomerServiceSpring {
 			tmp_aperturas tmp_validacion = tmpService.buscar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());
 			log.info("Vamos a buscar validaciones de ws 1...");
 		    if(tmp_validacion != null) {
-		    	if(origenesService.findMatrizOrigen().getIdorigen() == 30200) {
+		    	Origenes origen = origenesService.findMatrizOrigen(); 
+		    	if(origen.getIdorigen() == 30200) {
 		    		log.info("Validando reglas csn");
 		    		if(auxiliaresService.totAutorizados(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio()) > 0) {
 		    			log.info("Autorizados es mayor a 0");
@@ -855,27 +861,100 @@ public class CustomerServiceSpring {
 				    				bandera_plazos = true;
 				    			}
 				    		}
-				    		if(!bandera_plazos) {
+				    		if(!bandera_plazos) {//Si los plazos estan configurados y concuerdan con el monto solicitado
 				    			prestamo.setNota("Plazos no compatible con su monto solicita,plazos disponibles "+ plazo.getPlazos());
 				    			return prestamo;
-				    		}
+				    		}else { //Si los plazos configurados concuerdan con el monto solicitado
+				    			//Validamos regla de apertura 10/10/2023
+				    			//
+				    			if(tmp_validacion.getTipoapertura().toUpperCase().contains("R")) {
+				    				//Buscamos si hay producto de renovacion activo
+				    				TablaPK prestamo_ap_pk = null;
+				    				Tabla prestamo_ap = null; 
+				    				Auxiliar a = null;// auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(), ogs.getIdgrupo(), ogs.getIdsocio(),new Integer(prestamo_ap.getDato1()), 2);
+				    				V_Auxiliares va = null;	
+				    				String periodoActivacion = "";
+				    					//Buscamos el total de renovados en la vista
+				    					//Obtenemos el periodo en curso
+				    					String periodo = new HerramientasUtil().periodo(origen.getFechatrabajo());
+				    					prestamo_ap_pk = new TablaPK(idtabla, "apertura_prestamo_2");
+				    					prestamo_ap = tablasService.buscarPorId(prestamo_ap_pk);
+				    					Integer totalRenovados = vaAuxiliaresService.totRenovadoPorOgsIdproducto(new PersonaPK(ogs.getIdorigen(),ogs.getIdgrupo(), ogs.getIdsocio()),Integer.parseInt(prestamo_ap.getDato1()),periodo);
+				    					System.out.println("total renovados:"+totalRenovados);
+				    					switch(totalRenovados) {				    					
+				    					case 0:		
+				    						log.info("Case 0");
+				    						prestamo_ap_pk = new TablaPK(idtabla, "apertura_prestamo_2");
+				    						prestamo_ap = tablasService.buscarPorId(prestamo_ap_pk);
+				    						//Buscamos si el 32664 esta activo en auxiliares
+				    						a = auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(), ogs.getIdgrupo(), ogs.getIdsocio(),new Integer(prestamo_ap.getDato1()),2);
+				    						if(a != null) {
+				    							//Buscamos el 32644 en la vista con estatus pagado para saber si no se aperturo y renovo en el mismo mes
+				    							prestamo_ap_pk = new TablaPK(idtabla,"apertura_prestamo_1");
+					    						prestamo_ap = tablasService.buscarPorId(prestamo_ap_pk);
+					    						System.out.println(prestamo_ap);
+					    						va = vaAuxiliaresService.buscarGerencialPorOgsPeriodo(new PersonaPK(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio()),Integer.parseInt(prestamo_ap.getDato1()), periodo);
+					    						
+					    						if(va != null) {
+					    						periodoActivacion = new HerramientasUtil().periodo(va.getFechaactivacion());
+					    						if(periodoActivacion.equals(new HerramientasUtil().periodo(va.getFechaactivacion()))) {//Si activacion y renovacion fue en el mismo periodo
+						    						  prestamo.setNota("Activacion y renovacion se realizo en el mismo mes");
+						    						  return prestamo;
+						    						}	
+				    						   }
+					    					}
+				    						break;
+				    					case 1:
+				    						totalRenovados = totalRenovados + 1;
+				    						log.info("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+				    						prestamo.setNota("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+				    						return prestamo; 
+				    						
+				    					case 2:
+				    						totalRenovados = totalRenovados + 1;
+				    						System.out.println("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+				    						prestamo.setNota("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+				    						return prestamo; 
+										case 3:
+											totalRenovados = totalRenovados + 1;
+											log.info("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+											prestamo.setNota("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+				    						return prestamo; 
+				    						
+				    					case 4:
+				    						totalRenovados = totalRenovados + 1;
+				    						log.info("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+				    						prestamo.setNota("Supera el limite maximo de renovaciones en el mes:"+totalRenovados);
+				    						return prestamo;
+				    						
+				    						
+				    					}
+				    									    								    				
+				    		        }
+				    		   }
 			    		}else {
 			    			prestamo.setNota("Plazos no configurados");
 			    			return prestamo;
 			    		}
 		    		}		    		
 		    	}
+		    	
+		    	
 		    if(tmp_validacion.getTipoapertura().toUpperCase().contains("R")) {
+		    	log.info("Es una renovacion");
 		   		//Validacion que no halla monto atrasado				 
 				String monto_maximo_prestar = funcionesService.validacion_monto_prestar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());					
-				String[] montos_array = monto_maximo_prestar.split("\\|");                    
+				String[] montos_array = monto_maximo_prestar.split("\\|");
+				log.info("Informacion de mont a prestar:"+monto_maximo_prestar);
 	 		    List<String>rangos = Arrays.asList(montos_array);	
 	 		    montoCubrir = rangos.get(7).toString();
  			    String[]cadena = rangos.get(9).toString().split("\\-");
 		        opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
 		        if(tmp_validacion.getAtrasado().intValue() == 0) {
+		        	log.info("No hay nada atrasado");
 		        	if((monto > tmp_validacion.getGastos_pagar())) {
-			    		bandera = true;	
+		        		log.info("Lo que se solicita es mayor a lo que hay que renovar");
+		        		bandera = true;	
 					 }else{
 						 log.info("No es posible renovar prestamo porque monto solicitado:"+monto+" es menor o igual a monto a renovar:"+tmp_validacion.getMontorenovar());
 						 prestamo.setNota("No es posible renovar prestamo porque monto solicitado:"+monto+" es menor o igual a monto a renovar:"+tmp_validacion.getMontorenovar());
@@ -889,9 +968,11 @@ public class CustomerServiceSpring {
 		      }
 		    
 		    if(bandera) {
+		    	log.info("Todo en orden comenzemos a aperturar");
 					//Configuracion de apertura para obtener el origen
 					if(monto <= tmp_validacion.getMontoalcanzado()) {
 						String aperturar_opa = funcionesService.aperturar_opa(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(), monto, plazos,tmp_validacion.getIdproducto(),tmp_validacion.getOpaactivo(),tmp_validacion.getIdorigenp());								
+						log.info("Se lanzo la funcion para aperturar el folio:"+aperturar_opa);
 						AuxiliarPK pk = new AuxiliarPK(tmp_validacion.getIdorigenp(),tmp_validacion.getIdproducto(),Integer.parseInt(aperturar_opa.replace("|","").toString()));
 						creado_aux = auxiliaresService.AuxiliarByOpa(pk);//tmp_validacion.getIdorigenp(),tmp_validacion.getIdproducto(),Integer.parseInt(aperturar_opa.replace("|","").toString()));
 						prestamo.setOpa(String.format("%06d",creado_aux.getPk().getIdorigenp())+String.format("%05d",creado_aux.getPk().getIdproducto())+String.format("%08d",creado_aux.getPk().getIdauxiliar()));  
@@ -906,8 +987,9 @@ public class CustomerServiceSpring {
 						String[]tb_reca_array_recortado = tb_reca_por_producto.getDato1().split("\\/");
 						prestamo.setReca_recortado(tb_reca_array_recortado[0]);
 						gatService.insertRegistros(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
-						
+						log.info("Vamos a calcular el GAT");
 						double cat = gatService.calculoGAT(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+						log.info("GAT Obtenido:"+ cat);
 						gatService.removeRegistros(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
 						prestamo.setCat(String.valueOf(cat));			
 						avalDTO aval = new avalDTO();
@@ -917,13 +999,20 @@ public class CustomerServiceSpring {
 						//Buscamos el producto para tarjeta de debito
 						TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
 						Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
-						Auxiliar aux_tdd = auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(),new Integer(tb_config_dispersion.getDato1()),2);					
-						if(aux_tdd.getEstatus() == 2) {
-							prestamo.setTarjetaDebito(String.format("%06d",aux_tdd.getPk().getIdorigenp().intValue())+String.format("%05d",aux_tdd.getPk().getIdproducto().intValue())+String.format("%08d",aux_tdd.getPk().getIdauxiliar().intValue()));
+						Auxiliar aux_tdd = null;
+						if(origen.getIdorigen() == 30300) {
+							aux_tdd = auxiliaresService.buscarCuentaCorrienteMitras(ogs.getIdorigen(), ogs.getIdgrupo(),ogs.getIdsocio());
+							
+						}else {
+							aux_tdd = auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(),new Integer(tb_config_dispersion.getDato1()),2);
 						}
+						 				
+							prestamo.setTarjetaDebito(String.format("%06d",aux_tdd.getPk().getIdorigenp().intValue())+String.format("%05d",aux_tdd.getPk().getIdproducto().intValue())+String.format("%08d",aux_tdd.getPk().getIdauxiliar().intValue()));
+						
 						Amortizacion amortizacion_final = amortizacionesService.findUltimaAmortizacion(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+						log.info("La amortizacion final es:"+amortizacion_final);
 						prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));
-						Origenes origen = origenesService.findMatrizOrigen();
+						
 						DetallesSiscore detallesSiscore = null;
 						if(origen.getIdorigen() == 30200) {				
 							detallesSiscore = ResumenSiscoreCSN(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar()); 
@@ -932,6 +1021,7 @@ public class CustomerServiceSpring {
 						}					
 						
 						List<Amortizacion>cuotas = amortizacionesService.findAll(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+						log.info("Total de amorizaciones:"+cuotas.size());
 						List<CuotaVO> cuotasVo = new ArrayList<CuotaVO>();
 						
 						Double insoluto = 0.0;
@@ -943,6 +1033,7 @@ public class CustomerServiceSpring {
 					    	//Mitras
 					    	if(origenesService.findMatrizOrigen().getIdorigen() == 30300) {
 					    		PagoMitrasDTO pago = funcionesService.pagoMitras(creado_aux.getPk(),amortizacion.getIdamortizacion());
+					    		log.info("Vuelta con idamortizacion:"+amortizacion.getIdamortizacion());
 					    		cuotaVo.setInteresConDescuento(pago.getIod());
 					    		cuotaVo.setIvaInteresConDescuento(pago.getIva_iod());
 					    		cuotaVo.setDescuentoObtenido(pago.getDescuento());
@@ -977,8 +1068,7 @@ public class CustomerServiceSpring {
 					    	cuotaVo.setAnualidad(amortizacion.getAnualidad());
 					    	cuotaVo.setDiasvencidos(amortizacion.getDiasvencidos());
 					    	
-					    	//ultimo añadido 19/06/2023
-					    	
+					    	//ultimo añadido 19/06/2023					    	
 					    	if(i == 0) {
 					    		saldoTotal = creado_aux.getMontoautorizado().doubleValue();
 					    	}				    	
@@ -1007,7 +1097,10 @@ public class CustomerServiceSpring {
 			    	 prestamo.setNota("No se ha realizado una validacion para el socio:"+num_socio); 
 			    }
 			 }catch (Exception e) {
+				    prestamo = new PrestamoCreadoDTO();
+				    prestamo.setNota("Falla en el sistema");
 		         	log.info("Error al procesar el registro:"+e.getMessage());
+		         	return prestamo;
 		     }		
 		 log.info("Saliendo ws 2...");
 		 log.info("El prestamo aperturado es:"+prestamo);
@@ -1517,7 +1610,7 @@ public class CustomerServiceSpring {
 			  
 			  //Busco la tdd
 			  
-			  Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),133,2);
+			  Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),110,2);
 			  pk_m = new MovimientosPK(999, sesion, referencia, auxiliar_tdd.getPk().getIdorigenp(), auxiliar_tdd.getPk().getIdproducto(),auxiliar_tdd.getPk().getIdauxiliar()); 
 			  registrar_movimiento = new RegistraMovimiento();
 			  /*registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
@@ -1540,22 +1633,21 @@ public class CustomerServiceSpring {
 			  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);			 
 			  
 			  /*String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
-				         registrar_movimiento.getIdusuario(),
-				         registrar_movimiento.getSesion(),
-				         registrar_movimiento.getReferencia());
-		      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));*/
+				         registrar_movimiento.getPk().getIdusuario(),
+				         registrar_movimiento.getPk().getSesion(),
+				         registrar_movimiento.getPk().getReferencia());
+		      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+		      */
 		      
-		      
-		      /*procesaMovimientoService.eliminaMovimiento(matriz.getFechatrabajo(),
-				         registrar_movimiento.getIdusuario(),
-				         registrar_movimiento.getSesion(),
-				         registrar_movimiento.getReferencia());*/
+		    /*  procesaMovimientoService.eliminaMovimiento(matriz.getFechatrabajo(),
+				         registrar_movimiento.getPk().getIdusuario(),
+				         registrar_movimiento.getPk().getReferencia(),
+				         registrar_movimiento.getPk().getReferencia());
 		     
-		    /*  if(total_procesados > 0) {
+		      if(total_procesados > 0) {dd
 		    	  mensaje = "Se realizo el pago correctamente";
 		      }
-		      */
-		}catch(Exception e) {
+*/		}catch(Exception e) {
 			 System.out.println("Error al realizar el pago:"+e.getMessage());
 		}
 		

@@ -1,5 +1,8 @@
 package com.fenoreste.rest.Util;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.springframework.stereotype.Service;
 
 import com.fenoreste.rest.modelos.ogsDTO;
@@ -37,6 +40,20 @@ public class HerramientasUtil {
 		return opa;
 	}
 	
+	
+	public String periodo(Date fecha) {
+         String periodo = "";
+         SimpleDateFormat sdf = new SimpleDateFormat("YYYYMM");
+         try {
+			periodo = sdf.format(fecha);
+			System.out.println("Fechaaaaaaaaaaaaaaa:"+periodo);
+			periodo = periodo.replace("\\//","");
+		  } catch (Exception e) {
+			System.out.println("Error al parsear fecha:"+e.getMessage());
+		  }
+       
+       return periodo;
+	}
 	
 
 }

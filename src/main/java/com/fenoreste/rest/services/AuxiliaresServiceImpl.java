@@ -33,6 +33,11 @@ public class AuxiliaresServiceImpl implements IAuxiliaresService {
 	public Integer totAutorizados(Integer idorigen, Integer idgrupo, Integer idsocio) {
 		return auxiliarRepository.totalAutorizados(idorigen, idgrupo, idsocio);
 	}
+
+	@Override
+	public Auxiliar buscarCuentaCorrienteMitras(Integer idorigen, Integer idgrupo, Integer idsocio) {
+		return auxiliarRepository.buscarCuentaCorrienteMitras(idorigen, idgrupo, idsocio);
+	}
 	
 
 }
