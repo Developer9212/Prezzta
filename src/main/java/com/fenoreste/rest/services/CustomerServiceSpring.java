@@ -185,7 +185,7 @@ public class CustomerServiceSpring {
 		List<String>rangos = new ArrayList<>();
 		//Buscamos a la persona con los datos que llegaron en el metodo
 		Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());		
-		log.info("La persona enconrada es:"+persona.getApmaterno()+","+persona.getPk().getIdgrupo());
+		log.info("La persona es:"+persona.getApmaterno()+","+persona.getPk().getIdgrupo());
 		
 		//Validaciones solo para mitras
 		if(origen.getIdorigen().intValue() == 30300) {
@@ -244,6 +244,7 @@ public class CustomerServiceSpring {
 				FolioTarjeta folio_tdd = foliosTarjetaService.buscarPorId(pk_tdd);
 				//Ahora buscamos registro para la tarjeta
 				Tarjeta tarjeta = tarjetaService.buscarPorId(folio_tdd.getIdtarjeta());
+				System.out.println("La tarjeta encontrada es:"+tarjeta+"Opa:"+folio_tdd);
 				if(tarjeta.getFecha_vencimiento().after(origen.getFechatrabajo())) {
 					TablaPK tb_pk_sopar = new TablaPK(idtabla,"prezzta_empleados");
 					Tabla tb_sopar = tablasService.buscarPorId(tb_pk_sopar);
@@ -274,8 +275,8 @@ public class CustomerServiceSpring {
 				bandera_so = true;
 			}
 		}else {
-			log.info("Socio no alcanza el minimo para procesar su solicitud....");
-			response.setNota("Socio no alcanza el minimo para procesar solicitud....");
+			log.info("Socio, tu saldo en el ahorro no permite continuar el trámite, si deseas continuar, favor de incrementar el monto en tu cuenta de ahorro mayor, logrando un saldo mínimo de $"+config_minimo_solicitud.getDato1());
+			response.setNota("Socio, tu saldo en el ahorro no permite continuar el trámite, si deseas continuar, favor de incrementar el monto en tu cuenta de ahorro mayor, logrando un saldo mínimo de $"+config_minimo_solicitud.getDato1());
 		}
 		
 		
@@ -284,8 +285,7 @@ public class CustomerServiceSpring {
 			TablaPK tb_pk_parte_social = new TablaPK(idtabla,"parte_social");
 			Tabla tb_producto_parte_social = tablasService.buscarPorId(tb_pk_parte_social);
 			
-			if(tb_producto_parte_social != null) {
-				
+			if(tb_producto_parte_social != null) {				
 				Auxiliar folio_parte_social = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),Integer.parseInt(tb_producto_parte_social.getDato1()),2);
 				if(folio_parte_social.getSaldo().doubleValue() >= Double.parseDouble(tb_producto_parte_social.getDato2())) {
 					response.setEs_socio("1");//atributo es socio
@@ -469,9 +469,9 @@ public class CustomerServiceSpring {
 				        	  validacion.setMonto_renovar(Double.parseDouble(totalRenovar));
 			        	  }
 			        	  
-			        	  String mmensajeAtraseo = "",imprt = "";
+			        	  String mmensajeAtraso = "",imprt = "";
 			        	  if(Double.parseDouble(totalAtraso)>0) {
-			        		  mmensajeAtraseo = tb_nota_monto_atraso.getDato2().replace("@atraso@",totalAtraso)+" al folio:"+opaAnterior+",";
+			        		  mmensajeAtraso = tb_nota_monto_atraso.getDato2().replace("@atraso@",totalAtraso)+" al folio:"+opaAnterior+",";
 			        		  imprt =", IMPORTANTE(Primero debe liquidar monto atrasado para poder continuar con su renovacion)";
 			        	  }
 			        	  /*validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+","+
@@ -485,7 +485,7 @@ public class CustomerServiceSpring {
 			        	  
 			        	  validacion.setDetalleRenovacion(vo);
 			        	  validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(0))+","+
-	        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
+	        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraso+ 		
 	        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar) + imprt);
 	        			  
 	        			
@@ -519,7 +519,23 @@ public class CustomerServiceSpring {
        			   	  }*/
 			          
 			         }else {			        
-		 			  
+		 			  String mensajeValidacion = rangos.get(2);
+		 			  if(mensajeValidacion.toUpperCase().contains("COMPATIB")) {
+		 				if(origen.getIdorigen() == 30200) {
+		 					validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
+			 						+ "en el apartado de “Preguntas Frecuentes” en la App de CSN Móvil."
+			 						+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo."); 
+		 				}else if(origen.getIdorigen() == 30300) {
+		 					validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
+			 						+ "en el apartado de “Preguntas Frecuentes” en la App de Mitras Móvil."
+			 						+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo."); 
+		 				}else {
+		 					validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
+			 						+ "en el apartado de “Preguntas Frecuentes” en la App Móvil."
+			 						+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo."); 
+		 				}
+		 				 
+		 			  }
 			          validacion.setRangoPlazos(plazoMin+"-"+plazoMax);
 			          validacion.setTipo_apertura("");
 			          validacion.setMonto_renovar(0);
@@ -527,7 +543,7 @@ public class CustomerServiceSpring {
 			          validacion.setNota("NO PUEDE CONTINUAR CON SU SOLICITUD");
 		 			}
 		           
-		           response.setMonto_maximo_a_prestar(validacion);//objeto monto maximo a prestar		            
+					response.setMonto_maximo_a_prestar(validacion);// objeto maximo a prestar		            
                     
                     Negociopropio negocio_prop = negocioService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
                     comercioDTO comercio = new comercioDTO();
@@ -847,7 +863,10 @@ public class CustomerServiceSpring {
 		    		log.info("Validando reglas csn");
 		    		if(auxiliaresService.totAutorizados(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio()) > 0) {
 		    			log.info("Autorizados es mayor a 0");
-		    			prestamo.setNota("Ud. Tiene un prestamo en solicitud,Contacte a su proveedor para mayor informacion");
+		    			prestamo.setNota("Socio, actualmente ya cuentas con una solicitud iniciada, retoma el trámite "
+		    					+ "desde la liga que se te envío vía correo electrónico o si desea continuar su "
+		    					+ "trámite en línea, favor de comunicarse al 8183056900 ext 410 - 415, para más "
+		    					+ "información.");
 		    			return prestamo;
 		    		}else {
 		    			log.info("Monto solicitando:"+monto+",plazos:"+plazos);
@@ -862,7 +881,8 @@ public class CustomerServiceSpring {
 				    			}
 				    		}
 				    		if(!bandera_plazos) {//Si los plazos estan configurados y concuerdan con el monto solicitado
-				    			prestamo.setNota("Plazos no compatible con su monto solicita,plazos disponibles "+ plazo.getPlazos());
+				    			log.info("Socio, elegiste un plazo no disponible para el monto solicitado, da clic en el botón “atrás” y elige únicamente una de las siguientes opciones:"+ plazo.getPlazos());
+				    			prestamo.setNota("Socio, elegiste un plazo no disponible para el monto solicitado, da clic en el botón “atrás” y elige únicamente una de las siguientes opciones:"+ plazo.getPlazos());
 				    			return prestamo;
 				    		}else { //Si los plazos configurados concuerdan con el monto solicitado
 				    			//Validamos regla de apertura 10/10/2023
@@ -950,18 +970,29 @@ public class CustomerServiceSpring {
 	 		    montoCubrir = rangos.get(7).toString();
  			    String[]cadena = rangos.get(9).toString().split("\\-");
 		        opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
-		        if(tmp_validacion.getAtrasado().intValue() == 0) {
+		        System.out.println("Total atrasado:::::::::::::::::::::::::::::"+tmp_validacion.getAtrasado());
+		        if(tmp_validacion.getAtrasado().doubleValue() == 0) {
 		        	log.info("No hay nada atrasado");
 		        	if((monto > tmp_validacion.getGastos_pagar())) {
 		        		log.info("Lo que se solicita es mayor a lo que hay que renovar");
 		        		bandera = true;	
 					 }else{
-						 log.info("No es posible renovar prestamo porque monto solicitado:"+monto+" es menor o igual a monto a renovar:"+tmp_validacion.getMontorenovar());
-						 prestamo.setNota("No es posible renovar prestamo porque monto solicitado:"+monto+" es menor o igual a monto a renovar:"+tmp_validacion.getMontorenovar());
+						 log.info("Socio, la renovación deberá ser superior a tu crédito vigente, da clic en el botón “atrás” y coloca un monto que sume la cantidad que necesitas más el siguiente saldo:$"+tmp_validacion.getMontorenovar());
+						 prestamo.setNota("Socio, la renovación deberá ser superior a tu crédito vigente, da clic en el botón “atrás” y coloca un monto que sume la cantidad que necesitas más el siguiente saldo:$"+tmp_validacion.getMontorenovar());
 					 }
 			      }else {
-			    	  log.info("Asegurese de haber cubierto:"+montoCubrir+", al folio:"+opaAnterior);
-			    	  prestamo.setNota("Asegurese de haber cubierto:"+montoCubrir+", al folio:"+opaAnterior);  
+			    	  String mensajeMovil = ""; 
+			    	  if(origen.getIdorigen() == 30200) {//csn
+			    	     log.info("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App CSN Móvil y realizar el pago para poder continuar con la renovación.");
+			    	     prestamo.setNota("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App CSN Móvil y realizar el pago para poder continuar con la renovación.");
+			    	  }else if(origen.getIdorigen() == 30300) {
+			    		 log.info("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App Mitras Móvil y realizar el pago para poder continuar con la renovación.");
+				    	 prestamo.setNota("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App Mitras Móvil y realizar el pago para poder continuar con la renovación.");
+			    	  }else {
+			    		  log.info("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App Móvil y realizar el pago para poder continuar con la renovación.");
+				    	  prestamo.setNota("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App CSN Móvil y realizar el pago para poder continuar con la renovación.");
+				    	  
+			    	  }
 			      }
 		      }else {
 		        	bandera = true;
@@ -1166,7 +1197,14 @@ public class CustomerServiceSpring {
 	          log.info("Buscando servicio para dispersion");
 	          Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_all);
 	          log.info("Dispersion config a:"+tb_config_dispersion);
-			  Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),Integer.parseInt(tb_config_dispersion.getDato1()),2);
+			  Auxiliar auxiliar_tdd = null;
+			  if(matriz.getIdorigen() == 30300) {
+				  auxiliar_tdd = auxiliaresService.buscarCuentaCorrienteMitras(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio());  
+			  }else {
+				  auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),Integer.parseInt(tb_config_dispersion.getDato1()),2);
+			  }
+			  
+			  
 			  if(auxiliar_tdd != null) {
 				  log.info("Se encontraron registros para la tdd");
     	 		  procesaMovimientoService.eliminaMovimientoTodos(auxiliar.getIdorigen(), auxiliar.getIdgrupo(),auxiliar.getIdsocio());
@@ -1188,7 +1226,6 @@ public class CustomerServiceSpring {
 				  registrar_movimiento.setTipo_amort(Integer.parseInt(String.valueOf(auxiliar.getTipoamortizacion())));
 				  registrar_movimiento.setSai_aux("");
 				  
-				  log.info("");
 				  boolean bandera_renovacion = false;
 				  boolean procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
 				  		  
