@@ -30,10 +30,9 @@ public class TmpAperturasServiceImpl implements ITmpAperturasService {
 
 	@Override
 	@Transactional
-	@Modifying
 	public void eliminar(tmp_aperturas model) {	  
-		  tmpRepo.eliminarTmp(model.getIdorigen(),model.getIdgrupo(),model.getIdsocio());		     
-	   			
+		  tmpRepo.delete(model);
+		  //tmpRepo.eliminarTmp(model.getIdorigen(),model.getIdgrupo(),model.getIdsocio());
 	}
 
 }

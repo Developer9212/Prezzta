@@ -8,7 +8,6 @@ import com.fenoreste.rest.dao.AuxiliarRepository;
 import com.fenoreste.rest.entity.Auxiliar;
 import com.fenoreste.rest.entity.AuxiliarPK;
 
-import jdk.internal.org.jline.utils.Log;
 import lombok.extern.slf4j.Slf4j;
 
 @Service

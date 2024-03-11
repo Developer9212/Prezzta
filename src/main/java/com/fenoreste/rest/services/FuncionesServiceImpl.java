@@ -16,7 +16,6 @@ import com.fenoreste.rest.dao.FuncionesRepository;
 import com.fenoreste.rest.entity.AuxiliarPK;
 import com.fenoreste.rest.modelos.PagoMitrasDTO;
 
-import jdk.internal.org.jline.utils.Log;
 
 @Service
 public class FuncionesServiceImpl implements IFuncionesService{

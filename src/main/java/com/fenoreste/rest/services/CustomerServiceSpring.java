@@ -912,7 +912,7 @@ public class CustomerServiceSpring {
 	public PrestamoCreadoDTO aperturaFolio(String num_socio,Double monto,int plazos) {
 		boolean bandera = false;
 		PrestamoCreadoDTO prestamo = null;		
-		String montoCubrir = "",opaAnterior ="";
+		String montoCubrir = "";
 		log.info("Accediendo al ws 2....");
 		boolean bandera_plazos = false;
 		Auxiliar creado_aux = null;
@@ -934,7 +934,6 @@ public class CustomerServiceSpring {
 		    					+ "información.");
 		    			return prestamo;
 		    		}else {
-		    			log.info("Monto solicitando:"+monto+",plazos:"+plazos);
 		    			Plazo plazo =  plazoService.buscarPorMonto(monto);
 		    		    log.info("El plazo recuperado es:"+plazo.getMontominimo()+",Maximo:"+plazo.getMontomaximo()+",Plazos aceptados:"+plazo.getPlazos());
 			    		if(plazo.getMontomaximo() != null) {
@@ -1030,11 +1029,11 @@ public class CustomerServiceSpring {
 		   		//Validacion que no halla monto atrasado				 
 				String monto_maximo_prestar = funcionesService.validacion_monto_prestar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());					
 				String[] montos_array = monto_maximo_prestar.split("\\|");
-				log.info("Informacion de mont a prestar:"+monto_maximo_prestar);
+				log.info("Informacion de monto a prestar:"+monto_maximo_prestar);
 	 		    List<String>rangos = Arrays.asList(montos_array);	
 	 		    montoCubrir = rangos.get(7).toString();
  			    String[]cadena = rangos.get(9).toString().split("\\-");
-		        opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
+		        //opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
 		        System.out.println("Total atrasado:::::::::::::::::::::::::::::"+tmp_validacion.getAtrasado());
 		        if(tmp_validacion.getAtrasado().doubleValue() == 0) {
 		        	log.info("No hay nada atrasado");
@@ -1181,6 +1180,7 @@ public class CustomerServiceSpring {
 						prestamo.setCuotas(cuotasVo);	
 						Producto producto = productoService.buscarPorId(creado_aux.getPk().getIdproducto());
 						prestamo.setTasa_anual(String.valueOf(producto.getTasaio() * 12));
+						
 						tmpService.eliminar(tmp_validacion);
 					   }else {
 						   log.info("Monto solicitado excede el permitido en el core");

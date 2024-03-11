@@ -1,15 +1,12 @@
 package com.fenoreste.rest.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fenoreste.rest.dao.PersonaRepository;
 import com.fenoreste.rest.entity.Persona;
 import com.fenoreste.rest.entity.PersonaPK;
 
-import jdk.internal.org.jline.utils.Log;
 import lombok.extern.slf4j.Slf4j;
 
 @Service

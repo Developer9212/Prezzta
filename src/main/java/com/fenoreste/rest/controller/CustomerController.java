@@ -1,6 +1,8 @@
 
 package com.fenoreste.rest.controller;
 
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,7 +26,6 @@ import com.fenoreste.rest.services.CustomerServiceSpring;
 import com.fenoreste.rest.services.IFuncionesService;
 import com.github.cliftonlabs.json_simple.JsonObject;
 
-import jdk.internal.org.jline.utils.Log;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -79,6 +80,7 @@ public class CustomerController {
     @PostMapping(value = "/solicitud/registra", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> solicitud(@RequestBody requestRegistraPrestamo request) {
     	InfoPrestamoCreadoDTO info = new InfoPrestamoCreadoDTO();
+    	log.info("Objeto registrar solicitud:"+request+", Peticion a las:"+new Date().toGMTString());
     	
     	try {
     		if(request.getMonto().doubleValue() >= 60000.00) {
