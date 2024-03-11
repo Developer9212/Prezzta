@@ -183,6 +183,7 @@ public class CustomerServiceSpring {
 		try {		
 		boolean bandera_so = false;
 		List<String>rangos = new ArrayList<>();
+		log.info("En service vamos a buscar persona");
 		//Buscamos a la persona con los datos que llegaron en el metodo
 		Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());		
 		log.info("La persona es:"+persona.getApmaterno()+","+persona.getPk().getIdgrupo());
@@ -232,41 +233,57 @@ public class CustomerServiceSpring {
 	     }
 		
 		//Buscamos el producto ahorro para saber si tiene el minimo configurado
+		log.info("Vamos a buscar auxiliar");
 		Auxiliar ahorro_disponible = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(), 110,2);
+		log.info("Auxiliar encontrado ahorro disponible:"+ahorro_disponible);
 		TablaPK conf_minimo_solicitud_pk = new TablaPK(idtabla,"minimo_solicitud");
 		Tabla config_minimo_solicitud = tablasService.buscarPorId(conf_minimo_solicitud_pk);
+		log.info("Configuracion de minimo solicitud encontrada");
 		if(ahorro_disponible.getSaldo().doubleValue() >= Double.parseDouble(config_minimo_solicitud.getDato1())) {
+			
 			if(origen.getIdorigen() == 30200) {
+				log.info("El cliente es csn");
 				//Vamos a validar estatus de la tdd
 				Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),133,2);
 				//Buscamos el folio de tarjeta
+				log.info("Vamos abuscar tarjeta");
 				AuxiliarPK pk_tdd = new AuxiliarPK(auxiliar_tdd.getPk().getIdorigenp(),auxiliar_tdd.getPk().getIdproducto(),auxiliar_tdd.getPk().getIdauxiliar());
 				FolioTarjeta folio_tdd = foliosTarjetaService.buscarPorId(pk_tdd);
+				log.info("Tarjeta encontrada:"+auxiliar_tdd);
 				//Ahora buscamos registro para la tarjeta
 				Tarjeta tarjeta = tarjetaService.buscarPorId(folio_tdd.getIdtarjeta());
 				System.out.println("La tarjeta encontrada es:"+tarjeta+"Opa:"+folio_tdd);
 				if(tarjeta.getFecha_vencimiento().after(origen.getFechatrabajo())) {
-					TablaPK tb_pk_sopar = new TablaPK(idtabla,"prezzta_empleados");
-					Tabla tb_sopar = tablasService.buscarPorId(tb_pk_sopar);
-					PersonaPK pk_persona = new PersonaPK(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
-					System.out.println(pk_persona.getIdorigen()+","+pk_persona.getIdgrupo()+","+pk_persona.getIdsocio()+","+tb_sopar.getDato2());
-					Sopar sopar = soparService.buscarPorIdTipo(pk_persona, tb_sopar.getDato2());
-					if(sopar != null ) {
-						//Vamos a buscar si es persona relacionada
-						Sopar sopar_persona_relacionada = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas");
-						Sopar sopar_persona_relacionada2 = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas2");
-						//Buscamos realacionada en ingresos
-						CsnVacIngreso ingreso =  csnVacIngresoService.buscarPorIdActivo(pk_persona);						
-						if(sopar_persona_relacionada !=null || sopar_persona_relacionada2 != null || ingreso != null) {
-							response.setLista_Control(1);
-						}else {
-							response.setLista_Control(0);
-						}
-						bandera_so = true;
-					}else {
-						log.info("Esta es una prueba controlada");
-						response.setNota("Esta es una prueba controlada...");
-					}
+						log.info("Tarjeta valida");
+					        PersonaPK pk_persona = new PersonaPK(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
+							//Vamos a buscar si es persona relacionada
+					        log.info("Buscando relacionados....");
+							Sopar sopar_persona_relacionada = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas");
+							Sopar sopar_persona_relacionada2 = soparService.buscarPorIdTipo(pk_persona, "personas_relacionadas2");
+							//Buscamos realacionada en ingresos
+							log.info("Buscando cns vac ingreso");
+							CsnVacIngreso ingreso =  csnVacIngresoService.buscarPorIdActivo(pk_persona);						
+							if(sopar_persona_relacionada !=null || sopar_persona_relacionada2 != null || ingreso != null) {
+								response.setLista_Control(1);
+							}else {
+								response.setLista_Control(0);
+							}							
+							TablaPK tb_pk_sopar = new TablaPK(idtabla,"prezzta_empleados");
+							Tabla tb_sopar = tablasService.buscarPorId(tb_pk_sopar);
+							
+							System.out.println(pk_persona.getIdorigen()+","+pk_persona.getIdgrupo()+","+pk_persona.getIdsocio()+","+tb_sopar.getDato2());
+							Sopar sopar = soparService.buscarPorIdTipo(pk_persona, tb_sopar.getDato2());
+						    if(tb_sopar.getDato1().equals("1")){
+						    	if(sopar != null ) {	
+								       bandera_so = true;
+								    }else {
+								    	log.info("Esta es una prueba controlada");
+									    response.setNota("Esta es una prueba controlada...");
+								    }
+							}else {
+								bandera_so = true;
+							}							
+					
 				}else {
 					log.info("Tarjeta esta vencida");
 					response.setNota("Tarjeta esta vencida");
@@ -281,13 +298,18 @@ public class CustomerServiceSpring {
 		
 		
 		if(persona != null && bandera_so == true) {
+			log.info("Todo excelente");
 			//Para saber si es socio
 			TablaPK tb_pk_parte_social = new TablaPK(idtabla,"parte_social");
 			Tabla tb_producto_parte_social = tablasService.buscarPorId(tb_pk_parte_social);
 			
-			if(tb_producto_parte_social != null) {				
+			
+			if(tb_producto_parte_social != null) {
+				log.info("Si existe un producto de parte social");
 				Auxiliar folio_parte_social = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),Integer.parseInt(tb_producto_parte_social.getDato1()),2);
+				log.info("El folio de parte social es:"+folio_parte_social);
 				if(folio_parte_social.getSaldo().doubleValue() >= Double.parseDouble(tb_producto_parte_social.getDato2())) {
+					log.info("El monto de parte social es mayor al configurado en el core");
 					response.setEs_socio("1");//atributo es socio
 					response.setOgs(String.format("%06d",persona.getPk().getIdorigen())+String.format("%02d",persona.getPk().getIdgrupo())+String.format("%06d",persona.getPk().getIdsocio()));//campo ogs
 					response.setPrimer_nombre(persona.getNombre());//atributo primer nombre
@@ -297,20 +319,29 @@ public class CustomerServiceSpring {
                     response.setFecha_nacimiento(persona.getFechanacimiento().toString());//atributo fecha_nacimiento
                     response.setLugar_nacimiento(persona.getLugarnacimiento());//atributo lugar_nacimiento
                     response.setRfc(persona.getRfc());
+                    log.info("Vamos a buscar socieconomicos");
                     Socioeconomicos sc = socioeconomicosService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
+                    log.info("Socio economicos encontrados:"+sc);
                     response.setPersonas_viven_en_casa(sc.getDependientes().toString());//Personas que viven en casa
                     primerEmpleoDTO primerempleo = new primerEmpleoDTO();
                     segundoEmpleoDTO segundoempleo = new segundoEmpleoDTO();
+                    log.info("Buscando una lista de trabajo");
                     List<Trabajo>listaTrabajos = trabajosService.findTrabajosActivosByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),2);
                     int cons_tr_ac = 0; //consecutivo trabajo actual    
+                    log.info("Vamos a correr la lista de trabajos");
                     if(listaTrabajos != null) {
                     	for(int i = 0;i<listaTrabajos.size();i++) {
-                        	Trabajo trabajo = listaTrabajos.get(i); 
+                        	Trabajo trabajo = listaTrabajos.get(i);
+                        	log.info("trabajo numero:"+i);
                     		CatalogoMenus menu = catalogoMenuService.findByMenuOpcion("giro_empresa", trabajo.getGiro_empresa());
+                    		log.info("Giro empresa para trabajo:"+i+" es "+menu);
                     		Colonias colonia = coloniaService.findById(trabajo.getIdcolonia());
+                    		log.info("Colonia para para trabajo:"+i+" es " + colonia);
                     		Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
+                    		log.info("Municipio para el trabajo :"+i+" es "+municipio);
                     		Estados estado = estadoService.findById(municipio.getIdestado());
                         	if(i == 0) {    
+                        		log.info("Llenando primer empleo");
                         		cons_tr_ac = trabajo.getConsecutivo();
                         		 if (trabajo.getOcupacion_numero() != null) {
                                      	 primerempleo.setOcupacion(trabajo.getOcupacion()); 
@@ -329,6 +360,7 @@ public class CustomerServiceSpring {
                                      primerempleo.setMunicipio(municipio.getNombre());
                                      primerempleo.setEstado(estado.getNombre());                             
                         	}else if(i == 1) {
+                        		  log.info("Llenando segundo empleo");
                         		 	 segundoempleo.setOcupacion(trabajo.getOcupacion());
                         		 	 segundoempleo.setPuesto(trabajo.getPuesto());
                         		 	 segundoempleo.setTelefono(trabajo.getTelefono());
@@ -346,7 +378,7 @@ public class CustomerServiceSpring {
                         }
 
                     }
-                    
+                    log.info("Vamos a ver si el socio es jubilado");
                     Trabajo trabajo = trabajosService.findTrabajoByOgsAndConsecutivo(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),cons_tr_ac);
                     if(trabajo != null) {
                     	  if(trabajo.getPuesto().toUpperCase().contains("JUBILADO")){
@@ -362,10 +394,14 @@ public class CustomerServiceSpring {
                           response.setIngresos_mensuales(trabajo.getIng_mensual_neto().toString());//atributo ingresos mensuales
                     }
                   
+                    log.info("Buscando colonia para la persona"); 
                     Colonias colonia = coloniaService.findById(persona.getIdcolonia());
                     if(colonia != null) {
+                    	log.info("La colonia para la persona es:"+colonia);
                     	Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
+                    	log.info("El municipio para la persona es:"+municipio);
                			Estados estado = estadoService.findById(municipio.getIdestado());
+               			log.info("El estado para la persona es:"+estado);
                			response.setEstado(estado.getNombre());//atributo estado
                         response.setCiudad(municipio.getNombre());//atributo ciudad
                         response.setDireccion(persona.getCalle() + " " + persona.getNumeroext());//atributo direccion
@@ -378,22 +414,28 @@ public class CustomerServiceSpring {
                     	response.setPropiedad_vivienda(null);
                     }
                     response.setEmail(persona.getEmail());//atributo email
+                    log.info("Vamos a buscar grado de estudios");
                     CatalogoMenus menu_estudio = catalogoMenuService.findByMenuOpcion("grado_estudios",persona.getGradoEstudios().intValue());
+                    log.info("El grado de estudios para la persona es:"+menu_estudio);
                     response.setUltimo_estudio_cursado(menu_estudio.getDescripcion());//atributo ultimo estudio cursado
                     response.setTelefono_auxiliar(persona.getTelefono());//atributo telefono auxiliar
                     if(sc.getFechahabitacion() == null) {
                     response.setAntiguedad_domicilio("");
                     } else {
-                    response.setAntiguedad_domicilio(String.valueOf(restaFechas(sc.getFechahabitacion())));//atributo antiguedad en domicilio 
+                    response.setAntiguedad_domicilio(String.valueOf(restaFechas(sc.getFechahabitacion())));//atributo antiguedad en domicilio
+                    log.info("Vamos a buscar referencias");
                     Referencias referencia = referenciaService.finByOgsAndTipoReferencia(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),1);
                     if(referencia != null) {
+                    log.info("Referencias encontradas:"+referencia);	
                     response.setNum_socio_conyugue(String.format("%06d",referencia.getIdorigenr())+String.format("%02d",referencia.getIdgrupor())+String.format("%06d",referencia.getIdsocior()));//atributo num_socio_conyuge
                     } else {
                     response.setNum_socio_conyugue(null);
                     }
                     response.setCant_hijos(String.valueOf(sc.getDependientes_menores()));//atributo cantidad hijos
                     if(trabajo != null) {
+                    	  log.info("Buscando giro trabajo por consecutivo");
                     	   CatalogoMenus catalogo_giro_empresa = catalogoMenuService.findByMenuOpcion("giro_empresa",trabajo.getGiro_empresa());
+                    	   log.info("Giro empresa consecutivo es:"+catalogo_giro_empresa);
                            response.setRubro_laboral(catalogo_giro_empresa.getDescripcion());//atributo rubro laboral
                            response.setTelefono_trabajo(trabajo.getTelefono());//atributo telefono trabajo
                          
@@ -402,6 +444,7 @@ public class CustomerServiceSpring {
                     //validamos cuanto alcanza en credito
 				    validacionDTO validacion = new validacionDTO();
 				    validacion.setRangoMontos("0-0");
+				    log.info("Vamos a corre la funcion para obtener maximo a prestar");
 				    String monto_maximo_prestar = funcionesService.validacion_monto_prestar(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
 					log.info("array funcion prestar:"+monto_maximo_prestar);
 				    String[] montos_array = monto_maximo_prestar.split("\\|");                    
@@ -544,14 +587,16 @@ public class CustomerServiceSpring {
 		 			}
 		           
 					response.setMonto_maximo_a_prestar(validacion);// objeto maximo a prestar		            
-                    
+                    log.info("Vamos a buscar si tiene negocio propio");
                     Negociopropio negocio_prop = negocioService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
+                    log.info("Negocio propio encontrado:"+negocio_prop);
                     comercioDTO comercio = new comercioDTO();
                     if(negocio_prop != null) {
                     	response.setEs_socio_comercial("1");                    	
                         //Para obtener el giro del negocio hay que buscar en catalogo menus
+                    	log.info("Vamos a buscar el giro del negocio propio");
                         CatalogoMenus catalogo_empresa_negocio = catalogoMenuService.findByMenuOpcion("giro_empresa",negocio_prop.getGiro_empresa());
-                        
+                        log.info("El giro del negocio es:"+catalogo_empresa_negocio);
                         comercio.setGiro(catalogo_empresa_negocio.getDescripcion());//atributo giro comercio
                         comercio.setFecha_comienzo(String.valueOf(negocio_prop.getFechainicio()));
                         comercio.setDomicilio(negocio_prop.getCalle()+" "+negocio_prop.getNumeroext()+" "+negocio_prop.getNumeroint());
@@ -578,8 +623,9 @@ public class CustomerServiceSpring {
                     response.setMonto_ingresos_variables(String.valueOf(sc.getIngresosextraordinarios()));//atributo ingresos variables
                     //para los gastos si se obtiene de socioeconomicos pero se parametriza en tablas 
                     TablaPK tb_pk_gatosa = new TablaPK(idtabla,"gastos_alimentacion");
+                    log.info("Buscando tabla de gastos de alimentacion");
                     Tabla tb_gastos_alimentacion = tablasService.buscarPorId(tb_pk_gatosa);
-                    
+                    log.info("Configuracion de gastos de alimentacion encontrada:"+tb_gastos_alimentacion);
                     if(tb_gastos_alimentacion != null) {
                       switch(tb_gastos_alimentacion.getDato1()) {
                         case "gastos_tipo1":
@@ -605,8 +651,10 @@ public class CustomerServiceSpring {
                              response.setGastos_alimentacion("");
                     }
                     //para los gastos si se obtiene de socioeconomicos pero se parametriza en tablas 
+                    log.info("Vamos a buscar gastos de servicio");
                     TablaPK tb_pk_gastos_servicio = new TablaPK(idtabla,"gastos_servicio");
                     Tabla tb_gastos_servicio = tablasService.buscarPorId(tb_pk_gastos_servicio);
+                    log.info("Gastos de servicio encontrados:"+tb_gastos_servicio);
                     
                     if(tb_gastos_servicio != null) {
                       switch(tb_gastos_servicio.getDato1()) {
@@ -634,10 +682,13 @@ public class CustomerServiceSpring {
                     }
                     
                     referenciasDTO referencias = new referenciasDTO();
+                    log.info("Vamos a buscar referencia personal");
                     Referencias referencia_personal = referenciaService.finByOgsAndTipoReferencia(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),3);//Se busca la referencia 3 porque es referencia persona se definio estatico
+                    log.info("Referencia personal encontrada:"+referencia_personal);
                     //Buscamos la persona referenciada referencia tipo 3 personal
                     if(referencia_personal != null) {//Solo me aseguro que traiga datos la busqueda
                     	PersonaPK referencia_pk = new PersonaPK(referencia_personal.getIdorigenr(),referencia_personal.getIdgrupor(),referencia_personal.getIdsocior());
+                    	log.info("Vamos a buscar la persona referenciada");
                     	Persona persona_referencia = personaService.findByOgs(referencia_pk);
                     	referencias.setNombre(persona_referencia.getNombre()+" "+persona_referencia.getAppaterno()+" "+persona_referencia.getApmaterno());
                         referencias.setDireccion(persona_referencia.getCalle()+" "+persona_referencia.getNumeroext()+" "+persona_referencia.getNumeroint());
@@ -677,8 +728,10 @@ public class CustomerServiceSpring {
                     
                     gastosDTO gastos = new gastosDTO();
                     //Obtenemos los gastos que estan parametrizados en tablas
+                    log.info("Vamos a buscar la tabla de gastos");                    
                     TablaPK tb_pk_gatos = new TablaPK(idtabla,"gastos");
                     Tabla tb_gastos = tablasService.buscarPorId(tb_pk_gatos);
+                    log.info("Tabla de gastos encontrada:"+tb_gastos);
                     double total_gastos = 0.0;
 
                     
@@ -727,7 +780,8 @@ public class CustomerServiceSpring {
                     
                   
                     propiedadesDTO propiedades = new propiedadesDTO();
-                    List<propiedadesDTO> lista_prop = new ArrayList<>();                    
+                    List<propiedadesDTO> lista_prop = new ArrayList<>(); 
+                    log.info("Obteniendo el valor de la propiedad de socioeconomicos:"+sc.getValorpropiedad());
                     propiedades.setValor(String.valueOf(sc.getValorpropiedad()));
                     propiedades.setAdeudo(null);
                     propiedades.setSaldo(null);
@@ -742,15 +796,23 @@ public class CustomerServiceSpring {
                     if(response.getNum_socio_conyugue() != "") {
                     	if(referencia_personal != null) {
                         PersonaPK referencia_pk = new PersonaPK(referencia_personal.getIdorigenr(),referencia_personal.getIdgrupor(),referencia_personal.getIdsocior());
+                        log.info("Buscando conyugue");
                         Persona persona_conyuge = personaService.findByOgs(referencia_pk);
+                        log.info("Vamos a buscar la lista de tabajos para conyugue:"+persona_conyuge.getPk());
                         List<Trabajo> lista_trabajo_conyuge = trabajosService.findTrabajosActivosByOgs(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),1);
                         if(lista_trabajo_conyuge.size() >0 ) {
                         	cons_tr_con= trabajo.getConsecutivo();                        	
                         }
+                        log.info("Vamos a buscar trabajo consecutivo para conyugue");
                         Trabajo trabajo_consecutivo_conyuge = trabajosService.findTrabajoByOgsAndConsecutivo(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),cons_tr_con);
+                        log.info("El trabajo para conyugue es:"+trabajo_consecutivo_conyuge);
                        	Colonias colonia_conyuge = coloniaService.findById(persona_conyuge.getIdcolonia());
+                       	log.info("La colonia para el conyugue es:"+colonia_conyuge);
                         Municipios municipio_conyuge = municipioService.findById(colonia_conyuge.getIdmunicipio());
+                        log.info("El municipio para para el conyugue es:"+municipio_conyuge);
                         Estados estado_conyuge = estadoService.findById(municipio_conyuge.getIdestado());
+                        log.info("El estado para el conyugue es:"+estado_conyuge);
+                        
                         conyugue.setEdad(String.valueOf(cal_edad(persona_conyuge.getFechanacimiento())));
                         conyugue.setDireccion(persona_conyuge.getCalle() + " " + persona_conyuge.getNumeroext());
                         if (trabajo_consecutivo_conyuge.getOcupacion() != null) {
@@ -784,6 +846,7 @@ public class CustomerServiceSpring {
                     response.setConyugue(conyugue);//Atributo objeto conyugue
                     
                     List<referenciasPersonalesDTO> lista_referencias_response = new ArrayList<>();
+                    log.info("Obteniendo lista de referencias");
                     List<Referencias> referencias_lista = referenciaService.findAll(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
                     for(int x=0;x<referencias_lista.size();x++) {
                         referenciasPersonalesDTO referenciasp = new referenciasPersonalesDTO();
@@ -804,8 +867,10 @@ public class CustomerServiceSpring {
                    
                    relacionesSociosDTO relaciones_socios = new relacionesSociosDTO();
                    List<relacionesSociosDTO> listaRS = new ArrayList<>();
-                   listaRS.add(relaciones_socios);                        
+                   listaRS.add(relaciones_socios);    
+                   log.info("Obteniendo regimien matrimonial");
                    CatalogoMenus menu_regimen_mat = catalogoMenuService.findByMenuOpcion("regimen_mat",persona.getRegimenMat().intValue());
+                   log.info("Menu regimen matrimonial:"+menu_regimen_mat);
                    response.setRegimen_patrimonial(menu_regimen_mat.getDescripcion());
                    response.setNumero_dependientes(String.valueOf(sc.getDependientes() + sc.getDependientes_menores()));//Atributo numero dependientes
                    response.setTelefono_recados(persona.getTelefonorecados());//telefono recados
@@ -838,8 +903,8 @@ public class CustomerServiceSpring {
 		  }
 	   }catch(Exception e) {
 			System.out.println("Error al llenar data result:"+e.getMessage());
+			e.printStackTrace();
 		}
-		
 		return response;
 	}
 	
@@ -981,7 +1046,6 @@ public class CustomerServiceSpring {
 						 prestamo.setNota("Socio, la renovación deberá ser superior a tu crédito vigente, da clic en el botón “atrás” y coloca un monto que sume la cantidad que necesitas más el siguiente saldo:$"+tmp_validacion.getMontorenovar());
 					 }
 			      }else {
-			    	  String mensajeMovil = ""; 
 			    	  if(origen.getIdorigen() == 30200) {//csn
 			    	     log.info("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App CSN Móvil y realizar el pago para poder continuar con la renovación.");
 			    	     prestamo.setNota("Socio, para continuar con el trámite es necesario pagar los intereses generados hasta el día de hoy:$"+montoCubrir+" Favor de regresar a la App CSN Móvil y realizar el pago para poder continuar con la renovación.");
@@ -1332,7 +1396,7 @@ public class CustomerServiceSpring {
 						 log.info("Buscando registros para conexion alestra");
 						 Tabla tb_url_tdd = tablasService.buscarPorId(tb_pk_url_tdd);
 						 System.out.println("Url endpoint tdd:"+tb_url_tdd.getDato2());
-						 String respuestaDeposito = consumoTddService.depositarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
+						/* String respuestaDeposito = consumoTddService.depositarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
 						 log.info("Respuesta alestra:"+respuestaDeposito);
 						 JSONObject respuestaAlestra = new JSONObject(respuestaDeposito);
 					        if(!respuestaAlestra.getString("deposito").toUpperCase().equals("FALLIDO")) {
@@ -1342,8 +1406,8 @@ public class CustomerServiceSpring {
 					        }else {
 					        	log.info("Falla al dispersar credito,contacte proveedor...");
 						     entregado.setNota("Falla al dispersar credito,contacte proveedor...");
-					        }			     
-					     
+					        }		*/	     
+					     deposito_csn = true;
 					     if(deposito_csn) {
 					    	 log.info("Vamos a procesar registros csn");
 					    	 String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
@@ -1351,8 +1415,12 @@ public class CustomerServiceSpring {
 							         registrar_movimiento.getPk().getSesion(),
 							         registrar_movimiento.getPk().getReferencia());
 					       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+					       log.info("Total procesados 1:"+total_procesados);
+					       
 					       //Si la poliza no se procesa de manera correcta
-					       if(total_procesados <= 0) {
+					       if(total_procesados > 0) {
+					    	   entregado.setEstatus("ACTIVO");
+					       }else {
 					    	   log.info("No se proceso correctamente vamos a regresar el saldo");
 					    	   String respuestaRetiro = consumoTddService.retirarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
 					    	   entregado.setNota("Error al dispersar credito");
@@ -1376,7 +1444,9 @@ public class CustomerServiceSpring {
 							         registrar_movimiento.getPk().getSesion(),
 							         registrar_movimiento.getPk().getReferencia());
 					       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+					       
 					       if(total_procesados > 0) {
+					    	   log.info("total procesados 2:"+total_procesados);
 					    	   entregado.setEstatus("Activo");
 					       }
 					   }//Termina CSn

@@ -16,7 +16,7 @@ public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	public String monto_a_prestar(Integer idorigen,Integer idgrupo,Integer idsocio);
     
 	@Query(value="SELECT sai_prezzta_crea_apertura('{'?1'}')",nativeQuery = true)
-	public String apertura_opa(ArrayList<String>arr);
+	public String aperdfsftura_opa(ArrayList<String>arr);
 	
 	@Query(value ="SELECT sai_bankingly_aplica_transaccion(?1,?2,?3,?4)",nativeQuery = true)
 	public String sai_procesa_transaccion(Date fecha,Integer idusuario,String sesion,String referencia);

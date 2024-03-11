@@ -48,6 +48,7 @@ public class CustomerController {
     public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
     	System.out.println("Iniciando ws 1....");
         InfoClienteDTO info= null;
+        log.info("objeto entrante:"+request);
         //leemos el request
         try {        	
          dataDTO dto = serviceCustomerSpring.informacionPersona(request.getTipo_documento(),request.getNumero_documento());
