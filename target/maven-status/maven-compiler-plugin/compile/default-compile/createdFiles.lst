@@ -34,7 +34,6 @@ com/fenoreste/rest/entity/tmp_aperturas.class
 com/fenoreste/rest/dao/ReferenciasRepository.class
 com/fenoreste/rest/services/ITarjetaService.class
 com/fenoreste/rest/entity/CuentasBankingly.class
-com/fenoreste/rest/services/ProcesaMovimientoImpl.class
 com/fenoreste/rest/modelos/negocioDTO.class
 com/fenoreste/rest/entity/AuxiliarPK.class
 com/fenoreste/rest/entity/Sopar.class

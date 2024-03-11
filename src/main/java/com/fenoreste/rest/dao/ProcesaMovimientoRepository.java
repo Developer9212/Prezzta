@@ -9,12 +9,15 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fenoreste.rest.entity.MovimientosPK;
 import com.fenoreste.rest.entity.RegistraMovimiento;
 
-public interface ProcesaMovimientoRepository extends JpaRepository<RegistraMovimiento , Long> {
-
-	@Query(value ="DELETE FROM bankingly_movimientos_ca WHERE date(fecha)=?1 AND idusuario=?2 AND sesion=?3 AND referencia=?4",nativeQuery = true)
-	void eliminarRegistros(Date fecha,int idusuario,String sesion,String referencia);
+public interface ProcesaMovimientoRepository extends JpaRepository<RegistraMovimiento , MovimientosPK> {
+     
+	@Modifying	
+	@Transactional
+	@Query(value ="DELETE FROM bankingly_movimientos_ca WHERE sesion=?1 AND referencia=?2",nativeQuery = true)
+	void eliminarRegistros(String sesion,String referencia);
 	
 	@Modifying
 	@Transactional

@@ -124,6 +124,7 @@ public class CustomerController {
     public ResponseEntity<?> terminaSolicitud(@PathVariable String opa , @PathVariable String opcion) {   
           JsonObject response = new JsonObject();
           try {
+        	  log.info("Activando el opa:"+opa+",el "+new Date());
         	  if(opcion.equalsIgnoreCase("si") || opcion.equalsIgnoreCase("no")) {
         		  PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion);
             	  log.info("EStatus entregado:"+entregado.getEstatus());

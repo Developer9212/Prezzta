@@ -1170,10 +1170,6 @@ public class CustomerServiceSpring {
 					    	insoluto = Double.parseDouble(formatoDecimal.format(saldoTotal.doubleValue() - amortizacion.getAbono().doubleValue()));
 					    	saldoTotal = insoluto;
 					    	cuotaVo.setSaldoInsoluto(saldoTotal);
-					    	
-					    	
-					    	
-					    						    	
 					    	cuotasVo.add(cuotaVo);
 					    	
 					    }
@@ -1197,7 +1193,7 @@ public class CustomerServiceSpring {
 		         	log.info("Error al procesar el registro:"+e.getMessage());
 		         	return prestamo;
 		     }		
-		 log.info("Saliendo ws 2...");
+		 log.info("Saliendo ws 2 a las:"+new Date().toGMTString());
 		 log.info("El prestamo aperturado es:"+prestamo);
 		return prestamo;		
 	}
@@ -1477,6 +1473,7 @@ public class CustomerServiceSpring {
 				   
 				  if(total_procesados > 0) {					
 				    entregado.setNota("La dispersion se realizo exitosamente,Total entregado:"+total_depositar);
+				    log.info("Prestamo entregado de manera exitosa...."+opa);
 				    
 				  } else {					
 						entregado.setNota("No se completo la activacion del producto...");
@@ -1500,6 +1497,7 @@ public class CustomerServiceSpring {
 			  			   
 			}//si no aplicamos descuento por uso de servicio
 			else {
+				  log.info("Se declino la activacion del opa:"+opa);
 			      //Si se declina la operacion se hace un cargo al ahorro
 				  Auxiliar ahorro = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),110,2);
 
@@ -1605,10 +1603,6 @@ public class CustomerServiceSpring {
 		return entregado;
 	}
 	
-	
-	
-	
-	
 	public DetallesSiscore ResumenSiscoreCSN(Integer idorigenp,Integer idproducto,Integer idauxiliar) {
 		DetallesSiscore consumoWsSiscore = new DetallesSiscore();
     	try {		
@@ -1672,8 +1666,6 @@ public class CustomerServiceSpring {
 		
 		return consumoWsSiscore;
 	}
-	
-	
 	
 	public String pruebaPagoIntereses(String opaReq,Double monto) {
         String mensaje="";
@@ -1739,22 +1731,20 @@ public class CustomerServiceSpring {
 			 
 			  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);			 
 			  
-			  /*String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
+			  String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
 				         registrar_movimiento.getPk().getIdusuario(),
 				         registrar_movimiento.getPk().getSesion(),
 				         registrar_movimiento.getPk().getReferencia());
 		      int total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
-		      */
 		      
-		    /*  procesaMovimientoService.eliminaMovimiento(matriz.getFechatrabajo(),
-				         registrar_movimiento.getPk().getIdusuario(),
-				         registrar_movimiento.getPk().getReferencia(),
+		      log.info("Total procesados:"+total_procesados);
+		      procesaMovimientoService.eliminaMovimiento(registrar_movimiento.getPk().getSesion(),
 				         registrar_movimiento.getPk().getReferencia());
 		     
-		      if(total_procesados > 0) {dd
+		      if(total_procesados > 0) {
 		    	  mensaje = "Se realizo el pago correctamente";
 		      }
-*/		}catch(Exception e) {
+		}catch(Exception e) {
 			 System.out.println("Error al realizar el pago:"+e.getMessage());
 		}
 		
@@ -1779,7 +1769,8 @@ public class CustomerServiceSpring {
         int Meses = Años * 12 + Integer.parseInt(mesH) - Integer.parseInt(mesB);
         return Meses;
     }
-	 public String dateToString(Date fechac){
+	
+    public String dateToString(Date fechac){
 		 SimpleDateFormat formato = new SimpleDateFormat("yyyy/MM/dd");
 	        String fechaDate = null;
 	        try {
