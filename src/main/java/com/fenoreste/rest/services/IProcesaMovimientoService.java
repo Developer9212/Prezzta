@@ -3,7 +3,6 @@ package com.fenoreste.rest.services;
 import java.util.Date;
 import java.util.List;
 
-import com.fenoreste.rest.entity.MovimientosPK;
 import com.fenoreste.rest.entity.RegistraMovimiento;
 
 

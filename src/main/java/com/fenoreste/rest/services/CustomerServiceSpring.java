@@ -79,7 +79,6 @@ import com.fenoreste.rest.modelos.relacionesSociosDTO;
 import com.fenoreste.rest.modelos.segundoEmpleoDTO;
 import com.fenoreste.rest.modelos.validacionDTO;
 
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -1392,7 +1391,7 @@ public class CustomerServiceSpring {
 						 log.info("Buscando registros para conexion alestra");
 						 Tabla tb_url_tdd = tablasService.buscarPorId(tb_pk_url_tdd);
 						 System.out.println("Url endpoint tdd:"+tb_url_tdd.getDato2());
-						/* String respuestaDeposito = consumoTddService.depositarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
+						String respuestaDeposito = consumoTddService.depositarSaldo(tb_url_tdd.getDato2(),folioTdd.getIdtarjeta(), total_depositar);
 						 log.info("Respuesta alestra:"+respuestaDeposito);
 						 JSONObject respuestaAlestra = new JSONObject(respuestaDeposito);
 					        if(!respuestaAlestra.getString("deposito").toUpperCase().equals("FALLIDO")) {
@@ -1402,7 +1401,7 @@ public class CustomerServiceSpring {
 					        }else {
 					        	log.info("Falla al dispersar credito,contacte proveedor...");
 						     entregado.setNota("Falla al dispersar credito,contacte proveedor...");
-					        }		*/	     
+					        }			     
 					     deposito_csn = true;
 					     if(deposito_csn) {
 					    	 log.info("Vamos a procesar registros csn");

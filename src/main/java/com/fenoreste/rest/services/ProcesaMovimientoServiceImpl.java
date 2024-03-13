@@ -5,13 +5,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fenoreste.rest.dao.ProcesaMovimientoRepository;
-import com.fenoreste.rest.entity.MovimientosPK;
 import com.fenoreste.rest.entity.RegistraMovimiento;
 
 
