@@ -20,6 +20,8 @@ public class PersonaServiceImpl implements IPersonaService {
 	@Override
 	public Persona findPersonaByDocumento(String tipoDocumento, String documento) {
 		log.info("En persona service:"+documento);
+		documento = documento.toUpperCase();
+		log.info("Curp formateada:"+documento);
 		Persona p = personaRepository.buscarPorCurp(documento);
 		if (p != null) {
 			if (caracteres_especiales(p.getCalle())) {
