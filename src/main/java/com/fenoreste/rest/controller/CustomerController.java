@@ -47,6 +47,7 @@ public class CustomerController {
 	
 	
 	//02102024
+	//02-10-2024
 	
     @PostMapping(value = "/buscar", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
