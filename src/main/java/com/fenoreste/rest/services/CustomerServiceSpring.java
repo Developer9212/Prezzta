@@ -498,11 +498,13 @@ public class CustomerServiceSpring {
 		 			  //validacion.setRangoMontos(montoMin+"-"+montoMax);
 		 			  validacion.setRangoPlazos(plazoMin+"-"+plazoMax);
 			          tmp_aperturas tmp_saver = new tmp_aperturas();
-			          tmp_saver.setIdorigen(persona.getPk().getIdorigen());
+			          /*tmp_saver.setIdorigen(persona.getPk().getIdorigen());
        			   	  tmp_saver.setIdgrupo(persona.getPk().getIdgrupo());
-       			   	  tmp_saver.setIdsocio(persona.getPk().getIdsocio());
+       			   	  tmp_saver.setIdsocio(persona.getPk().getIdsocio());*///Comentado el 25/07/2024 a las 4:57 por cambio de id en entity
+       			   	  tmp_saver.setPk(persona.getPk());
        			   	  tmp_saver.setMontoalcanzado(Double.parseDouble(rangos.get(3).toString()));
        			      tmp_saver.setIdorigenp(Integer.parseInt(idorigenp));
+       			      tmp_saver.setFecha(new Date());
        			   	  if(tipoApertura.toUpperCase().contains("R")) {
 			        	  String[]cadena = rangos.get(9).toString().split("\\-");
 			        	  String opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
@@ -554,7 +556,7 @@ public class CustomerServiceSpring {
 	        			  tmp_saver.setGastos_pagar(totallibre);		        	  
 			          }
        			   	  
-       			   tmp_saver = tmpService.guardar(tmp_saver);
+       			          tmp_saver = tmpService.guardar(tmp_saver);
        			   	  /*if(bandera) { //Modificado 25/07/2023
     			          tmp_saver = tmpService.guardar(tmp_saver);
 
@@ -1178,7 +1180,7 @@ public class CustomerServiceSpring {
 						
 						tmpService.eliminar(tmp_validacion);
 					   }else {
-						   log.info("Monto solicitado excede el permitido en el core");
+						   log.info("Monto solicitado excede el permitido en el core,solicitado:"+monto + ",alcanzado:"+tmp_validacion.getMontoalcanzado());
 						   prestamo.setNota("Monto solicitado excede el permitido en el core");
 					   }
 			        }
@@ -1203,7 +1205,7 @@ public class CustomerServiceSpring {
 	
 	public PrestamoEntregado entregarPrestamo(String opaReq,String confirmar) {
 		PrestamoEntregado entregado = new PrestamoEntregado();
-		log.info("Accediendo al ws 3 dispersion...");
+		log.info("Accediendo al ws 3 dispersion:"+opaReq);
 		MovimientosPK mov_pk = null;
 		try {
 			
@@ -1256,6 +1258,7 @@ public class CustomerServiceSpring {
 	          log.info("Buscando servicio para dispersion");
 	          Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_all);
 	          log.info("Dispersion config a:"+tb_config_dispersion);
+	          
 			  Auxiliar auxiliar_tdd = null;
 			  if(matriz.getIdorigen() == 30300) {
 				  auxiliar_tdd = auxiliaresService.buscarCuentaCorrienteMitras(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio());  
@@ -1265,17 +1268,15 @@ public class CustomerServiceSpring {
 			  
 			  
 			  if(auxiliar_tdd != null) {
-				  log.info("Se encontraron registros para la tdd");
+				  int total_movimientos = 0;
+				  log.info("Se encontraron registros para producto dispersion");
     	 		  procesaMovimientoService.eliminaMovimientoTodos(auxiliar.getIdorigen(), auxiliar.getIdgrupo(),auxiliar.getIdsocio());
-		    	  mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,auxiliar.getPk().getIdorigenp(),auxiliar.getPk().getIdproducto(),auxiliar.getPk().getIdauxiliar());
-    	 		  /*registrar_movimiento.setIdorigenp(auxiliar.getIdorigenp());
-				  registrar_movimiento.setIdproducto(auxiliar.getIdproducto());
-				  registrar_movimiento.setIdauxiliar(auxiliar.getIdauxiliar());*/
-		    	  registrar_movimiento.setPk(mov_pk);
+		    	 
+    	 		  //Insertamos movimiento cargo(Auxiliar nuevo)
+    	 		  log.info("Insertando cargo para auxiliar nuevo:"+auxiliar.getPk());
+    	 		  mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,auxiliar.getPk().getIdorigenp(),auxiliar.getPk().getIdproducto(),auxiliar.getPk().getIdauxiliar());
+    	 		  registrar_movimiento.setPk(mov_pk);
 				  registrar_movimiento.setFecha(fecha_transferencia);
-				  /*registrar_movimiento.setIdusuario();
-				  registrar_movimiento.setSesion(sesion);
-				  registrar_movimiento.setReferencia(referencia);*/
 				  registrar_movimiento.setIdorigen(auxiliar.getIdorigen());
 				  registrar_movimiento.setIdgrupo(auxiliar.getIdgrupo());
 				  registrar_movimiento.setIdsocio(auxiliar.getIdsocio());
@@ -1287,13 +1288,15 @@ public class CustomerServiceSpring {
 				  
 				  boolean bandera_renovacion = false;
 				  boolean procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
-				  		  
+				  total_movimientos = 1;
 				  //Buscamos si lo que se va a aplicar es renovacion
 				  AuxiliarPK pk_referenciap = new AuxiliarPK(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
 				  Referenciasp referenciasp =  referenciaspService.buscarPorIdTipoReferencia(pk_referenciap);
 				  entregado.setDeposito_garantia_letras("");
 				  if(referenciasp != null) {
+					  log.info("Es una renovacion para producto:"+referenciasp.getIdorigenpr()+"-"+referenciasp.getIdproductor()+"-"+referenciasp.getIdauxiliarr());
 					  //Aplicamos movimiento para realizar pago del prestamo a renovar(Viejito)
+					  log.info("Insertando movimiento para credito anterior");
 					  mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,referenciasp.getIdorigenpr(),referenciasp.getIdproductor(),referenciasp.getIdauxiliarr());
 					  /*registrar_movimiento.setIdorigenp(referenciasp.getIdorigenpr());
 					  registrar_movimiento.setIdproducto(referenciasp.getIdproductor());
@@ -1327,9 +1330,11 @@ public class CustomerServiceSpring {
 					  //total_depositar = (auxiliar.getMontoautorizado().doubleValue()-Double.parseDouble(tb_monto_comision.getDato1()) - (Double.parseDouble(tb_monto_comision.getDato1())* 0.16)) - Double.parseDouble(totalRenovar);
 					  total_depositar = (auxiliar.getMontoautorizado().doubleValue() - Double.parseDouble(totalRenovar));
 					  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
+					  total_movimientos = total_movimientos +1;
 					  bandera_renovacion = true;
 					  
-				  }
+				     }
+				      log.info("Insertando moviento abono a cuenta dispersion:"+auxiliar_tdd.getPk().getIdorigenp()+"-"+auxiliar_tdd.getPk().getIdproducto()+"-"+auxiliar_tdd.getPk().getIdauxiliar());
 				  	  //Registrando movimiento abono a dispersion
 				      mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,auxiliar_tdd.getPk().getIdorigenp(),auxiliar_tdd.getPk().getIdproducto(),auxiliar_tdd.getPk().getIdauxiliar()); 
 				      /*registrar_movimiento.setIdorigenp(auxiliar_tdd.getIdorigenp());
@@ -1355,6 +1360,8 @@ public class CustomerServiceSpring {
 					  registrar_movimiento.setTipo_amort(auxiliar_tdd.getTipoamortizacion().intValue());
 					  registrar_movimiento.setSai_aux("");					  					 
 					  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
+					  
+					  total_movimientos = total_movimientos+1;
 				  
 				  
 				  //Preparamos el movimiento a donde mandaremos la comision 			 
@@ -1375,7 +1382,7 @@ public class CustomerServiceSpring {
 				  registrar_movimiento.setIva(Double.parseDouble(tb_monto_comision.getDato1())*0.16);
 				  registrar_movimiento.setTipo_amort(0);
 				  procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);*/
-				  log.info("Registros procesados con exito");
+				  log.info("Registros insertados con exito :"+total_movimientos);
 				  boolean deposito_csn = false;
 				  int total_procesados = 0;
 				  //Si el origen es CSN
@@ -1446,11 +1453,13 @@ public class CustomerServiceSpring {
 					       }
 					   }//Termina CSn
 				  }else {
+					  log.info("vamos a procesar registros:");
 					  String datos_procesar =funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
 						         registrar_movimiento.getPk().getIdusuario(),
 						         registrar_movimiento.getPk().getSesion(),
 						         registrar_movimiento.getPk().getReferencia());
 				       total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+				       log.info("Total procesados:"+total_procesados);
 				       if(total_procesados > 0) {
 				    	   entregado.setEstatus("Activo");
 				       }

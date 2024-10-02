@@ -1,26 +1,23 @@
 package com.fenoreste.rest.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name="tmp_prestamos_apertura_prezzta")
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
 public class tmp_aperturas implements Serializable{
 	
-	@Id
-	private Integer idorigen;
-	private Integer idgrupo;
-	private Integer idsocio;
+	@EmbeddedId
+	private PersonaPK pk;
 	private Double montoalcanzado;
 	private String tipoapertura;
 	private Double montorenovar;
@@ -30,6 +27,8 @@ public class tmp_aperturas implements Serializable{
 	private String opaactivo;
 	private Integer idorigenp;
 	private Double  gastos_pagar; 
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date fecha;
 	
 	private static final long serialVersionUID = 1L;
 

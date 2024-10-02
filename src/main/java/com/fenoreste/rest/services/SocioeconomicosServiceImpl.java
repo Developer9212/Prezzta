@@ -20,6 +20,7 @@ public class SocioeconomicosServiceImpl implements ISocioeconomicosService {
 		if(size > 0 ) {
 			sc = jdbc.query(consulta,new BeanPropertyRowMapper<>(Socioeconomicos.class)).get(0);
 		}
+		
 		return sc;
 	}
 

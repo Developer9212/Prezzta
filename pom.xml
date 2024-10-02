@@ -106,9 +106,17 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<jvmArguments>-Xms512m -Xmx2g</jvmArguments>
+				</configuration>
 			</plugin>
+
 		</plugins>
 		<finalName>prezzta</finalName>
+
+
 	</build>
+
+
 
 </project>

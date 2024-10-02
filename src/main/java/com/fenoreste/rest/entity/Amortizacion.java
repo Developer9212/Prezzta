@@ -8,6 +8,7 @@ package com.fenoreste.rest.entity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
