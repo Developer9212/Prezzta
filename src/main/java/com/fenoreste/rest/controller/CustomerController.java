@@ -45,6 +45,9 @@ public class CustomerController {
 	@Autowired
 	private IFuncionesService funcionesService;
 	
+	
+	//02102024
+	
     @PostMapping(value = "/buscar", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
     	System.out.println("Iniciando ws 1....");
