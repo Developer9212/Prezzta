@@ -6,5 +6,5 @@ import com.fenoreste.rest.entity.CatalogoMenus;
 
 @Service
 public interface ICatalogoMenusService {
-	public CatalogoMenus findByMenuOpcion(String menu,Integer opcion);
+	public CatalogoMenus findByMenuOpcion(String menu, Integer opcion);
 }

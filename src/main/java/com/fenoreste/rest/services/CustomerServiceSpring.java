@@ -795,8 +795,8 @@ public class CustomerServiceSpring {
                     conyugueDTO conyugue = new conyugueDTO();
                     int cons_tr_con = 0;
                     if(response.getNum_socio_conyugue() != "") {
-                    	if(referencia_personal != null) {
-                        PersonaPK referencia_pk = new PersonaPK(referencia_personal.getIdorigenr(),referencia_personal.getIdgrupor(),referencia_personal.getIdsocior());
+                    	if(referencia != null) {
+                        PersonaPK referencia_pk = new PersonaPK(referencia.getIdorigenr(),referencia.getIdgrupor(),referencia.getIdsocior());
                         log.info("Buscando conyugue");
                         Persona persona_conyuge = personaService.findByOgs(referencia_pk);
                         log.info("Vamos a buscar la lista de tabajos para conyugue:"+persona_conyuge.getPk());
@@ -894,15 +894,35 @@ public class CustomerServiceSpring {
                    response.setPorcentaje_capacidad(null);
                    
                    CatalogoMenus cmsex = catalogoMenuService.findByMenuOpcion("sexo",persona.getSexo().intValue());
-                   response.setSexo(cmsex.getDescripcion());       
+                   response.setSexo(cmsex.getDescripcion());
+                   
+                   if (origen.getIdorigen() == 30200) {
+                	   /*Variables nuevas SAN NICOLAS*/
+                	   CatalogoMenus edo_civil = catalogoMenuService.findByMenuOpcion("estadocivil",persona.getEstadocivil().intValue());
+                	   response.setEstado_civil(edo_civil.getDescripcion());
+                	   if (referencia != null ) {
+                		   PersonaPK referencia_pk_cony = new PersonaPK(referencia.getIdorigenr(),referencia.getIdgrupor(),referencia.getIdsocior());
+                           Persona persona_cony = personaService.findByOgs(referencia_pk_cony);
+                    	   response.setNombre_conyuge(persona_cony.getNombre() + " " + persona_cony.getAppaterno() + " " + persona_cony.getApmaterno()); //dto info conyugue
+                	   } else {
+                		   response.setNombre_conyuge(null);
+                	   }
+                	   if (trabajo != null) {
+                		   response.setNombre_empresa(trabajo.getNombre());
+                	   } else {
+                		   response.setNombre_empresa(null);
+                	   }
+                	   response.setOtros_gastos(Double.parseDouble(gastos.getTotal_gastos()));
+                   }
+                   
                    System.out.println("Exitoso");
-				   }                    
-			    }else {
+				   }
+			    } else {
 			    	response.setNota("Parte social incompleta...");
 			    }
-		     }			
+		     }
 		  }
-	   }catch(Exception e) {
+	   } catch(Exception e) {
 			System.out.println("Error al llenar data result:"+e.getMessage());
 			e.printStackTrace();
 		}
@@ -1028,7 +1048,7 @@ public class CustomerServiceSpring {
 		    if(tmp_validacion.getTipoapertura().toUpperCase().contains("R")) {
 		    	log.info("Es una renovacion");
 		   		//Validacion que no halla monto atrasado				 
-				String monto_maximo_prestar = funcionesService.validacion_monto_prestar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());					
+				String monto_maximo_prestar = funcionesService.validacion_monto_prestar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());
 				String[] montos_array = monto_maximo_prestar.split("\\|");
 				log.info("Informacion de monto a prestar:"+monto_maximo_prestar);
 	 		    List<String>rangos = Arrays.asList(montos_array);	
@@ -1109,11 +1129,11 @@ public class CustomerServiceSpring {
 						prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));
 						
 						DetallesSiscore detallesSiscore = null;
-						if(origen.getIdorigen() == 30200) {				
+						if(origen.getIdorigen() == 30200) {
 							detallesSiscore = ResumenSiscoreCSN(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar()); 
 							prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
 							prestamo.setResumen_calificacion_siscore(detallesSiscore);
-						}					
+						}
 						
 						List<Amortizacion>cuotas = amortizacionesService.findAll(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
 						log.info("Total de amorizaciones:"+cuotas.size());
@@ -1177,6 +1197,14 @@ public class CustomerServiceSpring {
 						prestamo.setCuotas(cuotasVo);	
 						Producto producto = productoService.buscarPorId(creado_aux.getPk().getIdproducto());
 						prestamo.setTasa_anual(String.valueOf(producto.getTasaio() * 12));
+						
+						if (origen.getIdorigen() == 30200) {
+							/*Variables nuevas SAN NICOLAS*/
+							TablaPK tb_pk_comision = new TablaPK(idtabla,"comision");
+							Tabla tb_comision = tablasService.buscarPorId(tb_pk_comision);
+							prestamo.setMonto_comision(Double.parseDouble(tb_comision.getDato1()));
+							prestamo.setTasa_moratoria(creado_aux.getTasaim().doubleValue() * 12);
+						}
 						
 						tmpService.eliminar(tmp_validacion);
 					   }else {

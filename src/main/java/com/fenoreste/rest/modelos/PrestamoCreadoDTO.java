@@ -34,4 +34,7 @@ public class PrestamoCreadoDTO {
 	private List<CuotaVO>cuotas;	
 	private String nota;
 	
+	private Double monto_comision;
+	private Double tasa_moratoria;
+	
 }

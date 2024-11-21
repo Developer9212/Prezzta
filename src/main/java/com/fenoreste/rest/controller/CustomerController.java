@@ -1,4 +1,3 @@
-
 package com.fenoreste.rest.controller;
 
 import java.util.Date;
@@ -28,7 +27,6 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
  *
  * @author Elliot
@@ -44,10 +42,6 @@ public class CustomerController {
 	
 	@Autowired
 	private IFuncionesService funcionesService;
-	
-	
-	//02102024
-	//02-10-2024
 	
     @PostMapping(value = "/buscar", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
@@ -76,10 +70,9 @@ public class CustomerController {
         }catch (Exception e) {
 			System.out.println("Error en Ws 1:"+e.getMessage());
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		} 
+		}
         
-    }  
-
+    }
     
     @PostMapping(value = "/solicitud/registra", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> solicitud(@RequestBody requestRegistraPrestamo request) {
@@ -122,7 +115,6 @@ public class CustomerController {
     	
     }
     
-   
     //En este paso verificamos si el usuario prosigue o se queda hasta ahi entonces aplicamos un descuento al ahorro(parametrizada)
     @GetMapping(value = "/solicitud/finalizar/opa={opa}&confirmar={opcion}",produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> terminaSolicitud(@PathVariable String opa , @PathVariable String opcion) {   
@@ -171,6 +163,5 @@ public class CustomerController {
           
           return new ResponseEntity<>(funcionesService.pagoMitras(pk,1),HttpStatus.OK);
     }
-    
     
 }

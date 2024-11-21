@@ -96,5 +96,11 @@ public class dataDTO {
     private Integer Lista_Control;
     @JsonInclude(value = Include.NON_EMPTY)
     private String nota;
-
+    
+    @JsonInclude(value = Include.NON_NULL)
+    private String estado_civil;
+    private String nombre_conyuge;
+    private String nombre_empresa;
+    private double otros_gastos;
+    
 }

@@ -17,6 +17,7 @@ public interface IFuncionesService {
 	public PagoMitrasDTO pagoMitras(AuxiliarPK pk,int idamortizacion);
 	public boolean servicioActivoInactivo();
 	public boolean servicioActivoInactivoBackend();
-	
+	public Double lineaCredito_Monto(Integer idorigen, Integer idgrupo, Integer idsocio);
+	public String monto_a_letras(String monto);
 	
 }

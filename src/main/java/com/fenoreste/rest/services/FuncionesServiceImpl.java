@@ -110,4 +110,14 @@ public class FuncionesServiceImpl implements IFuncionesService{
 		return pago;
 	}
 	
+	@Override
+	public Double lineaCredito_Monto(Integer idorigen, Integer idgrupo, Integer idsocio) {
+		return funcionesRepository.lineaCreditoMonto(idorigen, idgrupo, idsocio);
+	}
+	
+	@Override
+	public String monto_a_letras(String monto) {
+		return funcionesRepository.sai_importe_en_letras(monto);
+	}
+	
 }

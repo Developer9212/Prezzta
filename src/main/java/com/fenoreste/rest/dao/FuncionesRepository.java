@@ -39,6 +39,12 @@ public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	@Query(value = "select prezzta_servicio_activo_inactivo_backend()",nativeQuery = true)
 	public boolean horaActividadBackend();
 	
+	@Query(value = "SELECT (CASE WHEN (sum(saldo - garantia) * 3) IS NULL THEN '0.00' "
+			                  + "ELSE round(sum(saldo - garantia) * 3, 2) END) "
+			     + "FROM auxiliares WHERE idorigen = ?1 and idgrupo = ?2 and idsocio = ?3 and idproducto = 110", nativeQuery = true)
+	public Double lineaCreditoMonto(Integer idorigen, Integer idgrupo, Integer idsocio);
 	
+	@Query(value = "SELECT sai_importe_en_letras((?1)::::numeric, 1)", nativeQuery = true)
+	public String sai_importe_en_letras(String monto);
 	
 }
