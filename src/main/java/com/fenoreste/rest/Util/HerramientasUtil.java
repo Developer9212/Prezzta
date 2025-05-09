@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import com.fenoreste.rest.modelos.ogsDTO;
 import com.fenoreste.rest.modelos.opaDTO;
 
-
 @Service
 public class HerramientasUtil {
 
@@ -23,37 +22,34 @@ public class HerramientasUtil {
 	public opaDTO opa(String productBankIdentifier) {
 		opaDTO opa = new opaDTO();
 		int count =0;
-		for(int i = 0;i<productBankIdentifier.length();i++) {
+		for (int i = 0;i<productBankIdentifier.length();i++) {
 			count=count+1;
 		}
-		if(count == 18) {
+		if (count == 18) {
 			opa.setIdorigenp(Integer.parseInt(productBankIdentifier.substring(0, 5)));
 			opa.setIdproducto(Integer.parseInt(productBankIdentifier.substring(5, 10)));
 			opa.setIdauxiliar(Integer.parseInt(productBankIdentifier.substring(10, 18)));
-		}else {
+		} else {
 			opa.setIdorigenp(Integer.parseInt(productBankIdentifier.substring(0, 6)));
 			opa.setIdproducto(Integer.parseInt(productBankIdentifier.substring(6, 11)));
 			opa.setIdauxiliar(Integer.parseInt(productBankIdentifier.substring(11, 19)));
 		}
 		
-		
 		return opa;
 	}
-	
 	
 	public String periodo(Date fecha) {
          String periodo = "";
          SimpleDateFormat sdf = new SimpleDateFormat("YYYYMM");
          try {
 			periodo = sdf.format(fecha);
-			System.out.println("Fechaaaaaaaaaaaaaaa:"+periodo);
+			System.out.println("Fechaaaaaaaaaaaaaaa: " + periodo);
 			periodo = periodo.replace("\\//","");
 		  } catch (Exception e) {
-			System.out.println("Error al parsear fecha:"+e.getMessage());
+			System.out.println("Error al parsear fecha: " + e.getMessage());
 		  }
        
        return periodo;
 	}
 	
-
 }

@@ -12,5 +12,6 @@ public class requestRegistraPrestamo {
 	private String num_socio;
     private BigDecimal monto;
     private Integer plazos;
+    private int producto_id;
 
 }

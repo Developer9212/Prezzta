@@ -47,10 +47,10 @@ public class CustomerController {
     public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
     	System.out.println("Iniciando ws 1....");
         InfoClienteDTO info= null;
-        log.info("objeto entrante:"+request);
+        log.info("objeto entrante: " + request);
         //leemos el request
         try {        	
-         dataDTO dto = serviceCustomerSpring.informacionPersona(request.getTipo_documento(),request.getNumero_documento());
+         dataDTO dto = serviceCustomerSpring.informacionPersona(request.getTipo_documento(),request.getNumero_documento(),request.getProducto_id());
            if(dto.getOgs() != null) {
         	   info = new InfoClienteDTO();        	   
         	   info.setCode(200);
@@ -77,18 +77,18 @@ public class CustomerController {
     @PostMapping(value = "/solicitud/registra", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> solicitud(@RequestBody requestRegistraPrestamo request) {
     	InfoPrestamoCreadoDTO info = new InfoPrestamoCreadoDTO();
-    	log.info("Objeto registrar solicitud:"+request+", Peticion a las:"+new Date().toGMTString());
+    	log.info("Objeto registrar solicitud: " + request + ", Peticion a las: " + new Date().toGMTString());
     	
     	try {
-    		if(request.getMonto().doubleValue() >= 60000.00) {
-    			if(!funcionesService.servicioActivoInactivoBackend()) {
+    		if (request.getMonto().doubleValue() >= 60000.00) {
+    			if (!funcionesService.servicioActivoInactivoBackend()) {
         			info.setMessage("HORARIO DE OPERACION");
         			info.setCode(409);
         			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA,HORA O CONTACTE A SU PROVEEEDOR 1");
         			return new ResponseEntity<>(info,HttpStatus.CONFLICT);
         		}
-    		}else {
-    			if(!funcionesService.servicioActivoInactivo()) {
+    		} else {
+    			if (!funcionesService.servicioActivoInactivo()) {
         			info.setMessage("HORARIO DE OPERACION");
         			info.setCode(409);
         			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA,HORA O CONTACTE A SU PROVEEEDOR");
@@ -96,13 +96,13 @@ public class CustomerController {
         		}
     		}
     		
-    		PrestamoCreadoDTO prestamo= serviceCustomerSpring.aperturaFolio(request.getNum_socio(),request.getMonto().doubleValue(),request.getPlazos());
-    		if(prestamo.getOpa() != null) {
+    		PrestamoCreadoDTO prestamo = serviceCustomerSpring.aperturaFolio(request.getNum_socio(),request.getMonto().doubleValue(),request.getPlazos(),request.getProducto_id());
+    		if (prestamo.getOpa() != null) {
     			info.setCode(200);
     			info.setMessage("El prestamo se ha aperturado con exito");
     			info.setData(prestamo);
     			return new ResponseEntity<>(info,HttpStatus.OK);
-    		}else {
+    		} else {
     			info.setCode(400);
     			info.setMessage("Error al aperturar o renovar el prestamo");
     			info.setNota(prestamo.getNota());
@@ -117,7 +117,7 @@ public class CustomerController {
     
     //En este paso verificamos si el usuario prosigue o se queda hasta ahi entonces aplicamos un descuento al ahorro(parametrizada)
     @GetMapping(value = "/solicitud/finalizar/opa={opa}&confirmar={opcion}",produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> terminaSolicitud(@PathVariable String opa , @PathVariable String opcion) {   
+    public ResponseEntity<?> terminaSolicitud(@PathVariable String opa, @PathVariable String opcion) {   
           JsonObject response = new JsonObject();
           try {
         	  log.info("Activando el opa:"+opa+",el "+new Date());

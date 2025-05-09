@@ -12,7 +12,7 @@ public interface AuxiliarRepository extends JpaRepository<Auxiliar, AuxiliarPK> 
 	public Auxiliar buscarPorOpaIdProducto(Integer idorigen,Integer idgrupo,Integer idsocio,Integer idproducto,Integer estatus);
 	
 	
-	@Query(value = "SELECT count(*) FROM auxiliares WHERE idorigen = ?1 AND idgrupo = ?2 AND idsocio = ?3 AND estatus=1",nativeQuery = true)
+	@Query(value = "SELECT count(*) FROM auxiliares WHERE idorigen = ?1 AND idgrupo = ?2 AND idsocio = ?3 AND estatus = 1",nativeQuery = true)
 	public Integer totalAutorizados(Integer idorigen,Integer idgrupo,Integer idsocio);
 	
 	@Query(value = "SELECT * FROM auxiliares WHERE idorigen = ?1 AND idgrupo = ?2 AND idsocio = ?3 AND"

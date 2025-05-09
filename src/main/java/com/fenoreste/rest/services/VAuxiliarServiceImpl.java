@@ -13,7 +13,6 @@ public class VAuxiliarServiceImpl implements IVAuxiliaresService {
 	@Autowired
 	private VAuxiliarRepository auxiliarRepository;
 	
-
 	@Override
 	public Integer totRenovadoPorOgsIdproducto(PersonaPK pk, Integer idproducto,String periodo) {
 		return auxiliarRepository.totalRenovadoPorOgsIdProductoPeriodoPagados(pk.getIdorigen(), pk.getIdgrupo(), pk.getIdsocio(), idproducto, periodo);

@@ -16,7 +16,6 @@ import com.fenoreste.rest.dao.FuncionesRepository;
 import com.fenoreste.rest.entity.AuxiliarPK;
 import com.fenoreste.rest.modelos.PagoMitrasDTO;
 
-
 @Service
 public class FuncionesServiceImpl implements IFuncionesService{
 	
@@ -30,23 +29,28 @@ public class FuncionesServiceImpl implements IFuncionesService{
 	public String validacion_monto_prestar(Integer idorigen, Integer idgrupo, Integer idsocio) {
 		return funcionesRepository.monto_a_prestar(idorigen, idgrupo, idsocio);
 	}
+	
+	@Override
+	public String validacion_monto_prestar_2(Integer idorigen, Integer idgrupo, Integer idsocio) {
+		return funcionesRepository.monto_a_prestar_2(idorigen, idgrupo, idsocio);
+	}
 
 	@Override
 	public String aperturar_opa(Integer idorigen, Integer idgrupo, Integer idsocio, Double monto, Integer plazos,Integer idproducto,String opa,Integer idorigenp) {
-	  String query = "SELECT sai_prezzta_crea_apertura('{"+idorigen+","+idgrupo+","+idsocio+","+monto+","+plazos+","+idproducto+","+opa+","+idorigenp+"}')";
-	  System.out.println("Query:"+query);
-	  String resultado = "";
-	  try {
-		 Connection con = jdbc.getDataSource().getConnection();
-		 Statement st = con.createStatement();
-		 ResultSet rs=st.executeQuery(query);
-		 while(rs.next()) {
-		 	resultado = rs.getString(1);
-		 }		
-	   } catch (SQLException e) {
-		 System.out.println("Error al ejecutar funcion aperturar prestamo:"+e.getMessage());
-	 }	
-	  return resultado;
+		String query = "SELECT sai_prezzta_crea_apertura('{"+idorigen+","+idgrupo+","+idsocio+","+monto+","+plazos+","+idproducto+","+opa+","+idorigenp+"}')";
+		System.out.println("Query: " + query);
+		String resultado = "";
+		try {
+			Connection con = jdbc.getDataSource().getConnection();
+			Statement st = con.createStatement();
+			ResultSet rs=st.executeQuery(query);
+			while(rs.next()) {
+				resultado = rs.getString(1);
+			}
+		} catch (SQLException e) {
+			System.out.println("Error al ejecutar funcion aperturar prestamo: " + e.getMessage());
+		}
+		return resultado;
 	}
 
 	@Override

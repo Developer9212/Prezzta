@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class PlazoServiceImpl implements IPlazoService{
+public class PlazoServiceImpl implements IPlazoService {
     
 	@Autowired
 	private PlazoRepository plazoDao;
@@ -25,8 +25,8 @@ public class PlazoServiceImpl implements IPlazoService{
 
 	@Override
 	public Plazo buscarPorMonto(Double monto) {
-		List<Plazo>lista = plazoDao.listaPlazos(monto);
-		log.info("La lista de plazos es:"+lista.size());
+		List<Plazo> lista = plazoDao.listaPlazos(monto);
+		log.info("La lista de plazos es: " + lista.size());
 		Plazo plazo = new Plazo();
 		for(int i = 0;i < lista.size(); i++) {
 			if(monto >= lista.get(i).getMontominimo() && monto <= lista.get(i).getMontomaximo()) {

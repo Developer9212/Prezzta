@@ -15,6 +15,5 @@ public interface VAuxiliarRepository extends JpaRepository<V_Auxiliares,Auxiliar
    @Query(value = "SELECT * FROM v_auxiliares WHERE idorigen = ?1 AND idgrupo = ?2 AND idsocio = ?3 AND idproducto = ?4 AND to_char(fechaactivacion,'YYYYMM') = ?5 AND estatus = 3 "
    		+ " AND autorizo = (SELECT dato1 FROM tablas WHERE idtabla ='prezzta' AND idelemento='usuario')::::numeric LIMIT 1",nativeQuery = true)
    public V_Auxiliares bucarGenerencialPagadoPorPeriodo(Integer idorigen,Integer idgrupo,Integer idsocio,Integer idproducto, String periodo);
-   
 
 }

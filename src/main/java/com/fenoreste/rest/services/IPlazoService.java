@@ -6,4 +6,5 @@ public interface IPlazoService {
 
 	public Plazo buscarPorId(Integer Id);
 	public Plazo buscarPorMonto(Double monto);
+
 }
