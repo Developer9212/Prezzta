@@ -19,7 +19,7 @@ public class AuxiliaresServiceImpl implements IAuxiliaresService {
 
 	@Override
 	public Auxiliar AuxiliarByOgsIdproducto(Integer idorigen,Integer idgrupo, Integer idsocio,Integer idproducto,Integer estatus) {
-	    log.info("Buscando datos para:"+idorigen+",idgrupo:"+idgrupo+",idsocio:"+idsocio);
+	    log.info("Buscando datos para: " + idorigen + ", idgrupo: " + idgrupo + ", idsocio: " + idsocio);
 		return auxiliarRepository.buscarPorOpaIdProducto(idorigen,idgrupo, idsocio, idproducto,estatus);
 	}
 

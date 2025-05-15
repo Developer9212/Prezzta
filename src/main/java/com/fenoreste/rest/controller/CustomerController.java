@@ -44,34 +44,33 @@ public class CustomerController {
 	private IFuncionesService funcionesService;
 	
     @PostMapping(value = "/buscar", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request){    
+    public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request) {
     	System.out.println("Iniciando ws 1....");
-        InfoClienteDTO info= null;
-        log.info("objeto entrante: " + request);
-        //leemos el request
-        try {        	
-         dataDTO dto = serviceCustomerSpring.informacionPersona(request.getTipo_documento(),request.getNumero_documento(),request.getProducto_id());
-           if(dto.getOgs() != null) {
-        	   info = new InfoClienteDTO();        	   
-        	   info.setCode(200);
-        	   info.setData(dto);
-        	   info.setMessage("Datos verificados con exito");
-        	   System.out.println("Terminando ws 1....");
-        	   return new ResponseEntity<>(info, HttpStatus.OK);
-           }else {
-        	   info = new InfoClienteDTO();
-        	   info.setCode(400);
-        	   info.setData(null);
-        	   info.setMessage(dto.getNota());
-        	   System.out.println("Error en ws 1 No se encontraron registros....");
-        		return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
-           }
-        
-        }catch (Exception e) {
-			System.out.println("Error en Ws 1:"+e.getMessage());
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-        
+    	InfoClienteDTO info= null;
+    	log.info("objeto entrante: " + request);
+    	//leemos el request
+    	try {
+    		dataDTO dto = serviceCustomerSpring.informacionPersona(request.getTipo_documento(),request.getNumero_documento(),request.getProducto_id());
+    		if (dto.getOgs() != null) {
+    			info = new InfoClienteDTO();
+    			info.setCode(200);
+    			info.setData(dto);
+    			info.setMessage("Datos verificados con exito");
+    			System.out.println("Terminando ws 1....");
+    			return new ResponseEntity<>(info, HttpStatus.OK);
+    		} else {
+    			info = new InfoClienteDTO();
+    			info.setCode(400);
+    			info.setData(null);
+    			info.setMessage(dto.getNota());
+    			System.out.println("Error en ws 1 No se encontraron registros....");
+    			return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
+    		}
+    	} catch (Exception e) {
+    		System.out.println("Error en Ws 1: " + e.getMessage());
+    		return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    	}
+    
     }
     
     @PostMapping(value = "/solicitud/registra", produces = {MediaType.APPLICATION_JSON_VALUE})
