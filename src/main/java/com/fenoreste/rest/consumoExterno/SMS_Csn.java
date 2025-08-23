@@ -21,7 +21,7 @@ public class SMS_Csn {
             if (numero.length() == 10) {
                 System.out.println("le numero es correcto");
                 if (mensaje.length() <= 160) {
-                    System.out.println("el mensaje tambine");
+                    System.out.println("el mensaje tambien");
                     //WsConnExternos wsConnExternos = new WsConnExternos();//esta es la clase en donde se genera una conexion y se lee lo que retorna
                     host = host.replace("_mensaje", mensaje);
                     host = host.replace("_numero", numero);

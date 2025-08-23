@@ -83,14 +83,14 @@ public class CustomerController {
     			if (!funcionesService.servicioActivoInactivoBackend()) {
         			info.setMessage("HORARIO DE OPERACION");
         			info.setCode(409);
-        			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA,HORA O CONTACTE A SU PROVEEEDOR 1");
+        			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA, HORA O CONTACTE A SU PROVEEEDOR 1");
         			return new ResponseEntity<>(info,HttpStatus.CONFLICT);
         		}
     		} else {
     			if (!funcionesService.servicioActivoInactivo()) {
         			info.setMessage("HORARIO DE OPERACION");
         			info.setCode(409);
-        			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA,HORA O CONTACTE A SU PROVEEEDOR");
+        			info.setNota("VERIFIQUE SU HORARIO DE ACTIVIDAD FECHA, HORA O CONTACTE A SU PROVEEEDOR");
         			return new ResponseEntity<>(info,HttpStatus.CONFLICT);
         		}
     		}

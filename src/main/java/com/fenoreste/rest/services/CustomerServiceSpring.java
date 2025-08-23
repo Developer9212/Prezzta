@@ -177,10 +177,12 @@ public class CustomerServiceSpring {
 	public dataDTO informacionPersona(String tipoDocumento, String numeroDocumento, int idproducto) {
 		dataDTO response = new dataDTO();
 		Origenes origen = origenesService.findMatrizOrigen();
+		
 		try {
 			boolean bandera_so = false;
 			boolean bandera_ssm = false;
 			List<String>rangos = new ArrayList<>();
+			
 			log.info("En service vamos a buscar persona");
 			//Buscamos a la persona con los datos que llegaron en el metodo
 			Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());
@@ -237,13 +239,19 @@ public class CustomerServiceSpring {
 			Tabla config_minimo_solicitud = tablasService.buscarPorId(conf_minimo_solicitud_pk);
 			log.info("Configuracion de minimo solicitud encontrada");
 			
-			//si es el gerencial valida saldo en el ahorro
-			if (idproducto == 1) {
-				if (ahorro_disponible.getSaldo().doubleValue() >= Double.parseDouble(config_minimo_solicitud.getDato1())) {
+			//csn validamos plazo y monto minimo
+			if (origen.getIdorigen() == 30200) {
+				//si es el gerencial valida saldo en el ahorro
+				if (idproducto == 1) {
+					if (ahorro_disponible.getSaldo().doubleValue() >= Double.parseDouble(config_minimo_solicitud.getDato1())) {
+						bandera_ssm = true;
+					}
+				//si es el credi 10 pasa sin validar saldo en el ahorro
+				} else {
 					bandera_ssm = true;
 				}
-			//si es el credi 10 pasa sin validar saldo en el ahorro
-			} else if (idproducto == 2) {
+			//buenos no valida plazo y monto minimo
+			} else {
 				bandera_ssm = true;
 			}
 			
@@ -294,6 +302,33 @@ public class CustomerServiceSpring {
 						log.info("Tarjeta esta vencida");
 						response.setNota("Tarjeta esta vencida");
 					}
+				} else if (origen.getIdorigen() == 30100) {
+					log.info("El cliente es buenos aires");
+					//Vamos a validar estatus de la tdd
+					TablaPK tb_pk_disp = new TablaPK(idtabla, "producto_para_dispersion");
+					Tabla tb_prod_disp = tablasService.buscarPorId(tb_pk_disp);
+					Auxiliar auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(),
+																					  persona.getPk().getIdsocio(), Integer.parseInt(tb_prod_disp.getDato1()), 2);
+					if (auxiliar_tdd != null) {
+						//Buscamos el folio de tarjeta
+						log.info("Vamos abuscar tarjeta");
+						AuxiliarPK pk_tdd = new AuxiliarPK(auxiliar_tdd.getPk().getIdorigenp(),auxiliar_tdd.getPk().getIdproducto(),auxiliar_tdd.getPk().getIdauxiliar());
+						FolioTarjeta folio_tdd = foliosTarjetaService.buscarPorId(pk_tdd);
+						log.info("Tarjeta encontrada: " + auxiliar_tdd);
+						//Ahora buscamos registro para la tarjeta
+						Tarjeta tarjeta = tarjetaService.buscarPorId(folio_tdd.getIdtarjeta());
+						System.out.println("La tarjeta encontrada es: " + tarjeta + " Opa: " + folio_tdd);
+						if (tarjeta.getFecha_vencimiento().after(origen.getFechatrabajo())) {
+							log.info("Tarjeta valida");
+							bandera_so = true;
+						} else {
+							log.info("Tarjeta esta vencida");
+							response.setNota("Tarjeta esta vencida");
+						}
+					} else {
+						System.out.println("NO CUENTA CON TARJETA DE DEBITO");
+						response.setNota("NO CUENTA CON TARJETA DE DEBITO");
+					}
 				} else {
 					bandera_so = true;
 				}
@@ -310,664 +345,683 @@ public class CustomerServiceSpring {
 				//Para saber si es socio
 				TablaPK tb_pk_parte_social = new TablaPK(idtabla,"parte_social");
 				Tabla tb_producto_parte_social = tablasService.buscarPorId(tb_pk_parte_social);
-			
-			
-			if(tb_producto_parte_social != null) {
-				log.info("Si existe un producto de parte social");
-				Auxiliar folio_parte_social = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),Integer.parseInt(tb_producto_parte_social.getDato1()),2);
-				log.info("El folio de parte social es:"+folio_parte_social);
-				if(folio_parte_social.getSaldo().doubleValue() >= Double.parseDouble(tb_producto_parte_social.getDato2())) {
-					log.info("El monto de parte social es mayor al configurado en el core");
-					response.setEs_socio("1");//atributo es socio
-					response.setOgs(String.format("%06d",persona.getPk().getIdorigen())+String.format("%02d",persona.getPk().getIdgrupo())+String.format("%06d",persona.getPk().getIdsocio()));//campo ogs
-					response.setPrimer_nombre(persona.getNombre());//atributo primer nombre
-                    response.setApellidos(persona.getAppaterno()+" "+persona.getApmaterno());//atributo apellidos
-                    response.setNumero_documento(persona.getCurp());//atributo numero de documento
-                    response.setTelefono_Celular(persona.getCelular());//atributo telefono_celular
-                    response.setFecha_nacimiento(persona.getFechanacimiento().toString());//atributo fecha_nacimiento
-                    response.setLugar_nacimiento(persona.getLugarnacimiento());//atributo lugar_nacimiento
-                    response.setRfc(persona.getRfc());
-                    log.info("Vamos a buscar socieconomicos");
-                    Socioeconomicos sc = socioeconomicosService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
-                    log.info("Socio economicos encontrados:"+sc);
-                    response.setPersonas_viven_en_casa(sc.getDependientes().toString());//Personas que viven en casa
-                    primerEmpleoDTO primerempleo = new primerEmpleoDTO();
-                    segundoEmpleoDTO segundoempleo = new segundoEmpleoDTO();
-                    log.info("Buscando una lista de trabajo");
-                    List<Trabajo>listaTrabajos = trabajosService.findTrabajosActivosByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),2);
-                    int cons_tr_ac = 0; //consecutivo trabajo actual    
-                    log.info("Vamos a correr la lista de trabajos");
-                    if(listaTrabajos != null) {
-                    	for(int i = 0;i<listaTrabajos.size();i++) {
-                        	Trabajo trabajo = listaTrabajos.get(i);
-                        	log.info("trabajo numero:"+i);
-                    		CatalogoMenus menu = catalogoMenuService.findByMenuOpcion("giro_empresa", trabajo.getGiro_empresa());
-                    		log.info("Giro empresa para trabajo:"+i+" es "+menu);
-                    		Colonias colonia = coloniaService.findById(trabajo.getIdcolonia());
-                    		log.info("Colonia para para trabajo:"+i+" es " + colonia);
-                    		Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
-                    		log.info("Municipio para el trabajo :"+i+" es "+municipio);
-                    		Estados estado = estadoService.findById(municipio.getIdestado());
-                        	if(i == 0) {    
-                        		log.info("Llenando primer empleo");
-                        		cons_tr_ac = trabajo.getConsecutivo();
-                        		 if (trabajo.getOcupacion_numero() != null) {
-                                     	 primerempleo.setOcupacion(trabajo.getOcupacion()); 
-                                     }
-                        		     else {
-                        		    	 primerempleo.setOcupacion(null); 
-                        		     }
-                                     primerempleo.setPuesto(trabajo.getPuesto());
-                                     primerempleo.setTelefono(trabajo.getTelefono());
-                                     primerempleo.setGiro(menu.getDescripcion());
-                                     primerempleo.setCodigo_postal(colonia.getCodigopostal());
-                                     primerempleo.setCalle(trabajo.getCalle());
-                                     primerempleo.setNumero_exterior(trabajo.getNumero());
-                                     primerempleo.setNumero_interior(null);
-                                     primerempleo.setColonia(colonia.getNombre());
-                                     primerempleo.setMunicipio(municipio.getNombre());
-                                     primerempleo.setEstado(estado.getNombre());                             
-                        	}else if(i == 1) {
-                        		  log.info("Llenando segundo empleo");
-                        		 	 segundoempleo.setOcupacion(trabajo.getOcupacion());
-                        		 	 segundoempleo.setPuesto(trabajo.getPuesto());
-                        		 	 segundoempleo.setTelefono(trabajo.getTelefono());
-                                 	 segundoempleo.setNombre_empresa(trabajo.getNombre());
-                                 	 segundoempleo.setAntiguedad(String.valueOf(cal_edad((Date) trabajo.getFechaingreso())));
-                                 	 segundoempleo.setGiro(menu.getDescripcion());
-                                 	 segundoempleo.setCodigo_postal(colonia.getCodigopostal());
-                                 	 segundoempleo.setCalle(trabajo.getCalle());
-                                 	 segundoempleo.setNumero_exterior(trabajo.getNumero());
-                                 	 segundoempleo.setNumero_interior(null);
-                                 	 segundoempleo.setColonia(colonia.getNombre());
-                                 	 segundoempleo.setMunicipio(municipio.getNombre());
-                                 	 segundoempleo.setEstado(estado.getNombre());
-                        	}
-                        }
-
-                    }
-                    log.info("Vamos a ver si el socio es jubilado");
-                    Trabajo trabajo = trabajosService.findTrabajoByOgsAndConsecutivo(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),cons_tr_ac);
-                    if(trabajo != null) {
-                    	  if(trabajo.getPuesto().toUpperCase().contains("JUBILADO")){
-                              response.setJubilado("1");//atributo jubilado (obtenido de sus trabajos)
-                          }else{
-                              response.setJubilado("0");
-                          }
-                          if(trabajo.getFechaingreso() == null) {
-                              response.setFecha_ingreso_laboral("");
-                          } else {
-                              response.setFecha_ingreso_laboral(dateToString(trabajo.getFechaingreso()));//atributo fecha ingreso laboral 
-                          }
-                          response.setIngresos_mensuales(trabajo.getIng_mensual_neto().toString());//atributo ingresos mensuales
-                    }
-                  
-                    log.info("Buscando colonia para la persona"); 
-                    Colonias colonia = coloniaService.findById(persona.getIdcolonia());
-                    if(colonia != null) {
-                    	log.info("La colonia para la persona es:"+colonia);
-                    	Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
-                    	log.info("El municipio para la persona es:"+municipio);
-               			Estados estado = estadoService.findById(municipio.getIdestado());
-               			log.info("El estado para la persona es:"+estado);
-               			response.setEstado(estado.getNombre());//atributo estado
-                        response.setCiudad(municipio.getNombre());//atributo ciudad
-                        response.setDireccion(persona.getCalle() + " " + persona.getNumeroext());//atributo direccion
-                        response.setCodigo_postal(colonia.getCodigopostal());//atributo codigo postal
-                        response.setColonia(colonia.getNombre());
-                    }           			
-                    if (sc.getPropietariovivienda() != null){
-                        response.setPropiedad_vivienda(sc.getPropietariovivienda());//atributo propiedad vivienda
-                    } else {
-                    	response.setPropiedad_vivienda(null);
-                    }
-                    response.setEmail(persona.getEmail());//atributo email
-                    log.info("Vamos a buscar grado de estudios");
-                    CatalogoMenus menu_estudio = catalogoMenuService.findByMenuOpcion("grado_estudios",persona.getGradoEstudios().intValue());
-                    log.info("El grado de estudios para la persona es:"+menu_estudio);
-                    response.setUltimo_estudio_cursado(menu_estudio.getDescripcion());//atributo ultimo estudio cursado
-                    response.setTelefono_auxiliar(persona.getTelefono());//atributo telefono auxiliar
-                    if(sc.getFechahabitacion() == null) {
-                    response.setAntiguedad_domicilio("");
-                    } else {
-                    response.setAntiguedad_domicilio(String.valueOf(restaFechas(sc.getFechahabitacion())));//atributo antiguedad en domicilio
-                    log.info("Vamos a buscar referencias");
-                    Referencias referencia = referenciaService.finByOgsAndTipoReferencia(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),1);
-                    if(referencia != null) {
-                    log.info("Referencias encontradas:"+referencia);	
-                    response.setNum_socio_conyugue(String.format("%06d",referencia.getIdorigenr())+String.format("%02d",referencia.getIdgrupor())+String.format("%06d",referencia.getIdsocior()));//atributo num_socio_conyuge
-                    } else {
-                    response.setNum_socio_conyugue(null);
-                    }
-                    response.setCant_hijos(String.valueOf(sc.getDependientes_menores()));//atributo cantidad hijos
-                    if(trabajo != null) {
-                    	  log.info("Buscando giro trabajo por consecutivo");
-                    	   CatalogoMenus catalogo_giro_empresa = catalogoMenuService.findByMenuOpcion("giro_empresa",trabajo.getGiro_empresa());
-                    	   log.info("Giro empresa consecutivo es:"+catalogo_giro_empresa);
-                           response.setRubro_laboral(catalogo_giro_empresa.getDescripcion());//atributo rubro laboral
-                           response.setTelefono_trabajo(trabajo.getTelefono());//atributo telefono trabajo
-                         
-                    }
-                   
-                    //validamos cuanto alcanza en credito
-				    validacionDTO validacion = new validacionDTO();
-				    validacion.setRangoMontos("0-0");
-				    
-				    
-				    
-				    
-				    
-				    log.info("Vamos a correr la funcion para obtener maximo a prestar");
-				    String monto_maximo_prestar = "";
-				    
-				    //Si el producto que se esta solicitando es el gerencial
-				    if (idproducto == 1) {
-				       monto_maximo_prestar = funcionesService.validacion_monto_prestar(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(), persona.getPk().getIdsocio());
-				    //Si el producto que se esta solicitando es el nuevo con riesgo
-				    } else if (idproducto == 2) {
-				    	monto_maximo_prestar = funcionesService.validacion_monto_prestar_2(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(), persona.getPk().getIdsocio());
-				    }
-				    
-					log.info("ARRAY MONTO MAXIMO A PRESTAR: " + monto_maximo_prestar);
-				    String[] montos_array = monto_maximo_prestar.split("\\|");                    
-		 		    rangos = Arrays.asList(montos_array);
-		 			String plazoMin = "0",plazoMax="0",montoMin="0",montoMax="0";
-		 			if(!monto_maximo_prestar.toUpperCase().contains("ERROR")) {
-   		 			   //Buscamos las tablas de mensajes 
-		 			   TablaPK tb_pk_tmp = new TablaPK();
-		 			   tb_pk_tmp.setIdtabla(idtabla);
-		 			   tb_pk_tmp.setIdelemento("comision");
-		 			   Tabla tb_comision_servicio = tablasService.buscarPorId(tb_pk_tmp);
-		 			   tb_pk_tmp.setIdelemento("nota_comision");
-		 			   Tabla tb_nota_comision  = tablasService.buscarPorId(tb_pk_tmp);
-		 			   tb_pk_tmp.setIdelemento("nota_dispersion");
-		 			   Tabla tb_nota_dispersion = tablasService.buscarPorId(tb_pk_tmp);
-		 			   tb_pk_tmp.setIdelemento("nota_renovacion");
-		 			   Tabla tb_nota_renovacion = tablasService.buscarPorId(tb_pk_tmp);
-		 			   tb_pk_tmp.setIdelemento("nota_montos_atrasado");
-		 			   Tabla tb_nota_monto_atraso = tablasService.buscarPorId(tb_pk_tmp);
-		 			   	 			 
-		 			  log.info("Rangossss:"+rangos);
-		 			  
-		 			  plazoMin = config_minimo_solicitud.getDato2();
-		 			  plazoMax = rangos.get(1).toString();
-		 			  montoMin = config_minimo_solicitud.getDato1();
-		 			  montoMax = rangos.get(3).toString();
-		 			  
-		 			  TablaPK tb_pk = new TablaPK(idtabla,"monto_maximo_solicitud");
-		 			  Tabla tb_monto_maximo = tablasService.buscarPorId(tb_pk);
-                      if(Double.parseDouble(montoMax)> Double.parseDouble(tb_monto_maximo.getDato1())) {
-                    	  montoMax = tb_monto_maximo.getDato1();
-                      }
-                      //Vamos a buscar plazo maximo ----> 03/05/2023 Wilmer
-                      if(!tb_monto_maximo.getDato2().equals("")) {
-                    	  plazoMax = tb_monto_maximo.getDato2();
-                      }
-                      
-                      
-		 			  String tipoApertura = rangos.get(4).toString();
-		 			  String totalRenovar = rangos.get(5).toString();
-		 			  String totalAtraso = rangos.get(7).toString();
-		 			  String idorigenp = rangos.get(10).toString();
-		 			  
-		 			  boolean bandera = false;
-		 			  log.info("montos, max:"+Double.parseDouble(montoMax) +",min:"+ Double.parseDouble(montoMin));
-			          if(Double.parseDouble(montoMax) >= Double.parseDouble(montoMin)) {
-			        	 validacion.setRangoMontos(montoMin+"-"+montoMax);
-			        	  bandera = true;
-			          }else {			        	  
-			        	  validacion.setRangoMontos("0-0");
-			          }
-		 			  //validacion.setRangoMontos(montoMin+"-"+montoMax);
-		 			  validacion.setRangoPlazos(plazoMin+"-"+plazoMax);
-			          tmp_aperturas tmp_saver = new tmp_aperturas();
-			          /*tmp_saver.setIdorigen(persona.getPk().getIdorigen());
-       			   	  tmp_saver.setIdgrupo(persona.getPk().getIdgrupo());
-       			   	  tmp_saver.setIdsocio(persona.getPk().getIdsocio());*///Comentado el 25/07/2024 a las 4:57 por cambio de id en entity
-       			   	  tmp_saver.setPk(persona.getPk());
-       			   	  tmp_saver.setMontoalcanzado(Double.parseDouble(rangos.get(3).toString()));
-       			      tmp_saver.setIdorigenp(Integer.parseInt(idorigenp));
-       			      tmp_saver.setFecha(new Date());
-       			   	  if(tipoApertura.toUpperCase().contains("R")) {
-			        	  String[]cadena = rangos.get(9).toString().split("\\-");
-			        	  String opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
-			        	  if(bandera) {
-			        		  validacion.setTipo_apertura("Renovacion");
-				        	  validacion.setMonto_renovar(Double.parseDouble(totalRenovar));
-			        	  }
-			        	  
-			        	  String mmensajeAtraso = "",imprt = "";
-			        	  if(Double.parseDouble(totalAtraso)>0) {
-			        		  mmensajeAtraso = tb_nota_monto_atraso.getDato2().replace("@atraso@",totalAtraso)+" al folio:"+opaAnterior+",";
-			        		  imprt =", IMPORTANTE(Primero debe liquidar monto atrasado para poder continuar con su renovacion)";
-			        	  }
-			        	  /*validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+","+
-			        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
-			        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar+" - "+String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+imprt);*/
-			        	 			    
-			        	  DatoRenovacionVO vo = new DatoRenovacionVO();
-			        	  vo.setCapital(Double.parseDouble(totalRenovar));
-			        	  vo.setInteres(Double.parseDouble(totalAtraso));
-			        	  vo.setNotaRenovacion("Importante,antes de cualquier solicitud debe liquidar intereses");
-			        	  
-			        	  validacion.setDetalleRenovacion(vo);
-			        	  validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(0))+","+
-	        	                     tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraso+ 		
-	        			             tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar) + imprt);
-	        			  
-	        			
-	        			  tmp_saver.setTipoapertura("Renovacion");
-	        			  tmp_saver.setMontorenovar(Double.parseDouble(rangos.get(5).toString()));
-	        			  tmp_saver.setAtrasado(Double.parseDouble(rangos.get(7).toString()));	
-	        			  tmp_saver.setIdproducto(Integer.parseInt(rangos.get(8).toString()));
-	        			  tmp_saver.setOpaactivo(rangos.get(9).toString());
-	        			  //double totallibre = tmp_saver.getMontorenovar()+Double.parseDouble(tb_comision_servicio.getDato1())+(Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16);
-	        			  Double totallibre = tmp_saver.getMontorenovar();
-	        			  tmp_saver.setGastos_pagar(totallibre);
-			          }else {
-			        	  tmp_saver.setTipoapertura("Activacion");
-			        	  tmp_saver.setIdproducto(Integer.parseInt(rangos.get(8).toString()));
-			        	  tmp_saver.setOpaactivo("0-0-0");		
-			        	  validacion.setTipo_apertura("Activacion");
-			        	  /*validacion.setNota(tb_nota_comision.getDato2().replace("@comision@", tb_comision_servicio.getDato1())+","+
-	        	                            tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+tb_comision_servicio.getDato1()));*/
-			        	  validacion.setNota(tb_nota_comision.getDato2().replace("@comision@", "0") + "," +
-  	                            tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado"));
-			        	  validacion.setMonto_renovar(0.0);
-			        	  //double totallibre = Double.parseDouble(tb_comision_servicio.getDato1())+(Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16);
-			        	  double totallibre = 0.0;
-	        			  tmp_saver.setGastos_pagar(totallibre);		        	  
-			          }
-       			   	  
-       			          tmp_saver = tmpService.guardar(tmp_saver);
-       			   	  /*if(bandera) { //Modificado 25/07/2023
-    			          tmp_saver = tmpService.guardar(tmp_saver);
-
-       			   	  }*/
-			          
-			         }else {			        
-		 			  String mensajeValidacion = rangos.get(2);
-		 			  if(mensajeValidacion.toUpperCase().contains("COMPATIB")) {
-		 				if(origen.getIdorigen() == 30200) {
-		 					validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
-			 						+ "en el apartado de “Preguntas Frecuentes” en la App de CSN Móvil."
-			 						+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo."); 
-		 				}else if(origen.getIdorigen() == 30300) {
-		 					validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
-			 						+ "en el apartado de “Preguntas Frecuentes” en la App de Mitras Móvil."
-			 						+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo."); 
-		 				}else {
-		 					validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
-			 						+ "en el apartado de “Preguntas Frecuentes” en la App Móvil."
-			 						+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo."); 
-		 				}
-		 				 
-		 			  }
-			          validacion.setRangoPlazos(plazoMin+"-"+plazoMax);
-			          validacion.setTipo_apertura("");
-			          validacion.setMonto_renovar(0);
-			          validacion.setRangoMontos("0-0");
-			          validacion.setNota("NO PUEDE CONTINUAR CON SU SOLICITUD");
-		 			}
-		           
-					response.setMonto_maximo_a_prestar(validacion);// objeto maximo a prestar		            
-                    log.info("Vamos a buscar si tiene negocio propio");
-                    Negociopropio negocio_prop = negocioService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
-                    log.info("Negocio propio encontrado:"+negocio_prop);
-                    comercioDTO comercio = new comercioDTO();
-                    if(negocio_prop != null) {
-                    	response.setEs_socio_comercial("1");                    	
-                        //Para obtener el giro del negocio hay que buscar en catalogo menus
-                    	log.info("Vamos a buscar el giro del negocio propio");
-                        CatalogoMenus catalogo_empresa_negocio = catalogoMenuService.findByMenuOpcion("giro_empresa",negocio_prop.getGiro_empresa());
-                        log.info("El giro del negocio es:"+catalogo_empresa_negocio);
-                        comercio.setGiro(catalogo_empresa_negocio.getDescripcion());//atributo giro comercio
-                        comercio.setFecha_comienzo(String.valueOf(negocio_prop.getFechainicio()));
-                        comercio.setDomicilio(negocio_prop.getCalle()+" "+negocio_prop.getNumeroext()+" "+negocio_prop.getNumeroint());
-                        comercio.setTelefono(negocio_prop.getTelefono());
-                        comercio.setIngreso_mensual(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
-                        comercio.setOtros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
-                        comercio.setFuente_otros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
-                        
-                    }else {
-                    	response.setEs_socio_comercial("0");
-                    	comercio.setGiro(null);//atributo giro comercio
-                        comercio.setFecha_comienzo(null);
-                        comercio.setDomicilio(null);
-                        comercio.setTelefono(null);
-                        comercio.setIngreso_mensual(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
-                        comercio.setOtros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
-                        comercio.setFuente_otros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
-                        
-                    }   
-                    response.setComercio(comercio);//Objeto comercio
-                    response.setFuente_ingresos_fijos("ingresos ordinarios");//Se define estatico(atributo ingresos fijos)
-                    response.setMonto_ingresos_fijos(String.valueOf(sc.getIngresosordinarios()));//atributo monto ingresos fijos
-                    response.setFuente_ingresos_variables("ingresos extraordinarios");//Se define estatico(atributo ingresos variables)
-                    response.setMonto_ingresos_variables(String.valueOf(sc.getIngresosextraordinarios()));//atributo ingresos variables
-                    //para los gastos si se obtiene de socioeconomicos pero se parametriza en tablas 
-                    TablaPK tb_pk_gatosa = new TablaPK(idtabla,"gastos_alimentacion");
-                    log.info("Buscando tabla de gastos de alimentacion");
-                    Tabla tb_gastos_alimentacion = tablasService.buscarPorId(tb_pk_gatosa);
-                    log.info("Configuracion de gastos de alimentacion encontrada:"+tb_gastos_alimentacion);
-                    if(tb_gastos_alimentacion != null) {
-                      switch(tb_gastos_alimentacion.getDato1()) {
-                        case "gastos_tipo1":
-                    	    response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo1())); 
-                    	   break;
-                        case "gastos_tipo2":
-                    	    response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo2())); 
-                    	   break;
-                        case "gastos_tipo3":
-                    	    response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo3())); 
-                    	   break;
-                        case "gastos_tipo4":
-                    	    response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo4())); 
-                    	   break;
-                        case "gastos_tipo5":
-                    	     response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo5())); 
-                        	break;
-                        case "gastos_tipo6":
-                    	     response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo6())); 
-                    	    break;                    
-                        }                    
-                    }else{
-                             response.setGastos_alimentacion("");
-                    }
-                    //para los gastos si se obtiene de socioeconomicos pero se parametriza en tablas 
-                    log.info("Vamos a buscar gastos de servicio");
-                    TablaPK tb_pk_gastos_servicio = new TablaPK(idtabla,"gastos_servicio");
-                    Tabla tb_gastos_servicio = tablasService.buscarPorId(tb_pk_gastos_servicio);
-                    log.info("Gastos de servicio encontrados:"+tb_gastos_servicio);
-                    
-                    if(tb_gastos_servicio != null) {
-                      switch(tb_gastos_servicio.getDato1()) {
-                        case "gastos_tipo1":
-                    	    response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo1())); 
-                    	   break;
-                        case "gastos_tipo2":
-                    	    response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo2())); 
-                    	   break;
-                        case "gastos_tipo3":
-                        	response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo3()));  
-                    	   break;
-                        case "gastos_tipo4":
-                        	response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo4()));  
-                    	   break;
-                        case "gastos_tipo5":
-                        	response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo5()));  
-                        	break;
-                        case "gastos_tipo6":
-                        	response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo6()));  
-                    	    break;                    
-                        }                    
-                    }else{
-                             response.setGastos_pagos_servicios("");
-                    }
-                    
-                    referenciasDTO referencias = new referenciasDTO();
-                    log.info("Vamos a buscar referencia personal");
-                    Referencias referencia_personal = referenciaService.finByOgsAndTipoReferencia(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),3);//Se busca la referencia 3 porque es referencia persona se definio estatico
-                    log.info("Referencia personal encontrada:"+referencia_personal);
-                    //Buscamos la persona referenciada referencia tipo 3 personal
-                    if(referencia_personal != null) {//Solo me aseguro que traiga datos la busqueda
-                    	PersonaPK referencia_pk = new PersonaPK(referencia_personal.getIdorigenr(),referencia_personal.getIdgrupor(),referencia_personal.getIdsocior());
-                    	log.info("Vamos a buscar la persona referenciada");
-                    	Persona persona_referencia = personaService.findByOgs(referencia_pk);
-                    	referencias.setNombre(persona_referencia.getNombre()+" "+persona_referencia.getAppaterno()+" "+persona_referencia.getApmaterno());
-                        referencias.setDireccion(persona_referencia.getCalle()+" "+persona_referencia.getNumeroext()+" "+persona_referencia.getNumeroint());
-                        referencias.setParentesco("Referencia personal");//Estatico definido por Lic.Eliseo
-                        referencias.setTelefono(persona_referencia.getTelefono());
-                    }else{
-                    	referencias.setNombre(null);
-                        referencias.setDireccion(null);
-                        referencias.setParentesco(null);
-                        referencias.setTelefono(null);
-                    }
-                    
-                    
-                    response.setReferencias(referencias);//objeto referencias                 
-                    response.setPrimer_empleo(primerempleo);//objeto primer empleo se busco arriba
-                    response.setSegundo_empleo(segundoempleo);//objeto segundo empleo se busco arriba                    
-                    response.setFecha_ingreso_caja(String.valueOf(persona.getFechaingreso()));//atributo fecha ingreso a la caja
-                    negocioDTO negocio = new negocioDTO();
-                    if(negocio_prop != null){
-                    	           negocio.setIngresos(String.valueOf(negocio_prop.getUtilidad_mens()));
-                                   negocio.setCompras(null);
-                                   negocio.setPago_sueldos(null);
-                                   negocio.setPago_renta(null);
-                                   negocio.setPago_creditos(null);
-                                   negocio.setOtros(null);
-                                   negocio.setTotal_negocio(null);
-                                   negocio.setHorario_dias_laborables(null);
-                                   negocio.setDomicilio(negocio_prop.getCalle() + " " + negocio_prop.getNumeroext()+" "+negocio_prop.getNumeroint());
-                                   negocio.setFuentes_otros_negocios(null);
-                                   
-                                   /*NOTA:para negocio se obtiene de negocio propio pero solo los campos que pueden recuperarse*/
-                     }
-                    response.setNegocio(negocio);//objeto negocio
-                    response.setTotal_ingresos(String.valueOf(sc.getIngresosordinarios()));//atributo total ingresos
-                    response.setOtros_ingresos(String.valueOf(sc.getIngresosextraordinarios()));//atributo otros ingresos
-                    response.setFuentes_otros_ingresos("ingresos extraordinarios");//atributo fuente otros ingresos
-                    
-                    gastosDTO gastos = new gastosDTO();
-                    //Obtenemos los gastos que estan parametrizados en tablas
-                    log.info("Vamos a buscar la tabla de gastos");                    
-                    TablaPK tb_pk_gatos = new TablaPK(idtabla,"gastos");
-                    Tabla tb_gastos = tablasService.buscarPorId(tb_pk_gatos);
-                    log.info("Tabla de gastos encontrada:"+tb_gastos);
-                    double total_gastos = 0.0;
-
-                    
-                    if(tb_gastos != null) {
-                    String[] gastos_array = tb_gastos.getDato2().split("\\,");                    
-        			List lista_gastos = Arrays.asList(gastos_array);
-        			for(int i=0;i<lista_gastos.size();i++) {
-        				switch(lista_gastos.get(i).toString()) {
-        				case "gastos_tipo1":
-        					gastos.setAlimentacion(String.valueOf(sc.getGastos_tipo1()));
-        					if(sc.getGastos_tipo1() != null) total_gastos = total_gastos + sc.getGastos_tipo1();        					
-        					break;
-        				case "gastos_tipo2":
-        					 gastos.setServicios_vivienda(String.valueOf(sc.getGastos_tipo2()));
-        					 if(sc.getGastos_tipo2() != null) total_gastos = total_gastos + sc.getGastos_tipo2();
-        					break;
-        				case "gastos_tipo3":
-        					gastos.setVestido_calzado(String.valueOf(sc.getGastos_tipo3()));
-        					if(sc.getGastos_tipo3() != null) total_gastos = total_gastos + sc.getGastos_tipo3();
-        					break;
-        				case "gastos_tipo4":
-        					gastos.setTransporte(String.valueOf(sc.getGastos_tipo4()));
-        					if(sc.getGastos_tipo4() != null ) total_gastos = total_gastos + sc.getGastos_tipo4();
-        					break;
-        				case "gastos_tipo5":
-        					gastos.setEscuela(String.valueOf(sc.getGastos_tipo5()));
-        					if(sc.getGastos_tipo5() != null) total_gastos = total_gastos + sc.getGastos_tipo5();
-        					break;
-        				case "gastos_tipo6":
-        					gastos.setDeudas(String.valueOf(sc.getGastos_tipo6()));
-        					if(sc.getGastos_tipo6() != null) total_gastos = total_gastos + sc.getGastos_tipo6();
-        					break;
-        				}
-        			  }
-        			   gastos.setTotal_gastos(String.valueOf(total_gastos));//Atributo de objetos gastos(Total de gastos)
-        			   
-                    }else {
-                    	gastos.setAlimentacion(null);
-                        gastos.setVestido_calzado(null);
-                        gastos.setServicios_vivienda(null);
-                        gastos.setTransporte(null);
-                        gastos.setEscuela(null);
-                        gastos.setDeudas(null);
-                    }                   
-                    response.setGastos(gastos);//Objeto gastos
-                    
-                  
-                    propiedadesDTO propiedades = new propiedadesDTO();
-                    List<propiedadesDTO> lista_prop = new ArrayList<>(); 
-                    log.info("Obteniendo el valor de la propiedad de socioeconomicos:"+sc.getValorpropiedad());
-                    propiedades.setValor(String.valueOf(sc.getValorpropiedad()));
-                    propiedades.setAdeudo(null);
-                    propiedades.setSaldo(null);
-                    propiedades.setUbicacion(null);
-                    lista_prop.add(propiedades);
-                    response.setPropiedades(lista_prop);//Objeto lista propiedades
-                    
-                    response.setTotal_valor_propiedades(String.valueOf(sc.getValorpropiedad()));//atributo valor propiedades
-                    
-                    conyugueDTO conyugue = new conyugueDTO();
-                    int cons_tr_con = 0;
-                    if(response.getNum_socio_conyugue() != "") {
-                    	if(referencia != null) {
-                        PersonaPK referencia_pk = new PersonaPK(referencia.getIdorigenr(),referencia.getIdgrupor(),referencia.getIdsocior());
-                        log.info("Buscando conyugue");
-                        Persona persona_conyuge = personaService.findByOgs(referencia_pk);
-                        log.info("Vamos a buscar la lista de tabajos para conyugue:"+persona_conyuge.getPk());
-                        List<Trabajo> lista_trabajo_conyuge = trabajosService.findTrabajosActivosByOgs(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),1);
-                        if(lista_trabajo_conyuge.size() >0 ) {
-                        	cons_tr_con= trabajo.getConsecutivo();                        	
-                        }
-                        log.info("Vamos a buscar trabajo consecutivo para conyugue");
-                        Trabajo trabajo_consecutivo_conyuge = trabajosService.findTrabajoByOgsAndConsecutivo(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),cons_tr_con);
-                        log.info("El trabajo para conyugue es:"+trabajo_consecutivo_conyuge);
-                       	Colonias colonia_conyuge = coloniaService.findById(persona_conyuge.getIdcolonia());
-                       	log.info("La colonia para el conyugue es:"+colonia_conyuge);
-                        Municipios municipio_conyuge = municipioService.findById(colonia_conyuge.getIdmunicipio());
-                        log.info("El municipio para para el conyugue es:"+municipio_conyuge);
-                        Estados estado_conyuge = estadoService.findById(municipio_conyuge.getIdestado());
-                        log.info("El estado para el conyugue es:"+estado_conyuge);
-                        
-                        conyugue.setEdad(String.valueOf(cal_edad(persona_conyuge.getFechanacimiento())));
-                        conyugue.setDireccion(persona_conyuge.getCalle() + " " + persona_conyuge.getNumeroext());
-                        if (trabajo_consecutivo_conyuge.getOcupacion() != null) {
-                        conyugue.setOcupacion(trabajo_consecutivo_conyuge.getOcupacion()); 
-                        } else {
-                        conyugue.setOcupacion(null);
-                        }
-                        conyugue.setCp(colonia_conyuge.getCodigopostal());
-                        conyugue.setCiudad(municipio_conyuge.getNombre());
-                        conyugue.setEstado(estado_conyuge.getNombre());
-                        conyugue.setLugar_trabajo(trabajo_consecutivo_conyuge.getNombre());
-                        if (trabajo_consecutivo_conyuge.getFechaingreso() == null) {
-                        conyugue.setAntiguedad(null);
-                        } else {
-                        conyugue.setAntiguedad(String.valueOf(restaFechas(trabajo_consecutivo_conyuge.getFechaingreso())));
-                        }
-                        if (trabajo_consecutivo_conyuge.getCalle() != null) { 
-                        conyugue.setDomicilio_empleo(trabajo_consecutivo_conyuge.getCalle() + " " + trabajo_consecutivo_conyuge.getNumero());
-                        }else {
-                        conyugue.setDomicilio_empleo(null); 
-                        }
-                        if (trabajo_consecutivo_conyuge.getTelefono() != null) {
-                        conyugue.setTelefono_empleo(trabajo_consecutivo_conyuge.getTelefono());
-                        } 
-                        else { 
-                        	conyugue.setTelefono_empleo(null); 
-                        }
-                        conyugue.setHistorial(null);
-                      }
-                    }
-                    response.setConyugue(conyugue);//Atributo objeto conyugue
-                    
-                    List<referenciasPersonalesDTO> lista_referencias_response = new ArrayList<>();
-                    log.info("Obteniendo lista de referencias");
-                    List<Referencias> referencias_lista = referenciaService.findAll(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
-                    for(int x=0;x<referencias_lista.size();x++) {
-                        referenciasPersonalesDTO referenciasp = new referenciasPersonalesDTO();
-                        Referencias referencia_entity = referencias_lista.get(x);
-                       
-                        PersonaPK referencia_pk = new PersonaPK(referencia_entity.getIdorigenr(),referencia_entity.getIdgrupor(),referencia_entity.getIdsocior());
-                        Persona persona_referencia = personaService.findByOgs(referencia_pk);
-                        referenciasp.setNombre(persona_referencia.getNombre() + " " + persona_referencia.getAppaterno() + " " + persona_referencia.getApmaterno());
-                        referenciasp.setDireccion(persona_referencia.getCalle() + " " + persona_referencia.getNumeroext());
-                        CatalogoMenus catalogo_referencia = catalogoMenuService.findByMenuOpcion("referenciap",referencia_entity.getTiporeferencia());
-                        referenciasp.setParentesco(catalogo_referencia.getDescripcion());
-                        referenciasp.setTelefono(persona_referencia.getTelefono());                        
-                        lista_referencias_response.add(referenciasp);
-                    }
-                   response.setReferencias_personales(lista_referencias_response);//Lista referencias
-                   
-                   referenciasLaboralesDTO referencias_laborales = new referenciasLaboralesDTO();
-                   
-                   relacionesSociosDTO relaciones_socios = new relacionesSociosDTO();
-                   List<relacionesSociosDTO> listaRS = new ArrayList<>();
-                   listaRS.add(relaciones_socios);    
-                   log.info("Obteniendo regimien matrimonial");
-                   CatalogoMenus menu_regimen_mat = catalogoMenuService.findByMenuOpcion("regimen_mat",persona.getRegimenMat().intValue());
-                   log.info("Menu regimen matrimonial:"+menu_regimen_mat);
-                   response.setRegimen_patrimonial(menu_regimen_mat.getDescripcion());
-                   response.setNumero_dependientes(String.valueOf(sc.getDependientes() + sc.getDependientes_menores()));//Atributo numero dependientes
-                   response.setTelefono_recados(persona.getTelefonorecados());//telefono recados
-                   Auxiliar folio_ahorro = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(), persona.getPk().getIdsocio(),110,2);
-                   System.out.println("Folio ahorro:"+folio_ahorro.getSaldo());
-                   response.setMonto_ahorro(String.valueOf(folio_ahorro.getSaldo()));//atributo monto ahorro
-                   
-                   response.setAntiguedad_socio(String.valueOf(cal_edad(persona.getFechaingreso())));//atributo antiguedad socio
-                   response.setParte_social(String.valueOf(folio_parte_social.getSaldo()));
-                   response.setFideicomiso(null);
-                   response.setHistorial_cooperativa(null);
-                   response.setLinea_credito(null);
-                   response.setLinea_credito_letras(null);
-                   response.setAseguradora(null);
-                   response.setClausulas(null);
-                   response.setModalidad_pago(null);
-                   response.setTipo_operacion(null);
-                   response.setDatos_del_poder(null);
-                   response.setDisponibilidad(null);
-                   response.setPorcentaje_capacidad(null);
-                   
-                   CatalogoMenus cmsex = catalogoMenuService.findByMenuOpcion("sexo",persona.getSexo().intValue());
-                   response.setSexo(cmsex.getDescripcion());
-                   
-                   if (origen.getIdorigen() == 30200) {
-                	   /*Variables nuevas SAN NICOLAS*/
-                	   CatalogoMenus edo_civil = catalogoMenuService.findByMenuOpcion("estadocivil",persona.getEstadocivil().intValue());
-                	   response.setEstado_civil(edo_civil.getDescripcion());
-                	   if (referencia != null ) {
-                		   PersonaPK referencia_pk_cony = new PersonaPK(referencia.getIdorigenr(),referencia.getIdgrupor(),referencia.getIdsocior());
-                           Persona persona_cony = personaService.findByOgs(referencia_pk_cony);
-                    	   response.setNombre_conyuge(persona_cony.getNombre() + " " + persona_cony.getAppaterno() + " " + persona_cony.getApmaterno()); //dto info conyugue
-                	   } else {
-                		   response.setNombre_conyuge(null);
-                	   }
-                	   if (trabajo != null) {
-                		   response.setNombre_empresa(trabajo.getNombre());
-                	   } else {
-                		   response.setNombre_empresa(null);
-                	   }
-                	   response.setOtros_gastos(Double.parseDouble(gastos.getTotal_gastos()));
-                   }
-                   
-                   System.out.println("Exitoso");
-				   }
-			    } else {
-			    	response.setNota("Parte social incompleta...");
-			    }
-		     }
-		  }
-	   } catch(Exception e) {
-		   System.out.println("Error al llenar data result: " + e.getMessage());
-		   e.printStackTrace();
-	   }
+				
+				if (tb_producto_parte_social != null) {
+					log.info("Si existe un producto de parte social");
+					Auxiliar folio_parte_social = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),Integer.parseInt(tb_producto_parte_social.getDato1()),2);
+					log.info("El folio de parte social es: " + folio_parte_social);
+					
+					if (folio_parte_social.getSaldo().doubleValue() >= Double.parseDouble(tb_producto_parte_social.getDato2())) {
+						log.info("El monto de parte social es mayor al configurado en el core");
+						response.setEs_socio("1");//atributo es socio
+						response.setOgs(String.format("%06d",persona.getPk().getIdorigen())+String.format("%02d",persona.getPk().getIdgrupo())+String.format("%06d",persona.getPk().getIdsocio()));//campo ogs
+						response.setPrimer_nombre(persona.getNombre());//atributo primer nombre
+						response.setApellidos(persona.getAppaterno()+" "+persona.getApmaterno());//atributo apellidos
+						response.setNumero_documento(persona.getCurp());//atributo numero de documento
+						response.setTelefono_Celular(persona.getCelular());//atributo telefono_celular
+						response.setFecha_nacimiento(persona.getFechanacimiento().toString());//atributo fecha_nacimiento
+						response.setLugar_nacimiento(persona.getLugarnacimiento());//atributo lugar_nacimiento
+						response.setRfc(persona.getRfc());
+						log.info("Vamos a buscar socieconomicos");
+						Socioeconomicos sc = socioeconomicosService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
+						log.info("Socio economicos encontrados: " + sc);
+						response.setPersonas_viven_en_casa(sc.getDependientes().toString());//Personas que viven en casa
+						primerEmpleoDTO primerempleo = new primerEmpleoDTO();
+						segundoEmpleoDTO segundoempleo = new segundoEmpleoDTO();
+						log.info("Buscando una lista de trabajo");
+						List<Trabajo>listaTrabajos = trabajosService.findTrabajosActivosByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),2);
+						int cons_tr_ac = 0; //consecutivo trabajo actual    
+						log.info("Vamos a correr la lista de trabajos");
+						if (listaTrabajos != null) {
+							for (int i = 0;i<listaTrabajos.size();i++) {
+								Trabajo trabajo = listaTrabajos.get(i);
+								log.info("trabajo numero: " + i);
+								CatalogoMenus menu = catalogoMenuService.findByMenuOpcion("giro_empresa", trabajo.getGiro_empresa());
+								log.info("Giro empresa para trabajo: " + i + " es " + menu);
+								Colonias colonia = coloniaService.findById(trabajo.getIdcolonia());
+								log.info("Colonia para para trabajo:"+i+" es " + colonia);
+								Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
+								log.info("Municipio para el trabajo: " + i + " es " + municipio);
+								Estados estado = estadoService.findById(municipio.getIdestado());
+								if (i == 0) {
+									log.info("Llenando primer empleo");
+									cons_tr_ac = trabajo.getConsecutivo();
+									if (trabajo.getOcupacion_numero() != null) {
+										primerempleo.setOcupacion(trabajo.getOcupacion()); 
+									}
+									else {
+										primerempleo.setOcupacion(null); 
+									}
+									primerempleo.setPuesto(trabajo.getPuesto());
+									primerempleo.setTelefono(trabajo.getTelefono());
+									primerempleo.setGiro(menu.getDescripcion());
+									primerempleo.setCodigo_postal(colonia.getCodigopostal());
+									primerempleo.setCalle(trabajo.getCalle());
+									primerempleo.setNumero_exterior(trabajo.getNumero());
+									primerempleo.setNumero_interior(null);
+									primerempleo.setColonia(colonia.getNombre());
+									primerempleo.setMunicipio(municipio.getNombre());
+									primerempleo.setEstado(estado.getNombre());                             
+								} else if (i == 1) {
+									log.info("Llenando segundo empleo");
+									segundoempleo.setOcupacion(trabajo.getOcupacion());
+									segundoempleo.setPuesto(trabajo.getPuesto());
+									segundoempleo.setTelefono(trabajo.getTelefono());
+									segundoempleo.setNombre_empresa(trabajo.getNombre());
+									segundoempleo.setAntiguedad(String.valueOf(cal_edad((Date) trabajo.getFechaingreso())));
+									segundoempleo.setGiro(menu.getDescripcion());
+									segundoempleo.setCodigo_postal(colonia.getCodigopostal());
+									segundoempleo.setCalle(trabajo.getCalle());
+									segundoempleo.setNumero_exterior(trabajo.getNumero());
+									segundoempleo.setNumero_interior(null);
+									segundoempleo.setColonia(colonia.getNombre());
+									segundoempleo.setMunicipio(municipio.getNombre());
+									segundoempleo.setEstado(estado.getNombre());
+								}
+							}
+						}
+						
+						log.info("Vamos a ver si el socio es jubilado");
+						Trabajo trabajo = trabajosService.findTrabajoByOgsAndConsecutivo(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),cons_tr_ac);
+						if (trabajo != null) {
+							if (trabajo.getPuesto().toUpperCase().contains("JUBILADO")) {
+								response.setJubilado("1");//atributo jubilado (obtenido de sus trabajos)
+							} else {
+								response.setJubilado("0");
+							}
+							if (trabajo.getFechaingreso() == null) {
+								response.setFecha_ingreso_laboral("");
+							} else {
+								response.setFecha_ingreso_laboral(dateToString(trabajo.getFechaingreso()));//atributo fecha ingreso laboral
+							}
+							response.setIngresos_mensuales(trabajo.getIng_mensual_neto().toString());//atributo ingresos mensuales
+						}
+						
+						log.info("Buscando colonia para la persona");
+						Colonias colonia = coloniaService.findById(persona.getIdcolonia());
+						if (colonia != null) {
+							log.info("La colonia para la persona es: " + colonia);
+							Municipios municipio = municipioService.findById(colonia.getIdmunicipio());
+							log.info("El municipio para la persona es:"+municipio);
+							Estados estado = estadoService.findById(municipio.getIdestado());
+							log.info("El estado para la persona es: " + estado);
+							response.setEstado(estado.getNombre());//atributo estado
+							response.setCiudad(municipio.getNombre());//atributo ciudad
+							response.setDireccion(persona.getCalle() + " " + persona.getNumeroext());//atributo direccion
+							response.setCodigo_postal(colonia.getCodigopostal());//atributo codigo postal
+							response.setColonia(colonia.getNombre());
+						}
+						
+						if (sc.getPropietariovivienda() != null) {
+							response.setPropiedad_vivienda(sc.getPropietariovivienda());//atributo propiedad vivienda
+						} else {
+							response.setPropiedad_vivienda(null);
+						}
+						
+						response.setEmail(persona.getEmail());//atributo email
+						log.info("Vamos a buscar grado de estudios");
+						CatalogoMenus menu_estudio = catalogoMenuService.findByMenuOpcion("grado_estudios",persona.getGradoEstudios().intValue());
+						log.info("El grado de estudios para la persona es: " + menu_estudio);
+						response.setUltimo_estudio_cursado(menu_estudio.getDescripcion());//atributo ultimo estudio cursado
+						response.setTelefono_auxiliar(persona.getTelefono());//atributo telefono auxiliar
+						
+						if (sc.getFechahabitacion() == null) {
+							response.setAntiguedad_domicilio("");
+						} else {
+							response.setAntiguedad_domicilio(String.valueOf(restaFechas(sc.getFechahabitacion())));//atributo antiguedad en domicilio
+							log.info("Vamos a buscar referencias");
+							Referencias referencia = referenciaService.finByOgsAndTipoReferencia(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),1);
+							if (referencia != null) {
+								log.info("Referencias encontradas: " + referencia);	
+								response.setNum_socio_conyugue(String.format("%06d",referencia.getIdorigenr())+String.format("%02d",referencia.getIdgrupor())+String.format("%06d",referencia.getIdsocior()));//atributo num_socio_conyuge
+							} else {
+								response.setNum_socio_conyugue(null);
+							}
+							response.setCant_hijos(String.valueOf(sc.getDependientes_menores()));//atributo cantidad hijos
+							
+							if (trabajo != null) {
+								log.info("Buscando giro trabajo por consecutivo");
+								CatalogoMenus catalogo_giro_empresa = catalogoMenuService.findByMenuOpcion("giro_empresa",trabajo.getGiro_empresa());
+								log.info("Giro empresa consecutivo es:"+catalogo_giro_empresa);
+								response.setRubro_laboral(catalogo_giro_empresa.getDescripcion());//atributo rubro laboral
+								response.setTelefono_trabajo(trabajo.getTelefono());//atributo telefono trabajo
+							}
+							
+							//validamos cuanto alcanza en credito
+							validacionDTO validacion = new validacionDTO();
+							validacion.setRangoMontos("0-0");
+							
+							
+							
+							
+							
+							log.info("Vamos a correr la funcion para obtener maximo a prestar");
+							String monto_maximo_prestar = "";
+							
+							//Si el producto que se esta solicitando es el gerencial
+							if (idproducto == 1 || idproducto != 2) {
+								monto_maximo_prestar = funcionesService.validacion_monto_prestar(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(), persona.getPk().getIdsocio());
+								//Si el producto que se esta solicitando es el nuevo con riesgo
+							} else if (idproducto == 2) {
+								monto_maximo_prestar = funcionesService.validacion_monto_prestar_2(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(), persona.getPk().getIdsocio());
+							}
+							
+							log.info("ARRAY MONTO MAXIMO A PRESTAR: " + monto_maximo_prestar);
+							String[] montos_array = monto_maximo_prestar.split("\\|");
+							rangos = Arrays.asList(montos_array);
+							String plazoMin = "0", plazoMax = "0", montoMin = "0", montoMax = "0";
+							
+							if (!monto_maximo_prestar.toUpperCase().contains("ERROR")) {
+								//Buscamos las tablas de mensajes 
+								TablaPK tb_pk_tmp = new TablaPK();
+								tb_pk_tmp.setIdtabla(idtabla);
+								tb_pk_tmp.setIdelemento("comision");
+								Tabla tb_comision_servicio = tablasService.buscarPorId(tb_pk_tmp);
+								tb_pk_tmp.setIdelemento("nota_comision");
+								Tabla tb_nota_comision  = tablasService.buscarPorId(tb_pk_tmp);
+								tb_pk_tmp.setIdelemento("nota_dispersion");
+								Tabla tb_nota_dispersion = tablasService.buscarPorId(tb_pk_tmp);
+								tb_pk_tmp.setIdelemento("nota_renovacion");
+								Tabla tb_nota_renovacion = tablasService.buscarPorId(tb_pk_tmp);
+								tb_pk_tmp.setIdelemento("nota_montos_atrasado");
+								Tabla tb_nota_monto_atraso = tablasService.buscarPorId(tb_pk_tmp);
+								
+								log.info("Rangossss: " + rangos);
+								
+								//CSN rangos
+								if (origen.getIdorigen() == 30200) {
+									plazoMin = config_minimo_solicitud.getDato2();
+									plazoMax = rangos.get(1).toString();
+									montoMin = config_minimo_solicitud.getDato1();
+									montoMax = rangos.get(3).toString();
+									
+									TablaPK tb_pk = new TablaPK(idtabla,"monto_maximo_solicitud");
+									Tabla tb_monto_maximo = tablasService.buscarPorId(tb_pk);
+									
+									if (Double.parseDouble(montoMax)> Double.parseDouble(tb_monto_maximo.getDato1())) {
+										montoMax = tb_monto_maximo.getDato1();
+									}
+									//Vamos a buscar plazo maximo ----> 03/05/2023 Wilmer
+									if (!tb_monto_maximo.getDato2().equals("")) {
+										plazoMax = tb_monto_maximo.getDato2();
+									}
+									//buenos rangos
+								} else {
+									plazoMin = rangos.get(0).toString();
+									plazoMax = rangos.get(1).toString();
+									montoMin = rangos.get(2).toString();
+									montoMax = rangos.get(3).toString();
+								}
+								
+								String tipoApertura = rangos.get(4).toString();
+								String totalRenovar = rangos.get(5).toString();
+								String totalAtraso = rangos.get(7).toString();
+								String idorigenp = rangos.get(10).toString();
+								
+								boolean bandera = false;
+								log.info("Montos max: " + Double.parseDouble(montoMax) + ", min: " + Double.parseDouble(montoMin));
+								
+								if (Double.parseDouble(montoMax) >= Double.parseDouble(montoMin)) {
+									validacion.setRangoMontos(montoMin + "-" + montoMax);
+									bandera = true;
+								} else {
+									validacion.setRangoMontos("0-0");
+								}
+								//validacion.setRangoMontos(montoMin+"-"+montoMax);
+								validacion.setRangoPlazos(plazoMin + "-" + plazoMax);
+								
+								tmp_aperturas tmp_saver = new tmp_aperturas();
+								/*tmp_saver.setIdorigen(persona.getPk().getIdorigen());
+								 * tmp_saver.setIdgrupo(persona.getPk().getIdgrupo());
+								 * tmp_saver.setIdsocio(persona.getPk().getIdsocio());*///Comentado el 25/07/2024 a las 4:57 por cambio de id en entity
+								tmp_saver.setPk(persona.getPk());
+								tmp_saver.setMontoalcanzado(Double.parseDouble(rangos.get(3).toString()));
+								tmp_saver.setIdorigenp(Integer.parseInt(idorigenp));
+								tmp_saver.setFecha(new Date());
+								
+								if (tipoApertura.toUpperCase().contains("R")) {
+									String[]cadena = rangos.get(9).toString().split("\\-");
+									String opaAnterior = String.format("%06d",Integer.parseInt(cadena[0]))+String.format("%05d",Integer.parseInt(cadena[1]))+String.format("%08d",Integer.parseInt(cadena[2]));
+									if (bandera) {
+										validacion.setTipo_apertura("Renovacion");
+										validacion.setMonto_renovar(Double.parseDouble(totalRenovar));
+									}
+									
+									String mmensajeAtraso = "",imprt = "";
+									if (Double.parseDouble(totalAtraso) > 0) {
+										mmensajeAtraso = tb_nota_monto_atraso.getDato2().replace("@atraso@",totalAtraso)+" al folio:"+opaAnterior+",";
+										imprt =", IMPORTANTE(Primero debe liquidar monto atrasado para poder continuar con su renovacion)";
+									}
+									/*validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+","+
+			        	             tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar)+","+mmensajeAtraseo+ 		
+			        			     tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+totalRenovar+" - "+String.valueOf(Double.parseDouble(tb_comision_servicio.getDato1()) + Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16))+imprt);*/
+									
+									DatoRenovacionVO vo = new DatoRenovacionVO();
+									vo.setCapital(Double.parseDouble(totalRenovar));
+									vo.setInteres(Double.parseDouble(totalAtraso));
+									vo.setNotaRenovacion("Importante,antes de cualquier solicitud debe liquidar intereses");
+									
+									validacion.setDetalleRenovacion(vo);
+									validacion.setNota(tb_nota_comision.getDato2().replace("@comision@",String.valueOf(0)) + "," +
+															tb_nota_renovacion.getDato2().replace("@renovacion@",totalRenovar) + "," + mmensajeAtraso +
+															tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - " + totalRenovar) + imprt);
+									
+									tmp_saver.setTipoapertura("Renovacion");
+									tmp_saver.setMontorenovar(Double.parseDouble(rangos.get(5).toString()));
+									tmp_saver.setAtrasado(Double.parseDouble(rangos.get(7).toString()));	
+									tmp_saver.setIdproducto(Integer.parseInt(rangos.get(8).toString()));
+									tmp_saver.setOpaactivo(rangos.get(9).toString());
+									//double totallibre = tmp_saver.getMontorenovar()+Double.parseDouble(tb_comision_servicio.getDato1())+(Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16);
+									Double totallibre = tmp_saver.getMontorenovar();
+									tmp_saver.setGastos_pagar(totallibre);
+								} else {
+									tmp_saver.setTipoapertura("Activacion");
+									tmp_saver.setIdproducto(Integer.parseInt(rangos.get(8).toString()));
+									tmp_saver.setOpaactivo("0-0-0");
+									
+									validacion.setTipo_apertura("Activacion");
+									/*validacion.setNota(tb_nota_comision.getDato2().replace("@comision@", tb_comision_servicio.getDato1())+","+
+	        	                      tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado - "+tb_comision_servicio.getDato1()));*/
+									validacion.setNota(tb_nota_comision.getDato2().replace("@comision@", "0") + ", " +
+															tb_nota_dispersion.getDato2().replace("@dispersion@", "montoSolicitado"));
+									validacion.setMonto_renovar(0.0);
+									
+									//double totallibre = Double.parseDouble(tb_comision_servicio.getDato1())+(Double.parseDouble(tb_comision_servicio.getDato1()) * 0.16);
+									double totallibre = 0.0;
+									tmp_saver.setGastos_pagar(totallibre);
+								}
+								
+								tmp_saver = tmpService.guardar(tmp_saver);
+								/*if(bandera) { //Modificado 25/07/2023
+    			          			tmp_saver = tmpService.guardar(tmp_saver);
+    			          		}*/
+							} else {
+								//buenos aires mostramos el error que trae la funcion
+								if (origen.getIdorigen() == 30100) {
+									response = new dataDTO();
+									response.setNota(rangos.get(1));
+									return response;
+								} else {
+									String mensajeValidacion = rangos.get(2);
+									if (mensajeValidacion.toUpperCase().contains("COMPATIB")) {
+										if(origen.getIdorigen() == 30200) {
+											validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
+													+ "en el apartado de “Preguntas Frecuentes” en la App de CSN Móvil."
+													+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo.");
+										} else if (origen.getIdorigen() == 30300) {
+											validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
+													+ "en el apartado de “Preguntas Frecuentes” en la App de Mitras Móvil."
+													+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo.");
+										} else {
+											validacion.setNota("Socio, actualmente ya cuentas con un crédito que no te posibilita a realizar el trámite de un crédito Gerencial en Línea. Ver lista de productos compatibles "
+													+ "en el apartado de “Preguntas Frecuentes” en la App Móvil."
+													+ "Si es tu deseo, liquida uno de tus créditos actuales y vuelve a intentarlo.");
+										}
+									}
+									
+									validacion.setRangoPlazos(plazoMin + "-" + plazoMax);
+									validacion.setTipo_apertura("");
+									validacion.setMonto_renovar(0);
+									validacion.setRangoMontos("0-0");
+									validacion.setNota("NO PUEDE CONTINUAR CON SU SOLICITUD");
+								}
+							}
+							
+							response.setMonto_maximo_a_prestar(validacion);// objeto maximo a prestar
+							log.info("Vamos a buscar si tiene negocio propio");
+							Negociopropio negocio_prop = negocioService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
+							log.info("Negocio propio encontrado: " + negocio_prop);
+							comercioDTO comercio = new comercioDTO();
+							if (negocio_prop != null) {
+								response.setEs_socio_comercial("1");
+								//Para obtener el giro del negocio hay que buscar en catalogo menus
+								log.info("Vamos a buscar el giro del negocio propio");
+								CatalogoMenus catalogo_empresa_negocio = catalogoMenuService.findByMenuOpcion("giro_empresa",negocio_prop.getGiro_empresa());
+								log.info("El giro del negocio es:"+catalogo_empresa_negocio);
+								comercio.setGiro(catalogo_empresa_negocio.getDescripcion());//atributo giro comercio
+								comercio.setFecha_comienzo(String.valueOf(negocio_prop.getFechainicio()));
+								comercio.setDomicilio(negocio_prop.getCalle()+" "+negocio_prop.getNumeroext()+" "+negocio_prop.getNumeroint());
+								comercio.setTelefono(negocio_prop.getTelefono());
+								comercio.setIngreso_mensual(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
+								comercio.setOtros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
+								comercio.setFuente_otros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
+							} else {
+								response.setEs_socio_comercial("0");
+								comercio.setGiro(null);//atributo giro comercio
+								comercio.setFecha_comienzo(null);
+								comercio.setDomicilio(null);
+								comercio.setTelefono(null);
+								comercio.setIngreso_mensual(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
+								comercio.setOtros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
+								comercio.setFuente_otros_ingresos(null);//Se manda vacio porque no se tiene contemplado en la base de datos un registro de ingresos
+							}
+							response.setComercio(comercio);//Objeto comercio
+							response.setFuente_ingresos_fijos("ingresos ordinarios");//Se define estatico(atributo ingresos fijos)
+							response.setMonto_ingresos_fijos(String.valueOf(sc.getIngresosordinarios()));//atributo monto ingresos fijos
+							response.setFuente_ingresos_variables("ingresos extraordinarios");//Se define estatico(atributo ingresos variables)
+							response.setMonto_ingresos_variables(String.valueOf(sc.getIngresosextraordinarios()));//atributo ingresos variables
+							
+							//para los gastos si se obtiene de socioeconomicos pero se parametriza en tablas
+							TablaPK tb_pk_gatosa = new TablaPK(idtabla,"gastos_alimentacion");
+							log.info("Buscando tabla de gastos de alimentacion");
+							Tabla tb_gastos_alimentacion = tablasService.buscarPorId(tb_pk_gatosa);
+							log.info("Configuracion de gastos de alimentacion encontrada:"+tb_gastos_alimentacion);
+							if (tb_gastos_alimentacion != null) {
+								switch (tb_gastos_alimentacion.getDato1()) {
+									case "gastos_tipo1":
+										response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo1()));
+										break;
+									case "gastos_tipo2":
+										response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo2()));
+										break;
+									case "gastos_tipo3":
+										response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo3()));
+										break;
+									case "gastos_tipo4":
+										response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo4()));
+										break;
+									case "gastos_tipo5":
+										response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo5()));
+										break;
+									case "gastos_tipo6":
+										response.setGastos_alimentacion(String.valueOf(sc.getGastos_tipo6()));
+										break;
+								}
+							} else {
+								response.setGastos_alimentacion("");
+							}
+							//para los gastos si se obtiene de socioeconomicos pero se parametriza en tablas
+							log.info("Vamos a buscar gastos de servicio");
+							TablaPK tb_pk_gastos_servicio = new TablaPK(idtabla,"gastos_servicio");
+							Tabla tb_gastos_servicio = tablasService.buscarPorId(tb_pk_gastos_servicio);
+							log.info("Gastos de servicio encontrados:" + tb_gastos_servicio);
+							
+							if (tb_gastos_servicio != null) {
+								switch (tb_gastos_servicio.getDato1()) {
+									case "gastos_tipo1":
+										response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo1()));
+										break;
+									case "gastos_tipo2":
+										response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo2()));
+										break;
+									case "gastos_tipo3":
+										response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo3()));
+										break;
+									case "gastos_tipo4":
+										response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo4()));
+										break;
+									case "gastos_tipo5":
+										response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo5()));
+										break;
+									case "gastos_tipo6":
+										response.setGastos_pagos_servicios(String.valueOf(sc.getGastos_tipo6()));
+										break;
+								}
+							} else {
+								response.setGastos_pagos_servicios("");
+							}
+							
+							referenciasDTO referencias = new referenciasDTO();
+							log.info("Vamos a buscar referencia personal");
+							Referencias referencia_personal = referenciaService.finByOgsAndTipoReferencia(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio(),3);//Se busca la referencia 3 porque es referencia persona se definio estatico
+							log.info("Referencia personal encontrada:"+referencia_personal);
+							//Buscamos la persona referenciada referencia tipo 3 personal
+							if (referencia_personal != null) {//Solo me aseguro que traiga datos la busqueda
+								PersonaPK referencia_pk = new PersonaPK(referencia_personal.getIdorigenr(),referencia_personal.getIdgrupor(),referencia_personal.getIdsocior());
+								log.info("Vamos a buscar la persona referenciada");
+								Persona persona_referencia = personaService.findByOgs(referencia_pk);
+								referencias.setNombre(persona_referencia.getNombre()+" "+persona_referencia.getAppaterno()+" "+persona_referencia.getApmaterno());
+								referencias.setDireccion(persona_referencia.getCalle()+" "+persona_referencia.getNumeroext()+" "+persona_referencia.getNumeroint());
+								referencias.setParentesco("Referencia personal");//Estatico definido por Lic.Eliseo
+								referencias.setTelefono(persona_referencia.getTelefono());
+							} else {
+								referencias.setNombre(null);
+								referencias.setDireccion(null);
+								referencias.setParentesco(null);
+								referencias.setTelefono(null);
+							}
+							
+							response.setReferencias(referencias);//objeto referencias
+							response.setPrimer_empleo(primerempleo);//objeto primer empleo se busco arriba
+							response.setSegundo_empleo(segundoempleo);//objeto segundo empleo se busco arriba
+							response.setFecha_ingreso_caja(String.valueOf(persona.getFechaingreso()));//atributo fecha ingreso a la caja
+							negocioDTO negocio = new negocioDTO();
+							if (negocio_prop != null) {
+								negocio.setIngresos(String.valueOf(negocio_prop.getUtilidad_mens()));
+								negocio.setCompras(null);
+								negocio.setPago_sueldos(null);
+								negocio.setPago_renta(null);
+								negocio.setPago_creditos(null);
+								negocio.setOtros(null);
+								negocio.setTotal_negocio(null);
+								negocio.setHorario_dias_laborables(null);
+								negocio.setDomicilio(negocio_prop.getCalle() + " " + negocio_prop.getNumeroext()+" "+negocio_prop.getNumeroint());
+								negocio.setFuentes_otros_negocios(null);
+								
+								/*NOTA:para negocio se obtiene de negocio propio pero solo los campos que pueden recuperarse*/
+							}
+							response.setNegocio(negocio);//objeto negocio
+							response.setTotal_ingresos(String.valueOf(sc.getIngresosordinarios()));//atributo total ingresos
+							response.setOtros_ingresos(String.valueOf(sc.getIngresosextraordinarios()));//atributo otros ingresos
+							response.setFuentes_otros_ingresos("ingresos extraordinarios");//atributo fuente otros ingresos
+							
+							gastosDTO gastos = new gastosDTO();
+							//Obtenemos los gastos que estan parametrizados en tablas
+							log.info("Vamos a buscar la tabla de gastos");
+							TablaPK tb_pk_gatos = new TablaPK(idtabla,"gastos");
+							Tabla tb_gastos = tablasService.buscarPorId(tb_pk_gatos);
+							log.info("Tabla de gastos encontrada:"+tb_gastos);
+							double total_gastos = 0.0;
+							
+							if (tb_gastos != null) {
+								String[] gastos_array = tb_gastos.getDato2().split("\\,");
+								List lista_gastos = Arrays.asList(gastos_array);
+								for (int i=0;i<lista_gastos.size();i++) {
+									switch(lista_gastos.get(i).toString()) {
+										case "gastos_tipo1":
+											gastos.setAlimentacion(String.valueOf(sc.getGastos_tipo1()));
+											if (sc.getGastos_tipo1() != null) total_gastos = total_gastos + sc.getGastos_tipo1();
+											break;
+										case "gastos_tipo2":
+											gastos.setServicios_vivienda(String.valueOf(sc.getGastos_tipo2()));
+											if (sc.getGastos_tipo2() != null) total_gastos = total_gastos + sc.getGastos_tipo2();
+											break;
+										case "gastos_tipo3":
+											gastos.setVestido_calzado(String.valueOf(sc.getGastos_tipo3()));
+											if (sc.getGastos_tipo3() != null) total_gastos = total_gastos + sc.getGastos_tipo3();
+											break;
+										case "gastos_tipo4":
+											gastos.setTransporte(String.valueOf(sc.getGastos_tipo4()));
+											if (sc.getGastos_tipo4() != null ) total_gastos = total_gastos + sc.getGastos_tipo4();
+											break;
+										case "gastos_tipo5":
+											gastos.setEscuela(String.valueOf(sc.getGastos_tipo5()));
+											if (sc.getGastos_tipo5() != null) total_gastos = total_gastos + sc.getGastos_tipo5();
+											break;
+										case "gastos_tipo6":
+											gastos.setDeudas(String.valueOf(sc.getGastos_tipo6()));
+											if (sc.getGastos_tipo6() != null) total_gastos = total_gastos + sc.getGastos_tipo6();
+											break;
+									}
+								}
+								gastos.setTotal_gastos(String.valueOf(total_gastos));//Atributo de objetos gastos(Total de gastos)
+							} else {
+								gastos.setAlimentacion(null);
+								gastos.setVestido_calzado(null);
+								gastos.setServicios_vivienda(null);
+								gastos.setTransporte(null);
+								gastos.setEscuela(null);
+								gastos.setDeudas(null);
+							}
+							response.setGastos(gastos);//Objeto gastos
+							
+							propiedadesDTO propiedades = new propiedadesDTO();
+							List<propiedadesDTO> lista_prop = new ArrayList<>();
+							log.info("Obteniendo el valor de la propiedad de socioeconomicos: " + sc.getValorpropiedad());
+							propiedades.setValor(String.valueOf(sc.getValorpropiedad()));
+							propiedades.setAdeudo(null);
+							propiedades.setSaldo(null);
+							propiedades.setUbicacion(null);
+							lista_prop.add(propiedades);
+							response.setPropiedades(lista_prop);//Objeto lista propiedades
+							
+							response.setTotal_valor_propiedades(String.valueOf(sc.getValorpropiedad()));//atributo valor propiedades
+							
+							conyugueDTO conyugue = new conyugueDTO();
+							int cons_tr_con = 0;
+							if (response.getNum_socio_conyugue() != "") {
+								if (referencia != null) {
+									PersonaPK referencia_pk = new PersonaPK(referencia.getIdorigenr(),referencia.getIdgrupor(),referencia.getIdsocior());
+									log.info("Buscando conyugue");
+									Persona persona_conyuge = personaService.findByOgs(referencia_pk);
+									log.info("Vamos a buscar la lista de tabajos para conyugue:"+persona_conyuge.getPk());
+									List<Trabajo> lista_trabajo_conyuge = trabajosService.findTrabajosActivosByOgs(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),1);
+									if (lista_trabajo_conyuge.size() >0 ) {
+										cons_tr_con= trabajo.getConsecutivo();
+									}
+									log.info("Vamos a buscar trabajo consecutivo para conyugue");
+									Trabajo trabajo_consecutivo_conyuge = trabajosService.findTrabajoByOgsAndConsecutivo(referencia.getIdorigenr(), referencia.getIdgrupor(), referencia.getIdsocior(),cons_tr_con);
+									log.info("El trabajo para conyugue es:"+trabajo_consecutivo_conyuge);
+									Colonias colonia_conyuge = coloniaService.findById(persona_conyuge.getIdcolonia());
+									log.info("La colonia para el conyugue es:"+colonia_conyuge);
+									Municipios municipio_conyuge = municipioService.findById(colonia_conyuge.getIdmunicipio());
+									log.info("El municipio para para el conyugue es:"+municipio_conyuge);
+									Estados estado_conyuge = estadoService.findById(municipio_conyuge.getIdestado());
+									log.info("El estado para el conyugue es:"+estado_conyuge);
+									
+									conyugue.setEdad(String.valueOf(cal_edad(persona_conyuge.getFechanacimiento())));
+									conyugue.setDireccion(persona_conyuge.getCalle() + " " + persona_conyuge.getNumeroext());
+									if (trabajo_consecutivo_conyuge.getOcupacion() != null) {
+										conyugue.setOcupacion(trabajo_consecutivo_conyuge.getOcupacion());
+									} else {
+										conyugue.setOcupacion(null);
+									}
+									conyugue.setCp(colonia_conyuge.getCodigopostal());
+									conyugue.setCiudad(municipio_conyuge.getNombre());
+									conyugue.setEstado(estado_conyuge.getNombre());
+									conyugue.setLugar_trabajo(trabajo_consecutivo_conyuge.getNombre());
+									if (trabajo_consecutivo_conyuge.getFechaingreso() == null) {
+										conyugue.setAntiguedad(null);
+									} else {
+										conyugue.setAntiguedad(String.valueOf(restaFechas(trabajo_consecutivo_conyuge.getFechaingreso())));
+									}
+									if (trabajo_consecutivo_conyuge.getCalle() != null) {
+										conyugue.setDomicilio_empleo(trabajo_consecutivo_conyuge.getCalle() + " " + trabajo_consecutivo_conyuge.getNumero());
+									} else {
+										conyugue.setDomicilio_empleo(null);
+									}
+									if (trabajo_consecutivo_conyuge.getTelefono() != null) {
+										conyugue.setTelefono_empleo(trabajo_consecutivo_conyuge.getTelefono());
+									} else {
+										conyugue.setTelefono_empleo(null);
+									}
+									conyugue.setHistorial(null);
+								}
+							}
+							response.setConyugue(conyugue);//Atributo objeto conyugue
+							
+							List<referenciasPersonalesDTO> lista_referencias_response = new ArrayList<>();
+							log.info("Obteniendo lista de referencias");
+							List<Referencias> referencias_lista = referenciaService.findAll(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
+							for (int x=0;x<referencias_lista.size();x++) {
+								referenciasPersonalesDTO referenciasp = new referenciasPersonalesDTO();
+								Referencias referencia_entity = referencias_lista.get(x);
+								
+								PersonaPK referencia_pk = new PersonaPK(referencia_entity.getIdorigenr(),referencia_entity.getIdgrupor(),referencia_entity.getIdsocior());
+								Persona persona_referencia = personaService.findByOgs(referencia_pk);
+								referenciasp.setNombre(persona_referencia.getNombre() + " " + persona_referencia.getAppaterno() + " " + persona_referencia.getApmaterno());
+								referenciasp.setDireccion(persona_referencia.getCalle() + " " + persona_referencia.getNumeroext());
+								CatalogoMenus catalogo_referencia = catalogoMenuService.findByMenuOpcion("referenciap",referencia_entity.getTiporeferencia());
+								referenciasp.setParentesco(catalogo_referencia.getDescripcion());
+								referenciasp.setTelefono(persona_referencia.getTelefono());
+								lista_referencias_response.add(referenciasp);
+							}
+							response.setReferencias_personales(lista_referencias_response);//Lista referencias
+							
+							referenciasLaboralesDTO referencias_laborales = new referenciasLaboralesDTO();
+							
+							relacionesSociosDTO relaciones_socios = new relacionesSociosDTO();
+							List<relacionesSociosDTO> listaRS = new ArrayList<>();
+							listaRS.add(relaciones_socios);
+							log.info("Obteniendo regimien matrimonial");
+							CatalogoMenus menu_regimen_mat = catalogoMenuService.findByMenuOpcion("regimen_mat",persona.getRegimenMat().intValue());
+							log.info("Menu regimen matrimonial: " + menu_regimen_mat);
+							response.setRegimen_patrimonial(menu_regimen_mat.getDescripcion());
+							response.setNumero_dependientes(String.valueOf(sc.getDependientes() + sc.getDependientes_menores()));//Atributo numero dependientes
+							response.setTelefono_recados(persona.getTelefonorecados());//telefono recados
+							Auxiliar folio_ahorro = auxiliaresService.AuxiliarByOgsIdproducto(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(), persona.getPk().getIdsocio(),110,2);
+							System.out.println("Folio ahorro: " + folio_ahorro.getSaldo());
+							response.setMonto_ahorro(String.valueOf(folio_ahorro.getSaldo()));//atributo monto ahorro
+							
+							response.setAntiguedad_socio(String.valueOf(cal_edad(persona.getFechaingreso())));//atributo antiguedad socio
+							response.setParte_social(String.valueOf(folio_parte_social.getSaldo()));
+							response.setFideicomiso(null);
+							response.setHistorial_cooperativa(null);
+							response.setLinea_credito(null);
+							response.setLinea_credito_letras(null);
+							response.setAseguradora(null);
+							response.setClausulas(null);
+							response.setModalidad_pago(null);
+							response.setTipo_operacion(null);
+							response.setDatos_del_poder(null);
+							response.setDisponibilidad(null);
+							response.setPorcentaje_capacidad(null);
+							
+							CatalogoMenus cmsex = catalogoMenuService.findByMenuOpcion("sexo",persona.getSexo().intValue());
+							response.setSexo(cmsex.getDescripcion());
+							
+							if (origen.getIdorigen() == 30200) {
+								/*Variables nuevas SAN NICOLAS*/
+								CatalogoMenus edo_civil = catalogoMenuService.findByMenuOpcion("estadocivil",persona.getEstadocivil().intValue());
+								response.setEstado_civil(edo_civil.getDescripcion());
+								if (referencia != null ) {
+									PersonaPK referencia_pk_cony = new PersonaPK(referencia.getIdorigenr(),referencia.getIdgrupor(),referencia.getIdsocior());
+									Persona persona_cony = personaService.findByOgs(referencia_pk_cony);
+									response.setNombre_conyuge(persona_cony.getNombre() + " " + persona_cony.getAppaterno() + " " + persona_cony.getApmaterno()); //dto info conyugue
+								} else {
+									response.setNombre_conyuge(null);
+								}
+								if (trabajo != null) {
+									response.setNombre_empresa(trabajo.getNombre());
+								} else {
+									response.setNombre_empresa(null);
+								}
+								response.setOtros_gastos(Double.parseDouble(gastos.getTotal_gastos()));
+							}
+							
+							System.out.println("Exitoso");
+						}
+					} else {
+						response.setNota("Parte social incompleta...");
+					}
+				}
+			}
+		} catch(Exception e) {
+			System.out.println("Error al llenar data result: " + e.getMessage());
+			e.printStackTrace();
+		}
 		return response;
 	}
 	
 	
 	public PrestamoCreadoDTO aperturaFolio(String num_socio, Double monto, int plazos, int idproducto) {
+		log.info("Accediendo al ws 2....");
+
 		boolean bandera = false;
 		PrestamoCreadoDTO prestamo = null;
 		String montoCubrir = "";
-		log.info("Accediendo al ws 2....");
 		boolean bandera_plazos = false;
 		Auxiliar creado_aux = null;
+		Origenes origen = origenesService.findMatrizOrigen();
+		
 		try {
 			prestamo = new PrestamoCreadoDTO();
 			ogsDTO ogs = new HerramientasUtil().ogs(num_socio);
 			//Obtenemos informacion que ya se valido
 			tmp_aperturas tmp_validacion = tmpService.buscar(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio());
 			log.info("Vamos a buscar validaciones de ws 1...");
+			
 		    if (tmp_validacion != null) {
-		    	Origenes origen = origenesService.findMatrizOrigen(); 
 		    	if (origen.getIdorigen() == 30200) {
 		    		log.info("Validando reglas csn");
 		    		if (auxiliaresService.totAutorizados(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio()) > 0) {
@@ -1122,128 +1176,139 @@ public class CustomerServiceSpring {
 		    		if (monto <= tmp_validacion.getMontoalcanzado()) {
 		    			String aperturar_opa = funcionesService.aperturar_opa(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(), monto, plazos,tmp_validacion.getIdproducto(),tmp_validacion.getOpaactivo(),tmp_validacion.getIdorigenp());
 		    			log.info("Se lanzo la funcion para aperturar el folio: " + aperturar_opa);
-		    			AuxiliarPK pk = new AuxiliarPK(tmp_validacion.getIdorigenp(),tmp_validacion.getIdproducto(),Integer.parseInt(aperturar_opa.replace("|","").toString()));
-		    			creado_aux = auxiliaresService.AuxiliarByOpa(pk);//tmp_validacion.getIdorigenp(),tmp_validacion.getIdproducto(),Integer.parseInt(aperturar_opa.replace("|","").toString()));
-		    			prestamo.setOpa(String.format("%06d",creado_aux.getPk().getIdorigenp())+String.format("%05d",creado_aux.getPk().getIdproducto())+String.format("%08d",creado_aux.getPk().getIdauxiliar()));
-		    			prestamo.setIdorigenp(String.valueOf(creado_aux.getPk().getIdorigenp()));
-		    			prestamo.setNumero_producto(String.valueOf(creado_aux.getPk().getIdproducto()));
-		    			prestamo.setIdauxiliar(String.valueOf(creado_aux.getPk().getIdauxiliar()));
-		    			prestamo.setClasificacion_cartera(creado_aux.getCartera());
-		    			prestamo.setFolio_prestamo(String.format("%06d",creado_aux.getPk().getIdorigenp())+String.format("%05d",creado_aux.getPk().getIdproducto())+String.format("%08d",creado_aux.getPk().getIdauxiliar()));
 		    			
-		    			TablaPK tb_pk_producto = new TablaPK("numero_reca_por_producto",String.valueOf(creado_aux.getPk().getIdproducto()));
-		    			Tabla tb_reca_por_producto = tablasService.buscarPorId(tb_pk_producto);
-		    			prestamo.setReca_completo(tb_reca_por_producto.getDato1());
-		    			String[]tb_reca_array_recortado = tb_reca_por_producto.getDato1().split("\\/");
-		    			prestamo.setReca_recortado(tb_reca_array_recortado[0]);
-		    			
-		    			gatService.insertRegistros(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
-		    			log.info("Vamos a calcular el GAT");
-		    			double cat = gatService.calculoGAT(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
-		    			log.info("GAT Obtenido: " + cat);
-		    			gatService.removeRegistros(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
-		    			prestamo.setCat(String.valueOf(cat));
-		    			
-		    			avalDTO aval = new avalDTO();
-		    			prestamo.setAval(aval);
-		    			codeudorDTO codeudor = new codeudorDTO();
-		    			prestamo.setCodeudor(codeudor);
-		    			
-		    			//Buscamos el producto para tarjeta de debito
-		    			TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
-		    			Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
-		    			Auxiliar aux_tdd = null;
-		    			if (origen.getIdorigen() == 30300) {
-		    				aux_tdd = auxiliaresService.buscarCuentaCorrienteMitras(ogs.getIdorigen(), ogs.getIdgrupo(),ogs.getIdsocio());
-		    			} else {
-		    				aux_tdd = auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(),new Integer(tb_config_dispersion.getDato1()),2);
-		    			}
-		    			
-		    			prestamo.setTarjetaDebito(String.format("%06d",aux_tdd.getPk().getIdorigenp().intValue())+String.format("%05d",aux_tdd.getPk().getIdproducto().intValue())+String.format("%08d",aux_tdd.getPk().getIdauxiliar().intValue()));
-		    			
-		    			Amortizacion amortizacion_final = amortizacionesService.findUltimaAmortizacion(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
-		    			log.info("La amortizacion final es:"+amortizacion_final);
-		    			prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));
-/**************************************		    			
-		    			DetallesSiscore detallesSiscore = null;
-		    			if (origen.getIdorigen() == 30200) {
-		    				detallesSiscore = ResumenSiscoreCSN(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar()); 
-							prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
-							prestamo.setResumen_calificacion_siscore(detallesSiscore);
+		    			List<String> list_ape = new ArrayList<>();
+		    			String[] aper_array = aperturar_opa.split("\\|");
+						list_ape = Arrays.asList(aper_array);
+						
+						//si la funcion de apertura en la primera posicion trae 0 hay error
+						if (Integer.parseInt(list_ape.get(0)) != 0) {
+							AuxiliarPK pk = new AuxiliarPK(tmp_validacion.getIdorigenp(),tmp_validacion.getIdproducto(),Integer.parseInt(aperturar_opa.replace("|","").toString()));
+							creado_aux = auxiliaresService.AuxiliarByOpa(pk);//tmp_validacion.getIdorigenp(),tmp_validacion.getIdproducto(),Integer.parseInt(aperturar_opa.replace("|","").toString()));
+							prestamo.setOpa(String.format("%06d",creado_aux.getPk().getIdorigenp())+String.format("%05d",creado_aux.getPk().getIdproducto())+String.format("%08d",creado_aux.getPk().getIdauxiliar()));
+							prestamo.setIdorigenp(String.valueOf(creado_aux.getPk().getIdorigenp()));
+							prestamo.setNumero_producto(String.valueOf(creado_aux.getPk().getIdproducto()));
+							prestamo.setIdauxiliar(String.valueOf(creado_aux.getPk().getIdauxiliar()));
+							prestamo.setClasificacion_cartera(creado_aux.getCartera());
+							prestamo.setFolio_prestamo(String.format("%06d",creado_aux.getPk().getIdorigenp())+String.format("%05d",creado_aux.getPk().getIdproducto())+String.format("%08d",creado_aux.getPk().getIdauxiliar()));
+							
+							TablaPK tb_pk_producto = new TablaPK("numero_reca_por_producto",String.valueOf(creado_aux.getPk().getIdproducto()));
+							Tabla tb_reca_por_producto = tablasService.buscarPorId(tb_pk_producto);
+							prestamo.setReca_completo(tb_reca_por_producto.getDato1());
+							String[]tb_reca_array_recortado = tb_reca_por_producto.getDato1().split("\\/");
+							prestamo.setReca_recortado(tb_reca_array_recortado[0]);
+							
+							gatService.insertRegistros(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+							log.info("Vamos a calcular el GAT");
+							double cat = gatService.calculoGAT(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+							log.info("GAT Obtenido: " + cat);
+							gatService.removeRegistros(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+							prestamo.setCat(String.valueOf(cat));
+							
+							avalDTO aval = new avalDTO();
+							prestamo.setAval(aval);
+							codeudorDTO codeudor = new codeudorDTO();
+							prestamo.setCodeudor(codeudor);
+							
+							//Buscamos el producto para tarjeta de debito
+							TablaPK tb_pk_cdispersion = new TablaPK(idtabla,"producto_para_dispersion");
+							Tabla tb_config_dispersion  = tablasService.buscarPorId(tb_pk_cdispersion);
+							Auxiliar aux_tdd = null;
+							
+							if (origen.getIdorigen() == 30300) {
+								aux_tdd = auxiliaresService.buscarCuentaCorrienteMitras(ogs.getIdorigen(), ogs.getIdgrupo(),ogs.getIdsocio());
+							} else {
+								aux_tdd = auxiliaresService.AuxiliarByOgsIdproducto(ogs.getIdorigen(),ogs.getIdgrupo(),ogs.getIdsocio(),new Integer(tb_config_dispersion.getDato1()),2);
+							}
+							
+							prestamo.setTarjetaDebito(String.format("%06d",aux_tdd.getPk().getIdorigenp().intValue())+String.format("%05d",aux_tdd.getPk().getIdproducto().intValue())+String.format("%08d",aux_tdd.getPk().getIdauxiliar().intValue()));
+							Amortizacion amortizacion_final = amortizacionesService.findUltimaAmortizacion(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+							log.info("La amortizacion final es:"+amortizacion_final);
+							prestamo.setFecha_vencimiento_pagare(String.valueOf(amortizacion_final.getVence()));
+							
+/**************************************							DetallesSiscore detallesSiscore = null;
+							if (origen.getIdorigen() == 30200) {
+								detallesSiscore = ResumenSiscoreCSN(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar()); 
+								prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
+								prestamo.setResumen_calificacion_siscore(detallesSiscore);
+							}
+**************************************/							
+							List<Amortizacion> cuotas = amortizacionesService.findAll(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+							log.info("Total de amorizaciones: " + cuotas.size());
+							List<CuotaVO> cuotasVo = new ArrayList<CuotaVO>();
+							
+							Double insoluto = 0.0;
+							Double saldoTotal = 0.0;
+							for (int i = 0;i<cuotas.size();i++) {
+								CuotaVO cuotaVo = new CuotaVO();
+								DecimalFormat formatoDecimal = new DecimalFormat("#000000000000.00");
+								Amortizacion amortizacion = cuotas.get(i);
+								//Mitras
+								if(origenesService.findMatrizOrigen().getIdorigen() == 30300) {
+									PagoMitrasDTO pago = funcionesService.pagoMitras(creado_aux.getPk(),amortizacion.getIdamortizacion());
+									log.info("Vuelta con idamortizacion: " + amortizacion.getIdamortizacion());
+									cuotaVo.setInteresConDescuento(pago.getIod());
+									cuotaVo.setIvaInteresConDescuento(pago.getIva_iod());
+									cuotaVo.setDescuentoObtenido(pago.getDescuento());
+									cuotaVo.setIo(new BigDecimal(pago.getIo()).setScale(2,RoundingMode.HALF_UP));
+									cuotaVo.setMontoTotalConDescuento(pago.getTotal_iod());
+									cuotaVo.setMontoTotal(pago.getTotal_io());
+									cuotaVo.setIvaIntereses(new BigDecimal(pago.getIva_io()).setScale(2,RoundingMode.HALF_UP));
+								} else {
+									cuotaVo.setIo(amortizacion.getIo());
+									String resultado = formatoDecimal.format(amortizacion.getAbono().doubleValue() + amortizacion.getIo().doubleValue() + (amortizacion.getIo().doubleValue() * 0.16));
+									cuotaVo.setMontoTotal(Double.parseDouble(resultado));
+									BigDecimal numero = amortizacion.getIo().multiply(new BigDecimal(0.16));
+									
+									//Redondeo a 2 decimales con RoundingMode.HALF_UP
+									BigDecimal redondeado = numero.setScale(2, RoundingMode.HALF_UP);
+									cuotaVo.setIvaIntereses(redondeado);
+								}
+								cuotaVo.setIdorigenp(amortizacion.getIdorigenp());
+								cuotaVo.setIdproducto(amortizacion.getIdproducto());
+								cuotaVo.setIdauxiliar(amortizacion.getIdauxiliar());
+								cuotaVo.setIdamortizacion(amortizacion.getIdamortizacion());
+								cuotaVo.setVence(amortizacion.getVence());
+								cuotaVo.setAbono(amortizacion.getAbono());
+								cuotaVo.setAbonopag(amortizacion.getAbonopag());
+								cuotaVo.setIopag(amortizacion.getIopag());
+								cuotaVo.setBonificado(amortizacion.getBonificado());
+								cuotaVo.setPagovariable(amortizacion.getPagovariable());
+								cuotaVo.setTodopag(amortizacion.getTodopag());
+								cuotaVo.setAtiempo(amortizacion.getAtiempo());
+								cuotaVo.setBonificacion(amortizacion.getBonificacion());
+								cuotaVo.setAnualidad(amortizacion.getAnualidad());
+								cuotaVo.setDiasvencidos(amortizacion.getDiasvencidos());
+								
+								//ultimo añadido 19/06/2023
+								if (i == 0) {
+									saldoTotal = creado_aux.getMontoautorizado().doubleValue();
+								}
+								
+								insoluto = Double.parseDouble(formatoDecimal.format(saldoTotal.doubleValue() - amortizacion.getAbono().doubleValue()));
+								saldoTotal = insoluto;
+								cuotaVo.setSaldoInsoluto(saldoTotal);
+								cuotasVo.add(cuotaVo);
+							}
+							
+							prestamo.setCuotas(cuotasVo);
+							Producto producto = productoService.buscarPorId(creado_aux.getPk().getIdproducto());
+							prestamo.setTasa_anual(String.valueOf(producto.getTasaio() * 12));
+							
+							if (origen.getIdorigen() == 30200) {
+								/*Variables nuevas SAN NICOLAS*/
+								TablaPK tb_pk_comision = new TablaPK(idtabla,"comision");
+								Tabla tb_comision = tablasService.buscarPorId(tb_pk_comision);
+								prestamo.setMonto_comision(Double.parseDouble(tb_comision.getDato1()));
+								prestamo.setTasa_moratoria(creado_aux.getTasaim().doubleValue() * 12);
+							}
+							
+							tmpService.eliminar(tmp_validacion);
+						} else {
+							System.out.println("Error al aperturar el folio: " + list_ape.get(1));
+							prestamo.setNota(list_ape.get(1));
 						}
-********************************************/						
-		    			List<Amortizacion> cuotas = amortizacionesService.findAll(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
-		    			log.info("Total de amorizaciones:"+cuotas.size());
-		    			List<CuotaVO> cuotasVo = new ArrayList<CuotaVO>();
-		    			
-		    			Double insoluto = 0.0;
-		    			Double saldoTotal = 0.0;
-		    			for (int i = 0;i<cuotas.size();i++) {
-		    				CuotaVO cuotaVo = new CuotaVO();
-		    				DecimalFormat formatoDecimal = new DecimalFormat("#000000000000.00");
-		    				Amortizacion amortizacion = cuotas.get(i);
-		    				//Mitras
-		    				if(origenesService.findMatrizOrigen().getIdorigen() == 30300) {
-		    					PagoMitrasDTO pago = funcionesService.pagoMitras(creado_aux.getPk(),amortizacion.getIdamortizacion());
-		    					log.info("Vuelta con idamortizacion: " + amortizacion.getIdamortizacion());
-		    					cuotaVo.setInteresConDescuento(pago.getIod());
-		    					cuotaVo.setIvaInteresConDescuento(pago.getIva_iod());
-		    					cuotaVo.setDescuentoObtenido(pago.getDescuento());
-		    					cuotaVo.setIo(new BigDecimal(pago.getIo()).setScale(2,RoundingMode.HALF_UP));
-		    					cuotaVo.setMontoTotalConDescuento(pago.getTotal_iod());
-		    					cuotaVo.setMontoTotal(pago.getTotal_io());
-		    					cuotaVo.setIvaIntereses(new BigDecimal(pago.getIva_io()).setScale(2,RoundingMode.HALF_UP));
-		    				} else {
-		    					cuotaVo.setIo(amortizacion.getIo());
-		    					String resultado = formatoDecimal.format(amortizacion.getAbono().doubleValue() + amortizacion.getIo().doubleValue() + (amortizacion.getIo().doubleValue() * 0.16));
-		    					cuotaVo.setMontoTotal(Double.parseDouble(resultado));
-		    					BigDecimal numero = amortizacion.getIo().multiply(new BigDecimal(0.16));
-		    					
-		    					// Redondeo a 2 decimales con RoundingMode.HALF_UP
-		    					BigDecimal redondeado = numero.setScale(2, RoundingMode.HALF_UP);
-		    					cuotaVo.setIvaIntereses(redondeado);
-		    				}
-		    				cuotaVo.setIdorigenp(amortizacion.getIdorigenp());
-		    				cuotaVo.setIdproducto(amortizacion.getIdproducto());
-		    				cuotaVo.setIdauxiliar(amortizacion.getIdauxiliar());
-		    				cuotaVo.setIdamortizacion(amortizacion.getIdamortizacion());
-		    				cuotaVo.setVence(amortizacion.getVence());
-		    				cuotaVo.setAbono(amortizacion.getAbono());
-		    				cuotaVo.setAbonopag(amortizacion.getAbonopag());
-		    				cuotaVo.setIopag(amortizacion.getIopag());
-		    				cuotaVo.setBonificado(amortizacion.getBonificado());
-		    				cuotaVo.setPagovariable(amortizacion.getPagovariable());
-		    				cuotaVo.setTodopag(amortizacion.getTodopag());
-		    				cuotaVo.setAtiempo(amortizacion.getAtiempo());
-		    				cuotaVo.setBonificacion(amortizacion.getBonificacion());
-		    				cuotaVo.setAnualidad(amortizacion.getAnualidad());
-		    				cuotaVo.setDiasvencidos(amortizacion.getDiasvencidos());
-		    				
-		    				//ultimo añadido 19/06/2023
-		    				if (i == 0) {
-		    					saldoTotal = creado_aux.getMontoautorizado().doubleValue();
-		    				}
-		    				
-		    				insoluto = Double.parseDouble(formatoDecimal.format(saldoTotal.doubleValue() - amortizacion.getAbono().doubleValue()));
-		    				saldoTotal = insoluto;
-		    				cuotaVo.setSaldoInsoluto(saldoTotal);
-		    				cuotasVo.add(cuotaVo);
-		    			}
-		    			
-		    			prestamo.setCuotas(cuotasVo);
-		    			Producto producto = productoService.buscarPorId(creado_aux.getPk().getIdproducto());
-		    			prestamo.setTasa_anual(String.valueOf(producto.getTasaio() * 12));
-		    			
-		    			if (origen.getIdorigen() == 30200) {
-		    				/*Variables nuevas SAN NICOLAS*/
-		    				TablaPK tb_pk_comision = new TablaPK(idtabla,"comision");
-		    				Tabla tb_comision = tablasService.buscarPorId(tb_pk_comision);
-		    				prestamo.setMonto_comision(Double.parseDouble(tb_comision.getDato1()));
-		    				prestamo.setTasa_moratoria(creado_aux.getTasaim().doubleValue() * 12);
-		    			}
-		    			
-		    			tmpService.eliminar(tmp_validacion);
-		    		} else {
+					} else {
 		    			log.info("Monto solicitado excede el permitido en el core, solicitado: " + monto + ", alcanzado: " + tmp_validacion.getMontoalcanzado());
 		    			prestamo.setNota("Monto solicitado excede el permitido en el core");
 		    		}
@@ -1268,6 +1333,7 @@ public class CustomerServiceSpring {
 		PrestamoEntregado entregado = new PrestamoEntregado();
 		log.info("Accediendo al ws 3 dispersion: " + opaReq);
 		MovimientosPK mov_pk = null;
+		
 		try {
 			Origenes matriz=origenesService.findMatrizOrigen();
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -1275,6 +1341,7 @@ public class CustomerServiceSpring {
 			log.info("Pasando de leer origen matriz");
 			AuxiliarPK pk = new AuxiliarPK(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
 			Auxiliar auxiliar = auxiliaresService.AuxiliarByOpa(pk);
+			
 			//Verifico que el opa no se halla activado antes para evitar activar 2 veces
 			if (auxiliar.getEstatus() == 1) {
 				log.info("El estatus es autorizado");
@@ -1327,14 +1394,13 @@ public class CustomerServiceSpring {
 						auxiliar_tdd = auxiliaresService.AuxiliarByOgsIdproducto(auxiliar.getIdorigen(),auxiliar.getIdgrupo(),auxiliar.getIdsocio(),Integer.parseInt(tb_config_dispersion.getDato1()),2);
 					}
 					
-				
 					if (auxiliar_tdd != null) {
 						int total_movimientos = 0;
 						log.info("Se encontraron registros para producto dispersion");
-						procesaMovimientoService.eliminaMovimientoTodos(auxiliar.getIdorigen(), auxiliar.getIdgrupo(),auxiliar.getIdsocio());
+						procesaMovimientoService.eliminaMovimientoTodos(auxiliar.getIdorigen(), auxiliar.getIdgrupo(), auxiliar.getIdsocio());
 						
 						//Insertamos movimiento cargo(Auxiliar nuevo)
-						log.info("Insertando cargo para auxiliar nuevo:"+auxiliar.getPk());
+						log.info("Insertando cargo para auxiliar nuevo: " + auxiliar.getPk());
 						mov_pk = new MovimientosPK(Integer.parseInt(tb_usuario.getDato1()), sesion, referencia,auxiliar.getPk().getIdorigenp(),auxiliar.getPk().getIdproducto(),auxiliar.getPk().getIdauxiliar());
 						registrar_movimiento.setPk(mov_pk);
 						registrar_movimiento.setFecha(fecha_transferencia);
@@ -1350,7 +1416,7 @@ public class CustomerServiceSpring {
 						boolean bandera_renovacion = false;
 						boolean procesado = procesaMovimientoService.insertarMovimiento(registrar_movimiento);
 						total_movimientos = 1;
-					
+						
 						//Buscamos si lo que se va a aplicar es renovacion
 						AuxiliarPK pk_referenciap = new AuxiliarPK(opa.getIdorigenp(),opa.getIdproducto(),opa.getIdauxiliar());
 						Referenciasp referenciasp =  referenciaspService.buscarPorIdTipoReferencia(pk_referenciap);
@@ -1474,7 +1540,7 @@ public class CustomerServiceSpring {
 									entregado.setNota("Falla al dispersar credito,contacte proveedor...");
 								}
 *******************************************************/							
-								//deposito_csn = true;
+								deposito_csn = true;
 								
 								if (deposito_csn) {
 									log.info("Vamos a procesar registros csn");
@@ -1736,6 +1802,7 @@ public class CustomerServiceSpring {
 		return consumoWsSiscore;
 	}
 	
+	
 	public String pruebaPagoIntereses(String opaReq, Double monto) {
         String mensaje="";
 		try {
@@ -1836,7 +1903,7 @@ public class CustomerServiceSpring {
         int Meses = Años * 12 + Integer.parseInt(mesH) - Integer.parseInt(mesB);
         return Meses;
     }
-	
+    
     public String dateToString(Date fechac) {
     	SimpleDateFormat formato = new SimpleDateFormat("yyyy/MM/dd");
     	String fechaDate = null;
@@ -1847,7 +1914,7 @@ public class CustomerServiceSpring {
     	}
     	return fechaDate.replace("/","-");
     }
-	
+    
 	public int cal_edad(Date fecha_nac) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         String fechaNac = sdf.format(fecha_nac);

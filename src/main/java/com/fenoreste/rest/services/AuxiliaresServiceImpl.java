@@ -1,6 +1,5 @@
 package com.fenoreste.rest.services;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +17,9 @@ public class AuxiliaresServiceImpl implements IAuxiliaresService {
 	private AuxiliarRepository auxiliarRepository;
 
 	@Override
-	public Auxiliar AuxiliarByOgsIdproducto(Integer idorigen,Integer idgrupo, Integer idsocio,Integer idproducto,Integer estatus) {
+	public Auxiliar AuxiliarByOgsIdproducto(Integer idorigen, Integer idgrupo, Integer idsocio, Integer idproducto, Integer estatus) {
 	    log.info("Buscando datos para: " + idorigen + ", idgrupo: " + idgrupo + ", idsocio: " + idsocio);
-		return auxiliarRepository.buscarPorOpaIdProducto(idorigen,idgrupo, idsocio, idproducto,estatus);
+		return auxiliarRepository.buscarPorOpaIdProducto(idorigen, idgrupo, idsocio, idproducto, estatus);
 	}
 
 	@Override
@@ -37,6 +36,5 @@ public class AuxiliaresServiceImpl implements IAuxiliaresService {
 	public Auxiliar buscarCuentaCorrienteMitras(Integer idorigen, Integer idgrupo, Integer idsocio) {
 		return auxiliarRepository.buscarCuentaCorrienteMitras(idorigen, idgrupo, idsocio);
 	}
-	
 
 }
