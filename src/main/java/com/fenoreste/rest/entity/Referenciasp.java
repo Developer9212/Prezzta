@@ -22,4 +22,5 @@ public class Referenciasp implements Serializable {
 	private Integer idauxiliarr;
 	
     private static final long serialVersionUID = 1L;
+    
 }

@@ -22,13 +22,13 @@ public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	public String aperdfsftura_opa(ArrayList<String>arr);
 	
 	@Query(value = "SELECT sai_bankingly_aplica_transaccion(?1,?2,?3,?4)", nativeQuery = true)
-	public String sai_procesa_transaccion(Date fecha,Integer idusuario,String sesion,String referencia);
+	public String sai_procesa_transaccion(Date fecha, Integer idusuario, String sesion, String referencia);
 
 	@Query(value = "SELECT cheque_y_poliza_del_prestamo(?1,?2,?3, 1)", nativeQuery = true)
-	public String poliza(Integer idorigenp,Integer idproducto,Integer idauxiliar);
+	public String poliza(Integer idorigenp, Integer idproducto, Integer idauxiliar);
 	
 	@Query(value = "SELECT sai_bankingly_termina_transaccion(?1,?2,?3,?4)", nativeQuery = true)
-	public String sai_bankingly_termina_transaccion(Date fecha,Integer idusuario,String sesion,String referencia);
+	public String sai_bankingly_termina_transaccion(Date fecha, Integer idusuario, String sesion, String referencia);
 	
 	@Query(value = "SELECT sai_prezzta_cancela_prestamo_rechazado(?1,?2,?3)", nativeQuery = true)
 	public String eliminarAutorizado(Integer idorigenp,Integer idproducto,Integer idauxiliar);

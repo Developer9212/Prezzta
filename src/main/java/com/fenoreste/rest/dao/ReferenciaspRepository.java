@@ -7,6 +7,6 @@ import com.fenoreste.rest.entity.Referenciasp;
 
 public interface ReferenciaspRepository extends JpaRepository<Referenciasp,AuxiliarPK> {
 	
-	Referenciasp findBypkAndTiporeferencia(AuxiliarPK pk,Integer tipo);
-
+	Referenciasp findBypkAndTiporeferencia(AuxiliarPK pk, Integer tipo);
+	
 }

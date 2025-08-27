@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FolioTarjeta implements Serializable{
+public class FolioTarjeta implements Serializable {
 	
     @EmbeddedId
     private AuxiliarPK pk;
@@ -30,4 +30,5 @@ public class FolioTarjeta implements Serializable{
     private boolean bloqueada;
     
     private static final long serialVersionUID = 1L;
+    
 }

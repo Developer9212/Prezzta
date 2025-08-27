@@ -18,6 +18,4 @@ public class ReferenciaspServiceImpl implements IReferenciaspService {
 		return referenciaspDao.findBypkAndTiporeferencia(auxPk, 2);
 	}
 	
-	
-	
 }

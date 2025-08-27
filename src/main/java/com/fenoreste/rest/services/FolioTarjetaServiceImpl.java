@@ -17,5 +17,5 @@ public class FolioTarjetaServiceImpl implements IFolioTarjetaService {
 	public FolioTarjeta buscarPorId(AuxiliarPK pk) {
 		return folioTarjetaDao.findById(pk).orElse(null);
 	}
-
+	
 }

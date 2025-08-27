@@ -6,4 +6,5 @@ import com.fenoreste.rest.entity.FolioTarjeta;
 public interface IFolioTarjetaService {
 
 	public FolioTarjeta buscarPorId(AuxiliarPK pk);
+	
 }

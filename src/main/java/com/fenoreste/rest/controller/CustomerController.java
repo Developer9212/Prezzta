@@ -95,7 +95,8 @@ public class CustomerController {
         		}
     		}
     		
-    		PrestamoCreadoDTO prestamo = serviceCustomerSpring.aperturaFolio(request.getNum_socio(),request.getMonto().doubleValue(),request.getPlazos(),request.getProducto_id());
+    		PrestamoCreadoDTO prestamo = serviceCustomerSpring.aperturaFolio(request.getNum_socio(), request.getMonto().doubleValue(), request.getPlazos(),
+    																		 request.getProducto_id());
     		if (prestamo.getOpa() != null) {
     			info.setCode(200);
     			info.setMessage("El prestamo se ha aperturado con exito");
@@ -119,16 +120,16 @@ public class CustomerController {
     public ResponseEntity<?> terminaSolicitud(@PathVariable String opa, @PathVariable String opcion) {   
           JsonObject response = new JsonObject();
           try {
-        	  log.info("Activando el opa:"+opa+",el "+new Date());
+        	  log.info("Activando el opa: " + opa + ", el " + new Date());
         	  if(opcion.equalsIgnoreCase("si") || opcion.equalsIgnoreCase("no")) {
         		  PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion);
-            	  log.info("EStatus entregado:"+entregado.getEstatus());
+            	  log.info("Estatus entregado: " + entregado.getEstatus());
             	 if(entregado.getEstatus().toUpperCase().contains("ACTIV")) {
             		 response.put("code", 200);
             		 response.put("mensaje", "Solicitud terminada exitosamente.");
             		 response.put("detallesDispersion", entregado);
             		 return new ResponseEntity<>(response,HttpStatus.OK);
-            	 }else {    
+            	 } else {    
             		 entregado.setEstatus("Autorizado");
             		 response.put("code", 200);
             		 response.put("mensaje", "La solicitud se ha declinado.");
@@ -136,9 +137,9 @@ public class CustomerController {
             		 return new ResponseEntity<>(response,HttpStatus.OK);
             	 }            	 
             	 
-              }else {
+              } else {
             	  response.put("code", 409);
-            	  response.put("mensaje","opcion no valida,para confirmar=SI para declinar=NO");
+            	  response.put("mensaje","opcion no valida, para confirmar=SI para declinar=NO");
             	  response.put("detalleDispersion", null);
             	  return new ResponseEntity<>(response,HttpStatus.CONFLICT);
               }

@@ -61,7 +61,7 @@ public class FuncionesServiceImpl implements IFuncionesService{
 
 	@Override
 	public String obtenerPoliza(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
-		return funcionesRepository.poliza(idorigenp,idproducto,idauxiliar);
+		return funcionesRepository.poliza(idorigenp, idproducto, idauxiliar);
 	}
 
 	@Override
