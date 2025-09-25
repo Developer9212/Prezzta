@@ -9,7 +9,7 @@ import com.fenoreste.rest.entity.Plazo;
 
 public interface PlazoRepository extends JpaRepository<Plazo,Integer> {
    
-	@Query(value = "SELECT * FROM plazos WHERE ?1 >= montominimo AND ?1 <= montomaximo",nativeQuery = true)
+	@Query(value = "SELECT * FROM plazos WHERE ?1 >= montominimo AND ?1 <= montomaximo", nativeQuery = true)
 	public List<Plazo>listaPlazos(Double monto);
 
 }

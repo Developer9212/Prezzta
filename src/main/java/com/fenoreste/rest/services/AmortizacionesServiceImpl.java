@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.fenoreste.rest.dao.AmortizacionesRepository;
 import com.fenoreste.rest.entity.Amortizacion;
 
-
 @Service
 public class AmortizacionesServiceImpl implements IAmortizacionesService {
 
@@ -22,7 +21,7 @@ public class AmortizacionesServiceImpl implements IAmortizacionesService {
 	
 	@Override
 	public List<Amortizacion> findAll(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
-	     String query = "SELECT * FROM amortizaciones WHERE idorigenp="+idorigenp+" AND idproducto="+idproducto+" AND idauxiliar="+idauxiliar;
+	     String query = "SELECT * FROM amortizaciones WHERE idorigenp = " + idorigenp + " AND idproducto = " + idproducto + " AND idauxiliar = " + idauxiliar;
 		 List<Amortizacion>lista = jdbc.query(query,new BeanPropertyRowMapper<>(Amortizacion.class));
 		
 		 return lista;
@@ -32,9 +31,5 @@ public class AmortizacionesServiceImpl implements IAmortizacionesService {
 	public Amortizacion findUltimaAmortizacion(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
 		return amortizacionesDao.ultimaAmortizacion(idorigenp, idproducto, idauxiliar);
 	}
-
-
 	
-	
-
 }

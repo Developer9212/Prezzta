@@ -15,10 +15,11 @@ public class ReferenciasServiceImpl implements IReferenciaService {
 	private JdbcTemplate jdbc ;
 	
 	@Override
-	public Referencias finByOgsAndTipoReferencia(Integer idorigen, Integer idgrupo, Integer idsocio,Integer tiporeferencia) {
-		String consulta = "SELECT * FROM referencias WHERE idorigen = " + idorigen + " AND idgrupo = " + idgrupo + " AND idsocio = " + idsocio + " AND tiporeferencia = " + tiporeferencia;
+	public Referencias finByOgsAndTipoReferencia(Integer idorigen, Integer idgrupo, Integer idsocio, Integer tiporeferencia) {
+		String consulta = "SELECT * FROM referencias WHERE idorigen = " + idorigen + " AND idgrupo = " + idgrupo + " AND idsocio = " + idsocio +
+						  " AND tiporeferencia = " + tiporeferencia;
 		//System.out.println("Buscando referencia:"+consulta);
-		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Referencias.class)).size();
+		int size = jdbc.query(consulta, new BeanPropertyRowMapper<>(Referencias.class)).size();
 		Referencias referencia = null;
 		if(size > 0) {
 			referencia = jdbc.query(consulta,new BeanPropertyRowMapper<>(Referencias.class)).get(0);

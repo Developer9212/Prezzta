@@ -16,11 +16,11 @@ public class TrabajosServiceImpl implements ITrabajoService{
 	private JdbcTemplate jdbc ;
 	
 	@Override
-	public List<Trabajo> findTrabajosActivosByOgs(Integer idorigen, Integer idgrupo, Integer idsocio,Integer limit ) {
-		String consulta = "SELECT * FROM trabajo WHERE idorigen = "+ idorigen
+	public List<Trabajo> findTrabajosActivosByOgs(Integer idorigen, Integer idgrupo, Integer idsocio, Integer limit ) {
+		String consulta = "SELECT * FROM trabajo WHERE idorigen = " + idorigen
                 + " AND idgrupo = " + idgrupo 
                 + " AND idsocio = " + idsocio
-                + " AND fechasalida IS NULL ORDER BY consecutivo DESC limit "+limit;
+                + " AND fechasalida IS NULL ORDER BY consecutivo DESC limit " + limit;
 		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Trabajo.class)).size();
 		List<Trabajo>lista_Trabajos = null;
 		if(size > 0) {
@@ -30,11 +30,11 @@ public class TrabajosServiceImpl implements ITrabajoService{
 	}
 
 	@Override
-	public Trabajo findTrabajoByOgsAndConsecutivo(Integer idorigen, Integer idgrupo, Integer idsocio,Integer consecutivo) {
-		String consulta = "SELECT * FROM trabajo WHERE idorigen = "+ idorigen
+	public Trabajo findTrabajoByOgsAndConsecutivo(Integer idorigen, Integer idgrupo, Integer idsocio, Integer consecutivo) {
+		String consulta = "SELECT * FROM trabajo WHERE idorigen = " + idorigen
                			+ " AND idgrupo = " + idgrupo 
                			+ " AND idsocio = " + idsocio
-               			+ " AND consecutivo = "+ consecutivo;
+               			+ " AND consecutivo = " + consecutivo;
 		
 		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Trabajo.class)).size();
 		Trabajo trabajo = null;

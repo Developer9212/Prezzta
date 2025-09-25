@@ -9,7 +9,7 @@ import com.fenoreste.rest.entity.Referencias;
 @Service
 public interface IReferenciaService {
 	
-	public Referencias finByOgsAndTipoReferencia(Integer idorigen,Integer idgrupo,Integer idsocio,Integer tiporeferencia);
-	public List<Referencias> findAll(Integer idorigen,Integer idgrupo,Integer idsocio);
+	public Referencias finByOgsAndTipoReferencia(Integer idorigen, Integer idgrupo, Integer idsocio, Integer tiporeferencia);
+	public List<Referencias> findAll(Integer idorigen, Integer idgrupo, Integer idsocio);
 
 }

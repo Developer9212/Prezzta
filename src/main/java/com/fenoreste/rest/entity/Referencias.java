@@ -47,5 +47,4 @@ public class Referencias implements Serializable {
     @Column(name = "idsocior")
     private Integer idsocior;
     
-    
 }
