@@ -84,9 +84,5 @@ public class CatalogoMenus implements Serializable {
 		return "CatalogoMenus [menu=" + menu + ", opcion=" + opcion + ", descripcion="
 				+ descripcion + ", orden=" + orden + ", activo=" + activo + ", referencia=" + referencia + "]";
 	}
-
-    
 	
-    
-    
 }

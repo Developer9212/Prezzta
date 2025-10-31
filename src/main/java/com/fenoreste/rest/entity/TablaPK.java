@@ -12,10 +12,11 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
-public class TablaPK implements Serializable{
+public class TablaPK implements Serializable {
     
 	private String idtabla;
 	private String idelemento;
 	
 	private static final long serialVersionUID = 1L;
+	
 }

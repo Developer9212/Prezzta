@@ -1,19 +1,19 @@
 package com.fenoreste.rest.modelos;
 
-
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fenoreste.rest.entity.Amortizacion;
 
 import lombok.Data;
+
 @Data
 @JsonPropertyOrder
 @JsonIgnoreProperties("nota")
-public class PrestamoCreadoDTO {	 
+public class PrestamoCreadoDTO {
+	
 	private String opa;
 	private String numero_producto;
 	private String idauxiliar;	
@@ -36,5 +36,9 @@ public class PrestamoCreadoDTO {
 	
 	private Double monto_comision;
 	private Double tasa_moratoria;
+	@JsonInclude(value = Include.NON_NULL)
+	private String abonos;
+	@JsonInclude(value = Include.NON_NULL)
+	private String legalario_sucursal_opa;
 	
 }

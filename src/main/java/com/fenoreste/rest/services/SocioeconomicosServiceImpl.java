@@ -14,7 +14,7 @@ public class SocioeconomicosServiceImpl implements ISocioeconomicosService {
 	
 	@Override
 	public Socioeconomicos findByOgs(Integer idorigen, Integer idgrupo, Integer idsocio) {
-		String consulta = "SELECT * FROM socioeconomicos WHERE idorigen="+idorigen+" AND idgrupo="+idgrupo+" AND idsocio="+idsocio;
+		String consulta = "SELECT * FROM socioeconomicos WHERE idorigen = " + idorigen + " AND idgrupo = " + idgrupo + " AND idsocio = " + idsocio;
 		int size = jdbc.query(consulta,new BeanPropertyRowMapper<>(Socioeconomicos.class)).size();
 		Socioeconomicos sc=null;
 		if(size > 0 ) {

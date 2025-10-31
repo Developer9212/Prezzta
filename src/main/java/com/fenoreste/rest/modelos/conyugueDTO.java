@@ -1,15 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.fenoreste.rest.modelos;
 
-/**
- *
- * @author wilmer
- */
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class conyugueDTO {
+	
     private String edad;
     private String direccion;
     private String ocupacion;
@@ -22,7 +27,36 @@ public class conyugueDTO {
     private String telefono_empleo;
     private String historial;
     
-    public conyugueDTO() {
+    @JsonInclude(value = Include.NON_NULL)
+    private String telefono_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String telefono_recados_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String telefono_celular_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String email_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String tiempo_domicilio_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String sexo_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String edocivil_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String regimen_matrimonial_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String legalario_dep_cod_cony;
+    @JsonInclude(value = Include.NON_NULL)
+    private String conyuge_estatusvivienda_l;
+    @JsonInclude(value = Include.NON_NULL)
+    private String giro_trabajo_conyuge;
+    @JsonInclude(value = Include.NON_NULL)
+    private String legalario_sumai_cod_cony;
+    @JsonInclude(value = Include.NON_NULL)
+    private String conyuge_ingresosextraordinarios;
+    @JsonInclude(value = Include.NON_NULL)
+    private String conyuge_np_utilidad_mensual;
+    
+/*    public conyugueDTO() {
     }
 
     public conyugueDTO(String edad, String direccion, String ocupacion, String cp, String ciudad, String estado, String lugar_trabajo, String antiguedad, String domicilio_empleo, String telefono_empleo, String historial) {
@@ -130,6 +164,6 @@ public class conyugueDTO {
     @Override
     public String toString() {
         return "conyugueDTO{" + "edad=" + edad + ", direccion=" + direccion + ", ocupacion=" + ocupacion + ", cp=" + cp + ", ciudad=" + ciudad + ", estado=" + estado + ", lugar_trabajo=" + lugar_trabajo + ", antiguedad=" + antiguedad + ", domicilio_empleo=" + domicilio_empleo + ", telefono_empleo=" + telefono_empleo + ", historial=" + historial + '}';
-    }
+    }*/
     
 }

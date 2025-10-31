@@ -24,5 +24,5 @@ public class CalificacionBackendPrezzta implements Serializable {
 	private String confirmacion_backend;
 	
 	private static final long serialVersionUID = 1L;
-
+	
 }

@@ -49,7 +49,5 @@ public class Negociopropio implements Serializable {
     private Integer giro_empresa;
     private Double utilidad_mens;
     private String act_empresarial;
-  
-    
     
 }

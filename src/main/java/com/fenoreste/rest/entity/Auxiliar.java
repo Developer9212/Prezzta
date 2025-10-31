@@ -16,7 +16,6 @@ import javax.persistence.TemporalType;
 
 import lombok.Data;
 
-
 /**
  *
  * @author Elliot
@@ -24,7 +23,7 @@ import lombok.Data;
 @Entity
 @Table(name = "auxiliares")
 @Data
-public class Auxiliar{   
+public class Auxiliar {
 	
     @EmbeddedId
     private AuxiliarPK pk;
@@ -148,6 +147,5 @@ public class Auxiliar{
     private BigDecimal iecom;
     @Column(name = "reservaidncm")
     private BigDecimal reservaidncm;
-
 	
 }

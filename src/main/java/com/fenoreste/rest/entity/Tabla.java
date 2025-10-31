@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Tabla implements Serializable {
+	
     private static final long serialVersionUID = 1L;
     @EmbeddedId
     private TablaPK tablaPk;
@@ -43,7 +44,5 @@ public class Tabla implements Serializable {
     private String dato5;
     @Column(name = "tipo")
     private short tipo;
-
     
-
 }

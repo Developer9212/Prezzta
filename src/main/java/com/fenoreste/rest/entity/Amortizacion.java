@@ -8,7 +8,6 @@ package com.fenoreste.rest.entity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,7 +18,6 @@ import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 
 /**
  *
@@ -51,6 +49,7 @@ public class Amortizacion implements Serializable {
     private BigDecimal bonificacion;
     private BigDecimal anualidad;   
     private Integer diasvencidos;
-
-    private static final long serialVersionUID = 1L;    
+    
+    private static final long serialVersionUID = 1L;
+    
 }

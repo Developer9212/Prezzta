@@ -1,15 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.fenoreste.rest.modelos;
 
-/**
- *
- * @author wilmer
- */
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class negocioDTO {
+	
     private String ingresos;
     private String compras;
     private String pago_sueldos;
@@ -21,7 +23,9 @@ public class negocioDTO {
     private String domicilio;
     private String fuentes_otros_negocios;
     
-    public negocioDTO() {
+    private String np_nombre_negocio;
+    
+/*    public negocioDTO() {
     }
 
     public negocioDTO(String ingresos, String compras, String pago_sueldos, String pago_renta, String pago_creditos, String otros, String total_negocio, String horario_dias_laborables, String domicilio, String fuentes_otros_negocios) {
@@ -120,6 +124,6 @@ public class negocioDTO {
     @Override
     public String toString() {
         return "negocioDTO{" + "ingresos=" + ingresos + ", compras=" + compras + ", pago_sueldos=" + pago_sueldos + ", pago_renta=" + pago_renta + ", pago_creditos=" + pago_creditos + ", otros=" + otros + ", total_negocio=" + total_negocio + ", horario_dias_laborables=" + horario_dias_laborables + ", domicilio=" + domicilio + ", fuentes_otros_negocios=" + fuentes_otros_negocios + '}';
-    }
+    }*/
     
 }

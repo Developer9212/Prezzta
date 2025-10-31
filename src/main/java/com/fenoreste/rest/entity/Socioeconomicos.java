@@ -63,5 +63,4 @@ public class Socioeconomicos implements Serializable {
     private Integer tipo_cuentadom;
     private Boolean bloqueo_info_bancaria;
 
-
 }

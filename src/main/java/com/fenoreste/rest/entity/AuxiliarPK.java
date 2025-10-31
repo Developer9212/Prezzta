@@ -12,12 +12,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuxiliarPK implements Serializable {
+	
 	@Column(name = "idorigenp", nullable = false)
     private Integer idorigenp;
-	@Column(name = "idproducto",nullable = false)
+	@Column(name = "idproducto", nullable = false)
     private Integer idproducto;
-	@Column(name = "idauxiliar" , nullable = false)
+	@Column(name = "idauxiliar", nullable = false)
     private Integer idauxiliar;
     
 	private static final long serialVersionUID = 1L;
+	
 }

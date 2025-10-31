@@ -485,8 +485,8 @@ public class CustomerServiceSpring {
 																								 persona.getPk().getIdsocio(), 1);
 							if (referencia != null) {
 								log.info("Referencias encontradas: " + referencia);	
-								response.setNum_socio_conyugue(String.format("%06d", referencia.getIdorigenr()) + String.format("%02d", referencia.getIdgrupor()) +
-															   String.format("%06d", referencia.getIdsocior()));//atributo num_socio_conyuge
+								response.setNum_socio_conyugue(String.format("%06d", referencia.getIdorigenr()) + "-" + String.format("%02d", referencia.getIdgrupor()) +
+															   "-" + String.format("%06d", referencia.getIdsocior()));//atributo num_socio_conyuge
 							} else {
 								response.setNum_socio_conyugue(null);
 							}
@@ -545,22 +545,31 @@ public class CustomerServiceSpring {
 								
 								//CSN rangos
 								if (origen.getIdorigen() == 30200) {
-									plazoMin = config_minimo_solicitud.getDato2();
-									plazoMax = rangos.get(1).toString();
-									montoMin = config_minimo_solicitud.getDato1();
-									montoMax = rangos.get(3).toString();
-									
-									TablaPK tb_pk = new TablaPK(idtabla,"monto_maximo_solicitud");
-									Tabla tb_monto_maximo = tablasService.buscarPorId(tb_pk);
-									
-									if (Double.parseDouble(montoMax)> Double.parseDouble(tb_monto_maximo.getDato1())) {
-										montoMax = tb_monto_maximo.getDato1();
+									//credi 10
+									if (idproducto == 2) {
+										plazoMin = rangos.get(0).toString();
+										plazoMax = rangos.get(1).toString();
+										montoMin = rangos.get(2).toString();
+										montoMax = rangos.get(3).toString();
+									//gerencial
+									} else {
+										plazoMin = config_minimo_solicitud.getDato2();
+										plazoMax = rangos.get(1).toString();
+										montoMin = config_minimo_solicitud.getDato1();
+										montoMax = rangos.get(3).toString();
+										
+										TablaPK tb_pk = new TablaPK(idtabla, "monto_maximo_solicitud");
+										Tabla tb_monto_maximo = tablasService.buscarPorId(tb_pk);
+										
+										if (Double.parseDouble(montoMax) > Double.parseDouble(tb_monto_maximo.getDato1())) {
+											montoMax = tb_monto_maximo.getDato1();
+										}
+										//Vamos a buscar plazo maximo ----> 03/05/2023 Wilmer
+										if (!tb_monto_maximo.getDato2().equals("")) {
+											plazoMax = tb_monto_maximo.getDato2();
+										}
 									}
-									//Vamos a buscar plazo maximo ----> 03/05/2023 Wilmer
-									if (!tb_monto_maximo.getDato2().equals("")) {
-										plazoMax = tb_monto_maximo.getDato2();
-									}
-									//buenos rangos
+								//Buenos rangos
 								} else {
 									plazoMin = rangos.get(0).toString();
 									plazoMax = rangos.get(1).toString();
@@ -691,7 +700,8 @@ public class CustomerServiceSpring {
 							
 							response.setMonto_maximo_a_prestar(validacion);// objeto maximo a prestar
 							log.info("Vamos a buscar si tiene negocio propio");
-							Negociopropio negocio_prop = negocioService.findByOgs(persona.getPk().getIdorigen(),persona.getPk().getIdgrupo(),persona.getPk().getIdsocio());
+							Negociopropio negocio_prop = negocioService.findByOgs(persona.getPk().getIdorigen(), persona.getPk().getIdgrupo(),
+																				  persona.getPk().getIdsocio());
 							log.info("Negocio propio encontrado: " + negocio_prop);
 							comercioDTO comercio = new comercioDTO();
 							if (negocio_prop != null) {
@@ -820,8 +830,10 @@ public class CustomerServiceSpring {
 								negocio.setOtros(null);
 								negocio.setTotal_negocio(null);
 								negocio.setHorario_dias_laborables(null);
-								negocio.setDomicilio(negocio_prop.getCalle() + " " + negocio_prop.getNumeroext()+" "+negocio_prop.getNumeroint());
+								negocio.setDomicilio(negocio_prop.getCalle() + " " + negocio_prop.getNumeroext() + " " + negocio_prop.getNumeroint());
 								negocio.setFuentes_otros_negocios(null);
+								
+								negocio.setNp_nombre_negocio(negocio_prop.getNombre());
 								
 								/*NOTA:para negocio se obtiene de negocio propio pero solo los campos que pueden recuperarse*/
 							}
@@ -903,46 +915,98 @@ public class CustomerServiceSpring {
 									List<Trabajo> lista_trabajo_conyuge = trabajosService.findTrabajosActivosByOgs(referencia.getIdorigenr(), referencia.getIdgrupor(),
 																												   referencia.getIdsocior(), 1);
 									if (lista_trabajo_conyuge.size() > 0) {
-										cons_tr_con= trabajo.getConsecutivo();
+										cons_tr_con = trabajo.getConsecutivo();
 									}
 									log.info("Vamos a buscar trabajo consecutivo para conyugue");
-									Trabajo trabajo_consecutivo_conyuge = trabajosService.findTrabajoByOgsAndConsecutivo(referencia.getIdorigenr(), referencia.getIdgrupor(),
+									Trabajo trabajo_consec_conyuge = trabajosService.findTrabajoByOgsAndConsecutivo(referencia.getIdorigenr(), referencia.getIdgrupor(),
 																														 referencia.getIdsocior(), cons_tr_con);
-									log.info("El trabajo para conyugue es:"+trabajo_consecutivo_conyuge);
+									log.info("El trabajo para conyugue es: " + trabajo_consec_conyuge);
 									Colonias colonia_conyuge = coloniaService.findById(persona_conyuge.getIdcolonia());
-									log.info("La colonia para el conyugue es:"+colonia_conyuge);
+									log.info("La colonia para el conyugue es: " + colonia_conyuge);
 									Municipios municipio_conyuge = municipioService.findById(colonia_conyuge.getIdmunicipio());
-									log.info("El municipio para para el conyugue es:"+municipio_conyuge);
+									log.info("El municipio para para el conyugue es: " + municipio_conyuge);
 									Estados estado_conyuge = estadoService.findById(municipio_conyuge.getIdestado());
-									log.info("El estado para el conyugue es:"+estado_conyuge);
+									log.info("El estado para el conyugue es: " + estado_conyuge);
 									
 									conyugue.setEdad(String.valueOf(cal_edad(persona_conyuge.getFechanacimiento())));
 									conyugue.setDireccion(persona_conyuge.getCalle() + " " + persona_conyuge.getNumeroext());
-									if (trabajo_consecutivo_conyuge.getOcupacion() != null) {
-										conyugue.setOcupacion(trabajo_consecutivo_conyuge.getOcupacion());
+									if (trabajo_consec_conyuge.getOcupacion() != null) {
+										conyugue.setOcupacion(trabajo_consec_conyuge.getOcupacion());
 									} else {
 										conyugue.setOcupacion(null);
 									}
 									conyugue.setCp(colonia_conyuge.getCodigopostal());
 									conyugue.setCiudad(municipio_conyuge.getNombre());
 									conyugue.setEstado(estado_conyuge.getNombre());
-									conyugue.setLugar_trabajo(trabajo_consecutivo_conyuge.getNombre());
-									if (trabajo_consecutivo_conyuge.getFechaingreso() == null) {
+									conyugue.setLugar_trabajo(trabajo_consec_conyuge.getNombre());
+									if (trabajo_consec_conyuge.getFechaingreso() == null) {
 										conyugue.setAntiguedad(null);
 									} else {
-										conyugue.setAntiguedad(String.valueOf(restaFechas(trabajo_consecutivo_conyuge.getFechaingreso())));
+										conyugue.setAntiguedad(String.valueOf(restaFechas(trabajo_consec_conyuge.getFechaingreso())));
 									}
-									if (trabajo_consecutivo_conyuge.getCalle() != null) {
-										conyugue.setDomicilio_empleo(trabajo_consecutivo_conyuge.getCalle() + " " + trabajo_consecutivo_conyuge.getNumero());
+									if (trabajo_consec_conyuge.getCalle() != null) {
+										conyugue.setDomicilio_empleo(trabajo_consec_conyuge.getCalle() + " " + trabajo_consec_conyuge.getNumero());
 									} else {
 										conyugue.setDomicilio_empleo(null);
 									}
-									if (trabajo_consecutivo_conyuge.getTelefono() != null) {
-										conyugue.setTelefono_empleo(trabajo_consecutivo_conyuge.getTelefono());
+									if (trabajo_consec_conyuge.getTelefono() != null) {
+										conyugue.setTelefono_empleo(trabajo_consec_conyuge.getTelefono());
 									} else {
 										conyugue.setTelefono_empleo(null);
 									}
 									conyugue.setHistorial(null);
+									
+									//nuevas variables csn conyuge
+									if (origen.getIdorigen() == 30200) {
+										conyugue.setTelefono_conyuge(persona_conyuge.getTelefono());
+										conyugue.setTelefono_recados_conyuge(persona_conyuge.getTelefonorecados());
+										conyugue.setTelefono_celular_conyuge(persona_conyuge.getCelular());
+										conyugue.setEmail_conyuge(persona_conyuge.getEmail());
+										
+										Socioeconomicos se_cony = socioeconomicosService.findByOgs(persona_conyuge.getPk().getIdorigen(),
+																								   persona_conyuge.getPk().getIdgrupo(),
+																								   persona_conyuge.getPk().getIdsocio());
+										if (se_cony != null) {
+											conyugue.setTiempo_domicilio_conyuge(String.valueOf(cal_edad(se_cony.getFechahabitacion())));
+										}
+										
+										CatalogoMenus sex_cony = catalogoMenuService.findByMenuOpcion("sexo", persona_conyuge.getSexo().intValue());
+										conyugue.setSexo_conyuge(sex_cony.getDescripcion());
+										
+										CatalogoMenus edo_civil_cony = catalogoMenuService.findByMenuOpcion("estadocivil", persona_conyuge.getEstadocivil().intValue());
+										conyugue.setEdocivil_conyuge(edo_civil_cony.getDescripcion());
+										
+										CatalogoMenus reg_mat_cony = catalogoMenuService.findByMenuOpcion("regimen_mat", persona_conyuge.getRegimenMat().intValue());
+										conyugue.setRegimen_matrimonial_conyuge(reg_mat_cony.getDescripcion());
+										
+										if (se_cony != null) {
+											conyugue.setLegalario_dep_cod_cony(String.valueOf(se_cony.getDependientes()));
+										}
+										
+										if (se_cony != null) {
+											CatalogoMenus est_viv_cony = catalogoMenuService.findByMenuOpcion("estatusvivienda", se_cony.getEstatusvivienda());
+											conyugue.setConyuge_estatusvivienda_l(est_viv_cony.getDescripcion());
+										}
+										
+										if (trabajo_consec_conyuge != null) {
+											CatalogoMenus gir_tra_cony = catalogoMenuService.findByMenuOpcion("giro_empresa", trabajo_consec_conyuge.getGiro_empresa());
+											conyugue.setGiro_trabajo_conyuge(gir_tra_cony.getDescripcion());
+										}
+										
+										if (se_cony != null) {
+											conyugue.setLegalario_sumai_cod_cony(String.valueOf(se_cony.getIngresosordinarios()));
+										}
+										
+										if (se_cony != null) {
+											conyugue.setConyuge_ingresosextraordinarios(String.valueOf(se_cony.getIngresosextraordinarios()));
+										}
+										
+										Negociopropio neg_pro_cony = negocioService.findByOgs(persona_conyuge.getPk().getIdorigen(), persona_conyuge.getPk().getIdgrupo(),
+																							  persona_conyuge.getPk().getIdsocio());
+										if (neg_pro_cony != null) {
+											conyugue.setConyuge_np_utilidad_mensual(String.valueOf(neg_pro_cony.getUtilidad_mens()));
+										}
+									}
 								}
 							}
 							response.setConyugue(conyugue);//Atributo objeto conyugue
@@ -1016,6 +1080,10 @@ public class CustomerServiceSpring {
 									response.setNombre_empresa(null);
 								}
 								response.setOtros_gastos(Double.parseDouble(gastos.getTotal_gastos()));
+								
+								if (sc != null) {
+									response.setLegalario_suma_ingresos(String.valueOf(sc.getIngresosordinarios() + sc.getIngresosextraordinarios()));
+								}
 							}
 							
 							System.out.println("Exitoso");
@@ -1242,10 +1310,10 @@ public class CustomerServiceSpring {
 							prestamo.setFolio_prestamo(String.format("%06d", creado_aux.getPk().getIdorigenp()) + String.format("%05d", creado_aux.getPk().getIdproducto()) +
 													   String.format("%08d", creado_aux.getPk().getIdauxiliar()));
 							
-							TablaPK tb_pk_producto = new TablaPK("numero_reca_por_producto",String.valueOf(creado_aux.getPk().getIdproducto()));
+							TablaPK tb_pk_producto = new TablaPK("numero_reca_por_producto",String.valueOf(creado_aux.getPk().getIdproducto()));  
 							Tabla tb_reca_por_producto = tablasService.buscarPorId(tb_pk_producto);
-							prestamo.setReca_completo(tb_reca_por_producto.getDato1());
-							String[]tb_reca_array_recortado = tb_reca_por_producto.getDato1().split("\\/");
+							prestamo.setReca_completo(tb_reca_por_producto.getDato2());
+							String[]tb_reca_array_recortado = tb_reca_por_producto.getDato2().split("\\/");
 							prestamo.setReca_recortado(tb_reca_array_recortado[0]);
 							
 							gatService.insertRegistros(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
@@ -1358,6 +1426,9 @@ public class CustomerServiceSpring {
 								Tabla tb_comision = tablasService.buscarPorId(tb_pk_comision);
 								prestamo.setMonto_comision(Double.parseDouble(tb_comision.getDato1()));
 								prestamo.setTasa_moratoria(creado_aux.getTasaim().doubleValue() * 12);
+								
+								prestamo.setAbonos(String.valueOf(cuotas.size()));
+								prestamo.setLegalario_sucursal_opa(origenesService.findOrigenById(Integer.parseInt(prestamo.getIdorigenp())).getNombre());
 							}
 							
 							tmpService.eliminar(tmp_validacion);
@@ -1432,9 +1503,24 @@ public class CustomerServiceSpring {
 				tb_pk_all.setIdelemento("comision");
 				log.info("Buscando config. comision");
 				Tabla tb_monto_comision = tablasService.buscarPorId(tb_pk_all);
-				tb_pk_all.setIdelemento("usuario");
+
+				TablaPK tb_pk_user = null;
+				//csn
+				if (matriz.getIdorigen() == 30200) {
+					//si es el gerencial usuario1
+					if (idproducto == 1) {
+						tb_pk_user = new TablaPK(idtabla, "usuario");
+					//si es el credi 10 usuario2
+					} else if (idproducto == 2) {
+						tb_pk_user = new TablaPK(idtabla, "usuario_2");
+					}
+				//buenos usuario1
+				} else {
+					tb_pk_user = new TablaPK(idtabla, "usuario");
+				}
+				
 				log.info("Buscando usuario");
-				Tabla tb_usuario = tablasService.buscarPorId(tb_pk_all);
+				Tabla tb_usuario = tablasService.buscarPorId(tb_pk_user);
 				
 				//Si se confirma entregamos el prestamo
 				if(confirmar.equalsIgnoreCase("si")) {

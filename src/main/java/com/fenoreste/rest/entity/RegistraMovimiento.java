@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegistraMovimiento implements Serializable {
+	
     @EmbeddedId
     private MovimientosPK pk;
     @Column(name = "fecha")
@@ -51,6 +52,5 @@ public class RegistraMovimiento implements Serializable {
     private String sai_aux;
 
 	private static final long serialVersionUID = 1L;
-
-    
+	
 }

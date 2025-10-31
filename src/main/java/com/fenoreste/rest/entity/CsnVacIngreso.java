@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CsnVacIngreso implements Serializable{
+public class CsnVacIngreso implements Serializable {
      
 	 @EmbeddedId
 	 private PersonaPK pk; 
@@ -29,4 +29,5 @@ public class CsnVacIngreso implements Serializable{
 	 private boolean activo; 
 
 	 private static final long serialVersionUID = 1L;
+	 
 }

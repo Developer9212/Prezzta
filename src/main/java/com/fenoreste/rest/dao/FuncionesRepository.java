@@ -2,13 +2,11 @@ package com.fenoreste.rest.dao;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.fenoreste.rest.entity.Persona;
-import com.fenoreste.rest.modelos.PagoMitrasDTO;
 
 public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	

@@ -1,4 +1,5 @@
 package com.fenoreste.rest.entity;
+
 import java.io.Serializable;
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
@@ -95,9 +96,5 @@ public class Colonias implements Serializable {
     public String toString() {
         return "Colonias{" + "idcolonia=" + idcolonia + ", nombre=" + nombre + ", idmunicipio=" + idmunicipio + ", codigopostal=" + codigopostal + '}';
     }
-
-   
-
+    
 }
-
-

@@ -4,9 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -85,7 +83,7 @@ public class FuncionesServiceImpl implements IFuncionesService{
 	}
 
 	@Override
-	public PagoMitrasDTO pagoMitras(AuxiliarPK pk,int idamortizacion) {
+	public PagoMitrasDTO pagoMitras(AuxiliarPK pk, int idamortizacion) {
 		Object objeto = funcionesRepository.listaPagos(pk.getIdorigenp(),pk.getIdproducto(),pk.getIdauxiliar(),idamortizacion);
 		
 		PagoMitrasDTO pago = null;

@@ -6,7 +6,7 @@ import com.fenoreste.rest.entity.AuxiliarPK;
 import com.fenoreste.rest.modelos.PagoMitrasDTO;
 
 public interface IFuncionesService {
-   
+	
 	public String sai_aplica_transaccion(Date fecha, Integer idusuario, String sesion, String referencia);
 	public String validacion_monto_prestar(Integer idorigen, Integer idgrupo, Integer idsocio);
 	public String validacion_monto_prestar_2(Integer idorigen, Integer idgrupo, Integer idsocio);

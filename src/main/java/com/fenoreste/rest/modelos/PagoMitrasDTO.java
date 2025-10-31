@@ -1,12 +1,11 @@
 package com.fenoreste.rest.modelos;
 
 import java.io.Serializable;
-import java.util.Date;
 
 import lombok.Data;
 
 @Data
-public class PagoMitrasDTO implements Serializable{
+public class PagoMitrasDTO implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -25,6 +24,4 @@ public class PagoMitrasDTO implements Serializable{
 	private Double total_io;
 	private Double descuento;
 	
-	
-
 }

@@ -33,7 +33,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class AuxiliaresD{
+public class AuxiliaresD {
 
     @Id
     @Column(name = "fecha")
@@ -87,9 +87,5 @@ public class AuxiliaresD{
     private BigDecimal montoidncm;
     @Column(name = "montoiecom")
     private BigDecimal montoiecom;
-  
     
-    
-
 }
-

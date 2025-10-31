@@ -1,6 +1,5 @@
 package com.fenoreste.rest.services;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +18,4 @@ public class TablaServiceImpl implements ITablaService {
 		return tablaRepository.findById(pk).orElse(null);
 	}
 	
-	
-
 }

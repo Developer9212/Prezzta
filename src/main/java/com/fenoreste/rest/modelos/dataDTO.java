@@ -103,4 +103,7 @@ public class dataDTO {
     private String nombre_empresa;
     private double otros_gastos;
     
+    @JsonInclude(value = Include.NON_NULL)
+    private String legalario_suma_ingresos;
+    
 }
