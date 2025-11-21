@@ -78,6 +78,4 @@ public class Siscore_Calificacion_Score {
 		return json.toString();
 	}
 	
-
-
 }

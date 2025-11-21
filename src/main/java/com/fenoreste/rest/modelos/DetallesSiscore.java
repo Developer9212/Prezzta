@@ -12,11 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @JsonIgnoreProperties("idsolicitud")
-public class DetallesSiscore { 
+public class DetallesSiscore {
+	
 	private Integer idsolicitud;
 	List<DetallesScore>detalles;
 	List<PuntosScore>Resumen;
 	List<BanderasSiscore> Banderas;
-
+	private Boolean hasFlags;
 	
 }

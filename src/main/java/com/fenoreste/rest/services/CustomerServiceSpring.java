@@ -1351,7 +1351,8 @@ public class CustomerServiceSpring {
 							
 							DetallesSiscore detallesSiscore = null;
 							if (origen.getIdorigen() == 30200) {
-								detallesSiscore = ResumenSiscoreCSN(creado_aux.getPk().getIdorigenp(),creado_aux.getPk().getIdproducto(),creado_aux.getPk().getIdauxiliar());
+								detallesSiscore = ResumenSiscoreCSN(creado_aux.getPk().getIdorigenp(), creado_aux.getPk().getIdproducto(),
+																	creado_aux.getPk().getIdauxiliar());
 								prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
 								prestamo.setResumen_calificacion_siscore(detallesSiscore);
 							}
@@ -1910,63 +1911,61 @@ public class CustomerServiceSpring {
 	
 	public DetallesSiscore ResumenSiscoreCSN(Integer idorigenp, Integer idproducto, Integer idauxiliar) {
 		DetallesSiscore consumoWsSiscore = new DetallesSiscore();
-    	try {		
-			
-		List<PuntosScore> Listapuntos = new ArrayList<PuntosScore>();
-		PuntosScore puntos = new PuntosScore();		
-		//String siscore = siscoreCsn.requisitionImport(idorigenp+"-"+idproducto+"-"+idauxiliar);
-		System.out.println("Vamos a conectar a siscore");
-		String siscore = siscoreCsn.requisitionImport(idorigenp+"-"+idproducto+"-"+idauxiliar);
-		System.out.println("Respuesta siscore:"+siscore);	
-		JSONObject responseSiscore = new JSONObject(siscore);	
-		if(responseSiscore.getInt("responseCode") == 0 || responseSiscore.getString("responseMessage").toUpperCase().contains("SUCCES")){
-			JSONObject obj = responseSiscore.getJSONObject("obj");
-			JSONArray resumen = obj.getJSONArray("Resumen");
-			JSONArray banderas = obj.getJSONArray("Banderas");
-			JSONArray detalles = obj.getJSONArray("Detalle");
-			
-			for(int i = 0; i<resumen.length();i++) {
-			   	PuntosScore puntosScore = new PuntosScore();		  
-				JSONObject puntosScoreJson = resumen.getJSONObject(i);
+		try {
+			List<PuntosScore> Listapuntos = new ArrayList<PuntosScore>();
+			PuntosScore puntos = new PuntosScore();
+			//String siscore = siscoreCsn.requisitionImport(idorigenp+"-"+idproducto+"-"+idauxiliar);
+			System.out.println("Vamos a conectar a siscore");
+			String siscore = siscoreCsn.requisitionImport(idorigenp + "-" + idproducto + "-" + idauxiliar);
+			System.out.println("Respuesta siscore: " + siscore);
+			JSONObject responseSiscore = new JSONObject(siscore);
+			if (responseSiscore.getInt("responseCode") == 0 || responseSiscore.getString("responseMessage").toUpperCase().contains("SUCCES")) {
+				JSONObject obj = responseSiscore.getJSONObject("obj");
+				JSONArray resumen = obj.getJSONArray("Resumen");
+				JSONArray banderas = obj.getJSONArray("Banderas");
+				JSONArray detalles = obj.getJSONArray("Detalle");
+				
+				for (int i = 0; i<resumen.length();i++) {
+					PuntosScore puntosScore = new PuntosScore();
+					JSONObject puntosScoreJson = resumen.getJSONObject(i);
 					puntosScore.setId(puntosScoreJson.getString("$id"));
 					puntosScore.setCampo(puntosScoreJson.getString("Campo"));
 					puntosScore.setValor(puntosScoreJson.getString("Valor"));
-					Listapuntos.add(puntosScore);		   	
-				}				
-			
-			List<BanderasSiscore>listaDeBanderas = new ArrayList<>();
-			for(int x=0;x<banderas.length();x++) {
-				BanderasSiscore banderasGeneral = new BanderasSiscore();
-				JSONObject banderaObjetoJson = banderas.getJSONObject(x);
-				banderasGeneral.setId(banderaObjetoJson.getString("$id"));
-				banderasGeneral.setTipoBandera(banderaObjetoJson.getString("TipoBandera"));	
-				List<BanderasObjeto>banderasListaObjetos = new ArrayList<>();
-				JSONArray banderaListaJson  = banderaObjetoJson.getJSONArray("Banderas");
-				for(int y = 0; y < banderaListaJson.length();y++) {
-					JSONObject objetoBanderaJson  = banderaListaJson.getJSONObject(y);	
-					BanderasObjeto banderaSiscore = new BanderasObjeto();
-					banderaSiscore.setId(objetoBanderaJson.getString("$id"));
-					banderaSiscore.setNombre(objetoBanderaJson.getString("Nombre"));
-					banderaSiscore.setSeCumple(objetoBanderaJson.getBoolean("SeCumple"));	
-					banderasListaObjetos.add(banderaSiscore);
+					Listapuntos.add(puntosScore);
 				}
 				
-				banderasGeneral.setBandera(banderasListaObjetos);			
-				listaDeBanderas.add(banderasGeneral);
-			}
-			
-			List<DetallesScore>detallesScore = new ArrayList<>();
-			for(int i=0;i<detalles.length();i++){
+				List<BanderasSiscore>listaDeBanderas = new ArrayList<>();
+				for (int x=0;x<banderas.length();x++) {
+					BanderasSiscore banderasGeneral = new BanderasSiscore();
+					JSONObject banderaObjetoJson = banderas.getJSONObject(x);
+					banderasGeneral.setId(banderaObjetoJson.getString("$id"));
+					banderasGeneral.setTipoBandera(banderaObjetoJson.getString("TipoBandera"));
+					List<BanderasObjeto>banderasListaObjetos = new ArrayList<>();
+					JSONArray banderaListaJson  = banderaObjetoJson.getJSONArray("Banderas");
+					for (int y = 0; y < banderaListaJson.length();y++) {
+						JSONObject objetoBanderaJson  = banderaListaJson.getJSONObject(y);
+						BanderasObjeto banderaSiscore = new BanderasObjeto();
+						banderaSiscore.setId(objetoBanderaJson.getString("$id"));
+						banderaSiscore.setNombre(objetoBanderaJson.getString("Nombre"));
+						banderaSiscore.setSeCumple(objetoBanderaJson.getBoolean("SeCumple"));
+						banderasListaObjetos.add(banderaSiscore);
+					}
+					
+					banderasGeneral.setBandera(banderasListaObjetos);
+					listaDeBanderas.add(banderasGeneral);
+				}
 				
+				List<DetallesScore>detallesScore = new ArrayList<>();
+				for (int i=0;i<detalles.length();i++) {
+				}
+				
+				consumoWsSiscore.setResumen(Listapuntos);
+				consumoWsSiscore.setBanderas(listaDeBanderas);
+				consumoWsSiscore.setIdsolicitud(obj.getInt("IdSolicitud"));
+				consumoWsSiscore.setHasFlags(obj.getBoolean("hasFlags"));
 			}
-			
-			consumoWsSiscore.setResumen(Listapuntos);
-			consumoWsSiscore.setBanderas(listaDeBanderas);	
-			consumoWsSiscore.setIdsolicitud(obj.getInt("IdSolicitud"));			
-		   }		
 		} catch (JSONException e) {
-			
-			System.out.println("El error es:"+e.getMessage());
+			System.out.println("El error es: " + e.getMessage());
 		}
 		
 		return consumoWsSiscore;

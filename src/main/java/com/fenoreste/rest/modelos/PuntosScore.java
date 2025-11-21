@@ -34,6 +34,4 @@ public class PuntosScore {
 		this.valor = valor;
 	}
 	
-	
-	
 }
