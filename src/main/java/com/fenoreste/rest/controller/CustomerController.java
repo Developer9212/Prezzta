@@ -117,12 +117,15 @@ public class CustomerController {
     
     //En este paso verificamos si el usuario prosigue o se queda hasta ahi entonces aplicamos un descuento al ahorro(parametrizada)
     @GetMapping(value = "/solicitud/finalizar/opa={opa}&confirmar={opcion}&producto_id={producto_id}",produces = {MediaType.APPLICATION_JSON_VALUE})
+    //@GetMapping(value = "/solicitud/finalizar/opa={opa}&confirmar={opcion}",produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> terminaSolicitud(@PathVariable String opa, @PathVariable String opcion, @PathVariable Integer producto_id) {
+    //public ResponseEntity<?> terminaSolicitud(@PathVariable String opa, @PathVariable String opcion) {
           JsonObject response = new JsonObject();
           try {
         	  log.info("Activando el opa: " + opa + ", el " + new Date());
         	  if(opcion.equalsIgnoreCase("si") || opcion.equalsIgnoreCase("no")) {
         		  PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion, producto_id);
+        		  //PrestamoEntregado entregado = serviceCustomerSpring.entregarPrestamo(opa, opcion, 0);
             	  log.info("Estatus entregado: " + entregado.getEstatus());
             	 if(entregado.getEstatus().toUpperCase().contains("ACTIV")) {
             		 response.put("code", 200);

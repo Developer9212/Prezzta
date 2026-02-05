@@ -122,4 +122,9 @@ public class FuncionesServiceImpl implements IFuncionesService{
 		return funcionesRepository.sai_importe_en_letras(monto);
 	}
 	
+	@Override
+	public Double calculaMontoMenosComisionIva(Integer idproducto, Integer idorigenp, Double monto, Double comision) {
+		return funcionesRepository.calculaMontoMenosComisionIva(idproducto, idorigenp, monto, comision);
+	}
+	
 }

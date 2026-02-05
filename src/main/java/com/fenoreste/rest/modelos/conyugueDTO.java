@@ -56,6 +56,11 @@ public class conyugueDTO {
     @JsonInclude(value = Include.NON_NULL)
     private String conyuge_np_utilidad_mensual;
     
+    
+    //Integrado el 06/01/2025
+    private String domicilio_conyuge;
+    
+    
 /*    public conyugueDTO() {
     }
 

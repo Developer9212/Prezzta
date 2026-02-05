@@ -1,5 +1,6 @@
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/AuxiliarPK.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/PuntosScore.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IComisionPrezztaService.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IVAuxiliaresService.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IReferenciaService.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/ReferenciaspServiceImpl.java
@@ -11,6 +12,7 @@
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/Auxiliares_dRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/FuncionesRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/BanderasSiscore.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/ComisionPrezzta.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/propiedadesDTO.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/gastosDTO.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/security/WebSecurityConfig.java
@@ -20,9 +22,11 @@
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/TarjetaServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/tmp_aperturasRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/codeudorDTO.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/FinalidadServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/PlazoRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/UserServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/controller/UserController.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Finalidad.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/TrabajosServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/GATServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Socioeconomicos.java
@@ -31,6 +35,7 @@
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IOtrosService.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/VAuxiliarRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/DetallesSiscore.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/ComisionPrezztaServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Plazo.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/PrestamoCreadoDTO.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/AuxiliaresServiceImpl.java
@@ -40,6 +45,7 @@
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/FolioTarjetaServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Municipios.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/SocioeconomicosServiceImpl.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IFindalidaService.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/ReferenciasRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Estados.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IFolioTarjetaService.java
@@ -127,12 +133,14 @@
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/InfoClienteDTO.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/ProcesaMovimientoServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IColoniaService.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/ComisionPrezztaRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/AmortizacionesServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/Util/ConversionMonedaLetras.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Auxiliar.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/ITarjetaService.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/VAuxiliarServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/OtrosRepository.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/FinalidadRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Tarjeta.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/modelos/validacionDTO.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IPlazoService.java

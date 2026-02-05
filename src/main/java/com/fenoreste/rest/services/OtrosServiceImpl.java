@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.fenoreste.rest.dao.OtrosRepository;
 
-
 @Service
 public class OtrosServiceImpl implements IOtrosService {
 
@@ -26,12 +25,5 @@ public class OtrosServiceImpl implements IOtrosService {
 	public boolean servicios_activos() {
 		return otrosDao.servicios_activos();
 	}
-
-
-
-
 	
-	
-	
-
 }

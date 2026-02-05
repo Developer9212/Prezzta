@@ -48,4 +48,7 @@ public interface FuncionesRepository extends JpaRepository<Persona,Integer>{
 	@Query(value = "SELECT sai_importe_en_letras((?1)::::numeric, 1)", nativeQuery = true)
 	public String sai_importe_en_letras(String monto);
 	
+	@Query(value = "SELECT cal_monto_menos_comision_iva(?1, ?2, (?3)::::numeric, (?4)::::numeric)", nativeQuery = true)
+	public Double calculaMontoMenosComisionIva(Integer idproducto, Integer idorigenp, Double monto, Double comision);
+	
 }

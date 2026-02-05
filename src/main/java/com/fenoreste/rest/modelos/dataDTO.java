@@ -106,4 +106,7 @@ public class dataDTO {
     @JsonInclude(value = Include.NON_NULL)
     private String legalario_suma_ingresos;
     
+    //Añadido 06/01/2026 Happy new Year
+    private String status_vivienda;
+    
 }

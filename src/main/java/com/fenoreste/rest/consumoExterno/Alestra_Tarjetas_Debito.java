@@ -23,6 +23,7 @@ public class Alestra_Tarjetas_Debito {
 	
 	private static String basePath = "/api/cards/";
 	
+	//csn
 	public static String obtenerSaldo(String url,String idtarjeta) {
 		JSONObject json = null;
 		ResponseEntity<String> requisition = null;
@@ -41,6 +42,7 @@ public class Alestra_Tarjetas_Debito {
 		return json.toString();// requisition.getBody();
 	}
 	
+	//csn
 	public static String retirarSaldo(String url,String idtarjeta,Double monto) {
 		JSONObject json = null;
 		ResponseEntity<String> requisition = null;
@@ -57,6 +59,7 @@ public class Alestra_Tarjetas_Debito {
 		return json.toString();// requisition.getBody();
 	}
 	
+	//csn
 	public static String depositarSaldo(String url,String idtarjeta,Double monto) {
 		JSONObject json = null;
 		ResponseEntity<String> requisition = null;
@@ -73,6 +76,38 @@ public class Alestra_Tarjetas_Debito {
 		return json.toString();// requisition.getBody();
 	}
 	
+	//buenos aires
+	public static String retiroSaldo_CBA(String url, String idtarjeta, Double monto) {
+		JSONObject json = null;
+		ResponseEntity<String> requisition = null;
+		try {			
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<String> entity = new HttpEntity<String>("", headers);
+			requisition =  restTemplate.exchange(url + basePath + "doWithDrawal/idtarjeta=" + idtarjeta + "&monto=" + monto, HttpMethod.GET, entity,String.class);
+			System.out.println("Response:" + requisition.getBody());
+		    json = new JSONObject(requisition.getBody());
+		} catch (JSONException e) {
+			System.out.println("Error al realizar retiro de tarjeta:"+idtarjeta+"," + e.getMessage());
+		}
+		return json.toString();
+	}
 	
+	//buenos aires
+	public static String depositoSaldo_CBA(String url, String idtarjeta, Double monto) {
+		JSONObject json = null;
+		ResponseEntity<String> requisition = null;
+		try {			
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<String> entity = new HttpEntity<String>("", headers);
+			requisition =  restTemplate.exchange(url + basePath + "loadBalance/idtarjeta=" + idtarjeta + "&monto=" + monto, HttpMethod.GET, entity,String.class);
+			System.out.println("Response: " + requisition.getBody());
+		    json = new JSONObject(requisition.getBody());
+		} catch (JSONException e) {
+			System.out.println("Error al depositar a la TDD: " + idtarjeta + ", " + e.getMessage());
+		}
+		return json.toString();
+	}
 	
 }

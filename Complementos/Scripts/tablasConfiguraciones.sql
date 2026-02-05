@@ -33,3 +33,16 @@ CREATE TABLE plazos(
 
    primary key(id)
 );
+
+DROP TABLE IF EXISTS comision_prezzta;
+CREATE TABLE comision_prezzta(
+
+idproducto integer,
+descripcion text,
+porcentaje_comision numeric,
+
+primary key(idproducto)
+);
+
+
+030220 33044 00000904

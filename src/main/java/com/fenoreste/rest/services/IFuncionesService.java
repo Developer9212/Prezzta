@@ -19,5 +19,6 @@ public interface IFuncionesService {
 	public boolean servicioActivoInactivoBackend();
 	public Double lineaCredito_Monto(Integer idorigen, Integer idgrupo, Integer idsocio);
 	public String monto_a_letras(String monto);
+	public Double calculaMontoMenosComisionIva(Integer idproducto, Integer idorigenp, Double monto, Double comision);
 	
 }

@@ -1,5 +1,6 @@
 package com.fenoreste.rest.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ public class UserController {
 	public ResponseEntity<?>crearUsuario(@RequestBody User user){
 		user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
 		user.setId(1);
+		user.setCreate_at(new Date());
 		this.userSevice.save(user);
 		return new ResponseEntity<>(HttpStatus.CREATED);
 		

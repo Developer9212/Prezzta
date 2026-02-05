@@ -148,3 +148,7 @@ INSERT INTO tablas(idtabla,idelemento,dato1,dato2) VALUES('prezzta','prezzta_emp
 
 
 
+
+
+
+

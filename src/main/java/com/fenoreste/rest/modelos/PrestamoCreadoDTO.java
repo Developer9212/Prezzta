@@ -41,4 +41,7 @@ public class PrestamoCreadoDTO {
 	@JsonInclude(value = Include.NON_NULL)
 	private String legalario_sucursal_opa;
 	
+	//integrado el 06/01/2025 happy new year Nahu y programa mejor bro
+	private String finalidad;
+	
 }

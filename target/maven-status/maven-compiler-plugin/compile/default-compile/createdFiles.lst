@@ -10,12 +10,14 @@ com/fenoreste/rest/services/PlazoServiceImpl.class
 com/fenoreste/rest/services/SocioeconomicosServiceImpl.class
 com/fenoreste/rest/entity/Referenciasp.class
 com/fenoreste/rest/modelos/avalDTO.class
+com/fenoreste/rest/entity/Finalidad.class
 com/fenoreste/rest/modelos/PrestamoCreadoDTO.class
 com/fenoreste/rest/services/ITmpAperturasService.class
 com/fenoreste/rest/services/IPlazoService.class
 com/fenoreste/rest/services/MunicipiosServiceImpl.class
 com/fenoreste/rest/modelos/requestRegistraPrestamo.class
 com/fenoreste/rest/modelos/opaDTO.class
+com/fenoreste/rest/entity/ComisionPrezzta.class
 com/fenoreste/rest/services/TrabajosServiceImpl.class
 com/fenoreste/rest/services/IAuxiliaresService.class
 com/fenoreste/rest/modelos/dataDTO.class
@@ -37,6 +39,7 @@ com/fenoreste/rest/controller/CustomerController.class
 com/fenoreste/rest/modelos/PagoMitrasDTO.class
 com/fenoreste/rest/services/ICalificacionBackendPrezztaService.class
 com/fenoreste/rest/entity/tmp_aperturas.class
+com/fenoreste/rest/dao/ComisionPrezztaRepository.class
 com/fenoreste/rest/dao/ReferenciasRepository.class
 com/fenoreste/rest/services/ITarjetaService.class
 com/fenoreste/rest/dao/AuxiliarRepository.class
@@ -65,6 +68,7 @@ com/fenoreste/rest/modelos/PrestamoEntregado.class
 com/fenoreste/rest/modelos/referenciasLaboralesDTO.class
 com/fenoreste/rest/Util/SSLConfiguration.class
 com/fenoreste/rest/services/FolioTarjetaServiceImpl.class
+com/fenoreste/rest/dao/FinalidadRepository.class
 com/fenoreste/rest/services/VAuxiliarServiceImpl.class
 com/fenoreste/rest/Util/FicheroConexion.class
 com/fenoreste/rest/services/IVAuxiliaresService.class
@@ -98,6 +102,7 @@ com/fenoreste/rest/services/IReferenciaService.class
 com/fenoreste/rest/modelos/PuntosScore.class
 com/fenoreste/rest/services/ITablaService.class
 com/fenoreste/rest/dao/Auxiliares_dRepository.class
+com/fenoreste/rest/services/IFindalidaService.class
 com/fenoreste/rest/services/ReferenciasServiceImpl.class
 com/fenoreste/rest/modelos/CampoScore.class
 com/fenoreste/rest/security/WebSecurityConfig.class
@@ -123,11 +128,13 @@ com/fenoreste/rest/security/AuthorizationServerConfig.class
 com/fenoreste/rest/services/TarjetaServiceImpl.class
 com/fenoreste/rest/services/IAmortizacionesService.class
 com/fenoreste/rest/services/UserServiceImpl.class
+com/fenoreste/rest/services/FinalidadServiceImpl.class
 com/fenoreste/rest/entity/Colonias.class
 com/fenoreste/rest/services/IAuxiliares_dService.class
 com/fenoreste/rest/services/AmortizacionesServiceImpl.class
 com/fenoreste/rest/dao/AmortizacionesRepository.class
 com/fenoreste/rest/modelos/ResumenGeneralSiscore.class
+com/fenoreste/rest/services/IComisionPrezztaService.class
 com/fenoreste/rest/services/GATServiceImpl.class
 com/fenoreste/rest/dao/ReferenciaspRepository.class
 com/fenoreste/rest/services/ICatalogoMenusService.class
@@ -160,6 +167,7 @@ com/fenoreste/rest/services/IMunicipioService.class
 com/fenoreste/rest/entity/AuxiliaresD.class
 com/fenoreste/rest/controller/UserController.class
 com/fenoreste/rest/services/IReferenciaspService.class
+com/fenoreste/rest/services/ComisionPrezztaServiceImpl.class
 com/fenoreste/rest/services/IProcesaMovimientoService.class
 com/fenoreste/rest/consumoExterno/Alestra_Tarjetas_Debito.class
 com/fenoreste/rest/services/TablaServiceImpl.class
