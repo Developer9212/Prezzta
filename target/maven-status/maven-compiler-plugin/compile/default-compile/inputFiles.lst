@@ -44,8 +44,8 @@
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/ICatalogoMenusService.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/FolioTarjetaServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Municipios.java
-/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/SocioeconomicosServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IFindalidaService.java
+/home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/SocioeconomicosServiceImpl.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/dao/ReferenciasRepository.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/entity/Estados.java
 /home/nahum/Spring_Projects/Prezzta/src/main/java/com/fenoreste/rest/services/IFolioTarjetaService.java

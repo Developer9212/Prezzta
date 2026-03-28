@@ -13,35 +13,34 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PersonaServiceImpl implements IPersonaService {
 
-	
 	@Autowired
 	private PersonaRepository personaRepository;
 
 	@Override
 	public Persona findPersonaByDocumento(String tipoDocumento, String documento) {
-		log.info("En persona service:"+documento);
+		log.info("En persona service: " + documento);
 		documento = documento.toUpperCase();
-		log.info("Curp formateada:"+documento);
+		log.info("Curp formateada: " + documento);
 		Persona p = personaRepository.buscarPorCurp(documento);
 		if (p != null) {
 			if (caracteres_especiales(p.getCalle())) {
-				log.info("Si en calle:"+p.getCalle());
+				log.info("Si en calle: " + p.getCalle());
 				p.setCalle(nuevaCadena(p.getCalle()));
 			}
 			if (caracteres_especiales(p.getEntrecalles())) {
-				log.info("Si en entre calles:"+p.getEntrecalles());
+				log.info("Si en entre calles: " + p.getEntrecalles());
 				p.setEntrecalles(nuevaCadena(p.getEntrecalles()));
 			}
 			if (caracteres_especiales(p.getNombre())) {
-				log.info("Si en nombre:"+p.getNombre());
+				log.info("Si en nombre: " + p.getNombre());
 				p.setNombre(nuevaCadena(p.getNombre()));
 			}
 			if (caracteres_especiales(p.getAppaterno())) {
-				log.info("Si en appaterno:"+p.getEntrecalles());
+				log.info("Si en appaterno: " + p.getAppaterno());
 				p.setAppaterno(nuevaCadena(p.getAppaterno()));
 			}
 			if (caracteres_especiales(p.getApmaterno())) {
-				log.info("Si en apmaterno:"+p.getApmaterno());
+				log.info("Si en apmaterno: " + p.getApmaterno());
 				p.setApmaterno(nuevaCadena(p.getApmaterno()));
 			}			
 			if (caracteres_especiales(p.getEmail())) {
@@ -49,6 +48,14 @@ public class PersonaServiceImpl implements IPersonaService {
 			}
 		}
 		return p;// personaRepository.buscarPorCurp(documento);
+	}
+	
+	@Override
+	public Persona findPersonaByDocumento_cba(String tipoDocumento, String documento) {
+		documento = documento.toUpperCase();
+		log.info("Curp formateada: " + documento);
+		
+		return personaRepository.buscarPorCurp(documento);
 	}
 
 	@Override

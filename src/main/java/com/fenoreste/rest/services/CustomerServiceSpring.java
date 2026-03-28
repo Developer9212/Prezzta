@@ -191,9 +191,18 @@ public class CustomerServiceSpring {
 			boolean bandera_ssm = false;
 			List<String>rangos = new ArrayList<>();
 			
-			log.info("En service vamos a buscar persona");
 			//Buscamos a la persona con los datos que llegaron en el metodo
-			Persona persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());
+			log.info("En service vamos a buscar persona");
+			Persona persona = null;
+			
+			//Si es Buenos
+			if (origen.getIdorigen() == 30100) {
+				persona = personaService.findPersonaByDocumento_cba(tipoDocumento, numeroDocumento.trim());
+			//Si es csn
+			} else {
+				persona = personaService.findPersonaByDocumento(tipoDocumento, numeroDocumento.trim());
+			}
+			
 			log.info("La persona es: " + persona.getApmaterno() + ", " + persona.getPk().getIdgrupo());
 			
 			//Validaciones solo para mitras
@@ -1389,18 +1398,9 @@ public class CustomerServiceSpring {
 																					new Integer(tb_config_dispersion.getDato1()), 2);
 							}
 							
-							//buenos aires mandamos el numero de tarjeta
-							if (origen.getIdorigen() == 30100) {
-								AuxiliarPK pk_tdd = new AuxiliarPK(aux_tdd.getPk().getIdorigenp(), aux_tdd.getPk().getIdproducto(), aux_tdd.getPk().getIdauxiliar());
-								FolioTarjeta folio_tdd = foliosTarjetaService.buscarPorId(pk_tdd);
-								
-								prestamo.setTarjetaDebito(folio_tdd.getIdtarjeta());
-							//resto mandamos opa
-							} else {
-								prestamo.setTarjetaDebito(String.format("%06d", aux_tdd.getPk().getIdorigenp().intValue()) +
-														  String.format("%05d", aux_tdd.getPk().getIdproducto().intValue()) +
-														  String.format("%08d", aux_tdd.getPk().getIdauxiliar().intValue()));
-							}
+							prestamo.setTarjetaDebito(String.format("%06d", aux_tdd.getPk().getIdorigenp().intValue()) +
+													  String.format("%05d", aux_tdd.getPk().getIdproducto().intValue()) +
+													  String.format("%08d", aux_tdd.getPk().getIdauxiliar().intValue()));
 							
 							Amortizacion amortizacion_final = amortizacionesService.findUltimaAmortizacion(creado_aux.getPk().getIdorigenp(),
 																										   creado_aux.getPk().getIdproducto(),
@@ -1412,7 +1412,7 @@ public class CustomerServiceSpring {
 							DetallesSiscore detallesSiscore = null;
 							if (origen.getIdorigen() == 30200) {
 								detallesSiscore = ResumenSiscoreCSN(creado_aux.getPk().getIdorigenp(), creado_aux.getPk().getIdproducto(),
-																creado_aux.getPk().getIdauxiliar());
+																	creado_aux.getPk().getIdauxiliar());
 								prestamo.setId_solicitud_siscore(String.valueOf(detallesSiscore.getIdsolicitud()));
 								prestamo.setResumen_calificacion_siscore(detallesSiscore);
 							}
@@ -1482,14 +1482,17 @@ public class CustomerServiceSpring {
 							prestamo.setTasa_anual(String.valueOf(producto.getTasaio() * 12));
 							
 							if (origen.getIdorigen() == 30200) {
-								/*Variables nuevas SAN NICOLAS*/								
-								ComisionPrezzta comisionProducto = comisionPrezztaService.buscarPorId(creado_aux.getPk().getIdproducto());
+								/*Variables nuevas SAN NICOLAS*/
+								
+								//cambiamos la variable monto_comision porque el campo montoautorizado esta 0 porque el opa esta en estatus autorizado
+								/*ComisionPrezzta comisionProducto = comisionPrezztaService.buscarPorId(creado_aux.getPk().getIdproducto());
 								Double comision = 0.0;
 								if(comisionProducto != null) {
 									comision = comisionProducto.getPorcentaje_comision() / 100;									
 									comision = creado_aux.getMontoautorizado().intValue() * comision;
 								}
-								prestamo.setMonto_comision(comision);
+								prestamo.setMonto_comision(comision);*/
+								prestamo.setMonto_comision(creado_aux.getComision().doubleValue());
 								
 								prestamo.setTasa_moratoria(creado_aux.getTasaim().doubleValue() * 12);
 								
@@ -1863,12 +1866,18 @@ public class CustomerServiceSpring {
 								
 								if (deposito_cba) {
 									log.info("Vamos a procesar registros cba");
-									String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
-																									registrar_movimiento.getPk().getIdusuario(),
-																									registrar_movimiento.getPk().getSesion(),
-																									registrar_movimiento.getPk().getReferencia());
-									total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
-									log.info("Total procesados 1: " + total_procesados);
+									
+									try {
+										String datos_procesar = funcionesService.sai_aplica_transaccion(matriz.getFechatrabajo(),
+																										registrar_movimiento.getPk().getIdusuario(),
+																										registrar_movimiento.getPk().getSesion(),
+																										registrar_movimiento.getPk().getReferencia());
+										total_procesados = Integer.parseInt(String.valueOf(datos_procesar));
+										log.info("Total procesados 1: " + total_procesados);
+										
+									} catch (Exception e) {
+										log.info("Error al procesar registros cba: " + e.getMessage());
+									}
 									
 									//Si la poliza no se procesa de manera correcta
 									if (total_procesados > 0) {
@@ -1878,7 +1887,6 @@ public class CustomerServiceSpring {
 										String respuestaRetiro = consumoTddService.retiroSaldo_CBA(tb_url_tdd.getDato2(), folioTdd.getIdtarjeta(), total_depositar);
 										entregado.setNota("Error al dispersar credito");
 										log.info("Error al dispersar credito");
-										deposito_csn = false;
 									}
 								}
 							} else {
@@ -1924,7 +1932,7 @@ public class CustomerServiceSpring {
 						if (total_procesados > 0) {
 							entregado.setNota("La dispersion se realizo exitosamente, Total entregado: " + total_depositar);
 							log.info("Prestamo entregado de manera exitosa...." + opa);
-						} else {					
+						} else {
 							entregado.setNota("No se completo la activacion del producto...");
 							entregado.setNumero_pagare("");
 							entregado.setProteccion_ahorro_prestamo("");

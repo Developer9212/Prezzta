@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fenoreste.rest.entity.AuxiliarPK;
+import com.fenoreste.rest.entity.Origenes;
 import com.fenoreste.rest.modelos.InfoClienteDTO;
 import com.fenoreste.rest.modelos.InfoPrestamoCreadoDTO;
 import com.fenoreste.rest.modelos.PrestamoCreadoDTO;
@@ -23,6 +24,7 @@ import com.fenoreste.rest.modelos.dataDTO;
 import com.fenoreste.rest.modelos.requestRegistraPrestamo;
 import com.fenoreste.rest.services.CustomerServiceSpring;
 import com.fenoreste.rest.services.IFuncionesService;
+import com.fenoreste.rest.services.IOrigenesService;
 import com.github.cliftonlabs.json_simple.JsonObject;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +44,9 @@ public class CustomerController {
 	
 	@Autowired
 	private IFuncionesService funcionesService;
+	
+	@Autowired
+	private IOrigenesService origenesService;
 	
     @PostMapping(value = "/buscar", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> cliente(@RequestBody clientRequestDTO request) {
@@ -78,8 +83,11 @@ public class CustomerController {
     	InfoPrestamoCreadoDTO info = new InfoPrestamoCreadoDTO();
     	log.info("Objeto registrar solicitud: " + request + ", Peticion a las: " + new Date().toGMTString());
     	
+    	Origenes origen = origenesService.findMatrizOrigen();
+    	
     	try {
-    		if (request.getMonto().doubleValue() >= 60000.00) {
+    		//validacion para csn
+    		if (request.getMonto().doubleValue() >= 60000.00 && origen.getIdorigen() == 30200) {
     			if (!funcionesService.servicioActivoInactivoBackend()) {
         			info.setMessage("HORARIO DE OPERACION");
         			info.setCode(409);
